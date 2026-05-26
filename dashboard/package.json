@@ -30,6 +30,7 @@
     "verify:session-csrf": "node scripts/verify-session-csrf-guard.mjs",
     "verify:external-hardening": "node scripts/verify-external-hardening.mjs",
     "verify:integration-contract-smoke": "node scripts/verify-integration-contract-smoke.mjs",
+    "verify": "npm run typecheck && npm test && npm run lint && npm run build",
     "verify:ci": "npm run verify:mutation-audit && npm run verify:api-guardrails && npm run verify:high-risk-audit && npm run verify:platform-hardening && npm run verify:stage-brain-bindings && npm run verify:integration-readiness && npm run verify:strict-audit-contract && npm run verify:brain-worker-independence && npm run verify:orchestration-coverage && npm run verify:enterprise-depth && npm run verify:enterprise-rollout && npm run verify:auth-session-roles && npm run verify:session-csrf && npm run verify:external-hardening && npm run verify:integration-contract-smoke && npm run build"
   },
   "dependencies": {
