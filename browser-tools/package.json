@@ -1,0 +1,9 @@
+{
+  "name": "browser-tools",
+  "version": "1.0.0",
+  "description": "Chrome CDP browser automation tools",
+  "main": "index.js",
+  "dependencies": {
+    "ws": "^8.16.0"
+  }
+}

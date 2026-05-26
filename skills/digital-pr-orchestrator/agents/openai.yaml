@@ -1,0 +1,6 @@
+interface:
+  display_name: "Digital PR Orchestrator"
+  short_description: "Runs the end-to-end Digital PR workflow"
+  default_prompt: "Use $digital-pr-orchestrator to run my Digital PR workflow from study to final email, including 40-angle Stage 4 generation, GPT-5.5 scoring, user checkbox selection, and active selected-angle handoffs."
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Study Insight Extractor"
+  short_description: "Extracts findings and press-worthy data points"
+  default_prompt: "Use $study-insight-extractor to pull the strongest findings from this study."
+policy:
+  allow_implicit_invocation: false

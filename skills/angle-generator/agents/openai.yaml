@@ -1,0 +1,6 @@
+interface:
+  display_name: "Angle Generator"
+  short_description: "Generates 40 scored pitch angles across 20 categories"
+  default_prompt: "Use $angle-generator to create 40 journalist-ready pitch angles across 20 strategic categories, with beat mapping, SERP-aware newsworthiness, GPT-5.5 scoring readiness, and checkbox selection fields."
+policy:
+  allow_implicit_invocation: false

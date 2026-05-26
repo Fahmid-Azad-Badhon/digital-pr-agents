@@ -1,0 +1,7 @@
+interface:
+  display_name: "Muck Rack Bulk Collector"
+  short_description: "Guides high-volume Muck Rack and SERP journalist collection"
+  default_prompt: "Use $muck-rack-bulk-collector to plan and validate selected-beat Muck Rack Boolean collection."
+policy:
+  allow_implicit_invocation: false
+

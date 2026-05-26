@@ -1,0 +1,251 @@
+# ============================================
+# Digital PR Agents - Git Ignore
+# Production-ready gitignore for Digital PR workflow
+# ============================================
+
+# ------------------------------------------------
+# Secrets and Credentials (NEVER commit)
+# ------------------------------------------------
+.secrets/**
+!.secrets/
+!.secrets/google/
+!.secrets/google/.gitkeep
+!.secrets/google/README.md
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+credentials.json
+service-account.json
+*.logins
+
+# ------------------------------------------------
+# Node.js / Dependencies
+# ------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+*.npm
+*.yarn
+
+# ------------------------------------------------
+# Build Outputs
+# ------------------------------------------------
+dist/
+build/
+.next/
+.next-dev-*/
+.nuxt/
+out/
+.output/
+.vercel/
+netlify.toml
+
+# ------------------------------------------------
+# Dashboard / Frontend
+# ------------------------------------------------
+dashboard/.next/
+dashboard/out/
+dashboard/node_modules/
+dashboard/.env*
+dashboard/dist/
+dashboard/coverage/
+*.tsbuildinfo
+*.tsbuildinfo.*
+
+# ------------------------------------------------
+# Runtime Log Files (Dev Server)
+# ------------------------------------------------
+logs/
+dashboard/logs/
+dashboard-dev.err.log
+dashboard-server.log
+dashboard-dev.out.log
+dashboard/*.err
+dashboard/*.log
+dashboard/*.out.log
+
+# ------------------------------------------------
+# Audit Reports (Generated Files)
+# ------------------------------------------------
+audit-reports/
+*.audit
+*.audit.json
+
+# ------------------------------------------------
+# Pitch Jobs (Campaign Data)
+# ------------------------------------------------
+pitch-jobs/
+!pitch-jobs/README.md
+!pitch-jobs/templates/
+!pitch-jobs/pitch-jobs-template/
+*.campaign
+*.job-data
+
+# ------------------------------------------------
+# Data Outputs
+# ------------------------------------------------
+data/
+*.csv
+*.json
+!data/.gitkeep
+output/
+*.output
+pitch-jobs-backup*/
+raw-study-copy.md
+
+# ------------------------------------------------
+# Campaign Workspace Data
+# ------------------------------------------------
+Birth Injury Law/
+
+# ------------------------------------------------
+# Browser Tools
+# ------------------------------------------------
+browser-tools/logs/
+browser-tools/screenshots/
+browser-tools/data/
+browser-tools/profiles/
+chrome-debug-profile/
+
+# ------------------------------------------------
+# Muck Rack Automation
+# ------------------------------------------------
+muck-rack-automation/.tmp/
+muck-rack-automation/node_modules/
+muck-rack-automation/output/
+muck-rack-automation/state/
+
+# ------------------------------------------------
+# Scripts / Compiled Files
+# ------------------------------------------------
+scripts/*.js
+!scripts/*.js
+scripts/*.ps1
+scripts/*.cmd
+!scripts/*.cmd
+
+# ------------------------------------------------
+# Skills / Agent Definitions
+# ------------------------------------------------
+skills/*/node_modules/
+skills/*/package-lock.json
+skills/*/.cache/
+skills/*/scripts/__pycache__/
+
+# ------------------------------------------------
+# Python Bytecode Cache
+# ------------------------------------------------
+__pycache__/
+*.pyc
+
+# ------------------------------------------------
+# Temporary Files
+# ------------------------------------------------
+*.tmp
+*.temp
+*.bak
+*.backup
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ------------------------------------------------
+# IDE and Editor Files
+# ------------------------------------------------
+.idea/
+.vscode/
+*.sublime-*
+*.code-workspace
+.settings/
+.project
+.classpath
+*.iml
+
+# ------------------------------------------------
+# OS Files
+# ------------------------------------------------
+.DS_Store
+Thumbs.db
+*.lnk
+
+# ------------------------------------------------
+# Test and Coverage
+# ------------------------------------------------
+coverage/
+.nyc_output/
+*.lcov
+htmlcov/
+
+# ------------------------------------------------
+# Documentation Build
+# ------------------------------------------------
+docs/_build/
+docs/.doctrees/
+site/
+
+# ------------------------------------------------
+# Version Control (Generated)
+# ------------------------------------------------
+CHANGELOG.md
+!CHANGELOG.md
+VERSIONING.md
+!VERSIONING.md
+
+# ------------------------------------------------
+# Keep Required Files (Negative Patterns)
+# ------------------------------------------------
+!.gitignore
+!README.md
+!package.json
+!package-lock.json
+!tailwind.config.js
+!postcss.config.js
+
+# ------------------------------------------------
+# Template Files (Keep)
+# ------------------------------------------------
+!templates/**/*.md
+!scripts/launch-debug-chrome.ps1
+!scripts/validate-stage.ps1
+!scripts/new-pitch-job.ps1
+!scripts/draft-study-input.js
+!scripts/draft-pitch-draft.js
+!scripts/draft-journalist-intel.js
+!scripts/import-muckrack-output.js
+!scripts/export-google-doc.js
+
+# ------------------------------------------------
+# Configuration Files (Keep)
+# ------------------------------------------------
+!.env.example
+!tsconfig.json
+!jsconfig.json
+
+# ------------------------------------------------
+# Documentation Files (Keep)
+# ------------------------------------------------
+!AGENTS.md
+!agent-registry.md
+!handoff-matrix.md
+!validation-gates.md
+!workflow-architecture.md
+!runbook.md
+!prompt map.md
+!MODEL-CONFIG.md
+!red-team-adversarial-tests.md
+!gold-standard-output-benchmark.md
+!tool-availability-fallbacks.md
+!scoring-prioritization-engine.md
+!VERSIONING.md
+!CHANGELOG.md

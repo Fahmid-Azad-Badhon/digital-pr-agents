@@ -1,0 +1,6 @@
+interface:
+  display_name: "Beat Matcher"
+  short_description: "Maps selected pitch angles to journalist beats and fit"
+  default_prompt: "Use $beat-matcher to map the 40-angle table to journalist beats, preserve top recommendations and backlog, and build the selected-angle gate for one or more user-selected angles."
+policy:
+  allow_implicit_invocation: false

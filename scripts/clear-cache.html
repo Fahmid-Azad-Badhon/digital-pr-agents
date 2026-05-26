@@ -1,0 +1,13 @@
+// Clear dashboard localStorage cache
+// Run in browser console or as a cleanup script
+
+if (typeof window !== 'undefined') {
+    // Clear old campaign entries
+    const keys = Object.keys(localStorage);
+    keys.forEach(key => {
+        if (key.includes('digital-pr') || key.includes('campaign')) {
+            localStorage.removeItem(key);
+        }
+    });
+    console.log('Cleared dashboard localStorage');
+}

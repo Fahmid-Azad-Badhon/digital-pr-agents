@@ -1,0 +1,6 @@
+interface:
+  display_name: "Journalist Intelligence Agent"
+  short_description: "Builds active selected-angle journalist targets and coverage notes"
+  default_prompt: "Use $journalist-intelligence-agent to turn the active selected angle and beat into journalist targets, contact status, and recent coverage notes."
+policy:
+  allow_implicit_invocation: false

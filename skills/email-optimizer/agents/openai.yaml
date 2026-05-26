@@ -1,0 +1,6 @@
+interface:
+  display_name: "Email Optimizer"
+  short_description: "Produces one audited 500-600 word final journalist email"
+  default_prompt: "Use $email-optimizer to turn the confirmed Stage 08 pitch into one world-class, 500-600 word, newsworthy, data-backed, angle-aligned Stage 09 journalist email with an analytical table, then run the optimized-email audit and validate-stage check."
+policy:
+  allow_implicit_invocation: false

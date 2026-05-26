@@ -1,0 +1,37 @@
+# Georgia Pedestrian and Bicyclist Safety Campaign Brief
+
+## Campaign Name
+Georgia-Road-Safety-2026
+
+## Client Name
+Georgia Department of Transportation (Hypothetical)
+
+## Core Topic
+Pedestrian and bicyclist injuries and fatalities in Georgia
+
+## Campaign Goal
+Identify data-driven story angles about road safety in Georgia to pitch to local and state journalists.
+
+## Key Questions
+- Where are the most dangerous roads for pedestrians and cyclists?
+- Which counties/cities have the highest injury rates?
+- What factors contribute to these crashes?
+- Are there seasonal patterns?
+- How does Georgia compare to national averages?
+
+## Target Journalist Beats
+- State/regional news
+- Public safety
+- Transportation
+- Local government
+- Health/wellness
+- Data journalism
+
+## Deadline
+2026-06-15
+
+## Provided Source Material
+- Georgia Department of Transportation crash data (2023-2025)
+- Federal Highway Administration statistics
+- National Highway Traffic Safety Administration reports
+- Georgia cities pedestrian planning documents

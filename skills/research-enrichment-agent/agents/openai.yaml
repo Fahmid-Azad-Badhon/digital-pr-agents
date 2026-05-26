@@ -1,0 +1,6 @@
+interface:
+  display_name: "Research Enrichment Agent"
+  short_description: "Adds context, validation, and support research"
+  default_prompt: "Use $research-enrichment-agent to enrich these findings with supporting research."
+policy:
+  allow_implicit_invocation: false

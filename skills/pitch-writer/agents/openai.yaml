@@ -1,0 +1,6 @@
+interface:
+  display_name: "Pitch Writer"
+  short_description: "Drafts six audited 500-600 word journalist pitch variants"
+  default_prompt: "Use $pitch-writer to draft six 500-600 word, newsworthy journalist email variants with analytical tables for the active confirmed selected angle, run the Stage 08 pitch quality audit, and select the strongest first-pass draft."
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,253 @@
+/**
+ * Digital PR Orchestrator - CSS Variables
+ * Professional color system for enterprise dashboard
+ * 
+ * Usage:
+ * 1. Import this file in your main CSS
+ * 2. Add 'dark' class to <html> for dark mode
+ * 3. Use var(--variable-name) in your CSS
+ * 
+ * Example: background: var(--color-card);
+ */
+
+/* ========================================= */
+/* LIGHT MODE (Default)                   */
+/* ========================================= */
+
+:root {
+  /* Primary Colors */
+  --color-primary: #2563EB;
+  --color-primary-hover: #1D4ED8;
+  --color-primary-soft: #EFF6FF;
+
+  /* Navigation */
+  --color-nav-bg: #111827;
+  --color-nav-hover: #1F2937;
+
+  /* Backgrounds */
+  --color-bg: #F8FAFC;
+  --color-card: #FFFFFF;
+  --color-section: #F1F5F9;
+
+  /* Text */
+  --color-text: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748B;
+
+  /* Borders */
+  --color-border: #E2E8F0;
+
+  /* Status - Success */
+  --color-success: #16A34A;
+  --color-success-soft: #DCFCE7;
+
+  /* Status - Warning */
+  --color-warning: #F59E0B;
+  --color-warning-soft: #FEF3C7;
+
+  /* Status - Error */
+  --color-error: #DC2626;
+  --color-error-soft: #FEE2E2;
+
+  /* Status - Info */
+  --color-info: #2563EB;
+  --color-info-soft: #DBEAFE;
+
+  /* Status - Manual Action */
+  --color-manual: #7C3AED;
+  --color-manual-soft: #EDE9FE;
+
+  /* Status - Waiting/Neutral */
+  --color-waiting: #64748B;
+  --color-waiting-soft: #F1F5F9;
+
+  /* ========================================= */
+  /* Workflow Stage Colors                     */
+  /* ========================================= */
+  --stage-intake: #4F46E5;
+  --stage-extraction: #2563EB;
+  --stage-research: #0891B2;
+  --stage-angles: #7C3AED;
+  --stage-beats: #9333EA;
+  --stage-collection: #0D9488;
+  --stage-intelligence: #059669;
+  --stage-draft: #E11D48;
+  --stage-optimize: #EA580C;
+  --stage-package: #D97706;
+  --stage-export: #16A34A;
+  --stage-validation: #475569;
+  --stage-browser: #0284C7;
+  --stage-readiness: #52525B;
+
+  /* ========================================= */
+  /* Chart Colors                             */
+  /* ========================================= */
+  --chart-1: #3B82F6;
+  --chart-2: #10B981;
+  --chart-3: #F59E0B;
+  --chart-4: #F43F5E;
+  --chart-5: #8B5CF6;
+  --chart-6: #14B8A6;
+
+  /* ========================================= */
+  /* Shadows                                   */
+  /* ========================================= */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  --shadow-glow-primary: 0 0 20px rgba(37, 99, 235, 0.3);
+  --shadow-glow-success: 0 0 20px rgba(22, 163, 74, 0.3);
+  --shadow-glow-warning: 0 0 20px rgba(245, 158, 11, 0.3);
+  --shadow-glow-error: 0 0 20px rgba(220, 38, 38, 0.3);
+  --shadow-glow-manual: 0 0 20px rgba(124, 58, 237, 0.3);
+}
+
+/* ========================================= */
+/* DARK MODE                                */
+/* ========================================= */
+
+.dark {
+  /* Primary Colors */
+  --color-primary: #60A5FA;
+  --color-primary-hover: #3B82F6;
+  --color-primary-soft: #1E3A8A;
+
+  /* Navigation */
+  --color-nav-bg: #0F172A;
+  --color-nav-hover: #1E293B;
+
+  /* Backgrounds */
+  --color-bg: #111827;
+  --color-card: #1E293B;
+  --color-section: #273449;
+
+  /* Text */
+  --color-text: #E5E7EB;
+  --color-text-secondary: #CBD5E1;
+  --color-text-muted: #94A3B8;
+
+  /* Borders */
+  --color-border: #334155;
+
+  /* Status - Success */
+  --color-success: #22C55E;
+  --color-success-soft: #14532D;
+
+  /* Status - Warning */
+  --color-warning: #FBBF24;
+  --color-warning-soft: #78350F;
+
+  /* Status - Error */
+  --color-error: #F87171;
+  --color-error-soft: #7F1D1D;
+
+  /* Status - Info */
+  --color-info: #60A5FA;
+  --color-info-soft: #1E3A8A;
+
+  /* Status - Manual Action */
+  --color-manual: #A78BFA;
+  --color-manual-soft: #4C1D95;
+
+  /* Status - Waiting/Neutral */
+  --color-waiting: #94A3B8;
+  --color-waiting-soft: #273449;
+
+  /* Chart Colors (Brighter for dark backgrounds) */
+  --chart-1: #60A5FA;
+  --chart-2: #34D399;
+  --chart-3: #FBBF24;
+  --chart-4: #FB7185;
+  --chart-5: #A78BFA;
+  --chart-6: #2DD4BF;
+}
+
+/* ========================================= */
+/* UTILITY CLASSES (Optional)              */
+/* ========================================= */
+
+/* Primary */
+.bg-primary { background-color: var(--color-primary); }
+.text-primary { color: var(--color-primary); }
+.border-primary { border-color: var(--color-primary); }
+.bg-primary-soft { background-color: var(--color-primary-soft); }
+.hover-primary:hover { background-color: var(--color-primary-hover); }
+
+/* Status Colors */
+.bg-success { background-color: var(--color-success); }
+.bg-success-soft { background-color: var(--color-success-soft); }
+.text-success { color: var(--color-success); }
+
+.bg-warning { background-color: var(--color-warning); }
+.bg-warning-soft { background-color: var(--color-warning-soft); }
+.text-warning { color: var(--color-warning); }
+
+.bg-error { background-color: var(--color-error); }
+.bg-error-soft { background-color: var(--color-error-soft); }
+.text-error { color: var(--color-error); }
+
+.bg-info { background-color: var(--color-info); }
+.bg-info-soft { background-color: var(--color-info-soft); }
+.text-info { color: var(--color-info); }
+
+.bg-manual { background-color: var(--color-manual); }
+.bg-manual-soft { background-color: var(--color-manual-soft); }
+.text-manual { color: var(--color-manual); }
+
+.bg-waiting { background-color: var(--color-waiting); }
+.bg-waiting-soft { background-color: var(--color-waiting-soft); }
+.text-waiting { color: var(--color-waiting); }
+
+/* Backgrounds */
+.bg-page { background-color: var(--color-bg); }
+.bg-card { background-color: var(--color-card); }
+.bg-section { background-color: var(--color-section); }
+
+/* Text */
+.text-main { color: var(--color-text); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-muted { color: var(--color-text-muted); }
+
+/* Navigation */
+.bg-nav { background-color: var(--color-nav-bg); }
+.bg-nav-hover:hover { background-color: var(--color-nav-hover); }
+
+/* Border */
+.border-default { border-color: var(--color-border); }
+
+/* Stage Colors */
+.bg-stage-intake { background-color: var(--stage-intake); }
+.bg-stage-extraction { background-color: var(--stage-extraction); }
+.bg-stage-research { background-color: var(--stage-research); }
+.bg-stage-angles { background-color: var(--stage-angles); }
+.bg-stage-beats { background-color: var(--stage-beats); }
+.bg-stage-collection { background-color: var(--stage-collection); }
+.bg-stage-intelligence { background-color: var(--stage-intelligence); }
+.bg-stage-draft { background-color: var(--stage-draft); }
+.bg-stage-optimize { background-color: var(--stage-optimize); }
+.bg-stage-package { background-color: var(--stage-package); }
+.bg-stage-export { background-color: var(--stage-export); }
+
+/* Shadows */
+.shadow-glow-primary { box-shadow: var(--shadow-glow-primary); }
+.shadow-glow-success { box-shadow: var(--shadow-glow-success); }
+.shadow-glow-warning { box-shadow: var(--shadow-glow-warning); }
+.shadow-glow-error { box-shadow: var(--shadow-glow-error); }
+.shadow-glow-manual { box-shadow: var(--shadow-glow-manual); }
+
+/* ========================================= */
+/* GLOBAL FORM ELEMENT STYLES              */
+/* ========================================= */
+
+/* Select dropdown options - Light Mode */
+select option {
+  background-color: #FFFFFF;
+  color: #0F172A;
+}
+
+/* Select dropdown options - Dark Mode */
+.dark select option {
+  background-color: #1E293B;
+  color: #E5E7EB;
+}

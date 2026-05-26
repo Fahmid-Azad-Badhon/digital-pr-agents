@@ -1,0 +1,6 @@
+interface:
+  display_name: "Journalist Targeting Subagent"
+  short_description: "Validates active selected-angle journalist targeting depth and beat fit"
+  default_prompt: "Use $journalist-targeting-subagent to validate the active selected-angle journalist pool, beat fit, collection completeness, and 800-per-selected-beat gate."
+policy:
+  allow_implicit_invocation: false
