@@ -16,6 +16,8 @@
  * =============================================================================
  */
 
+import { validateLLMOutput } from '@/lib/llmStageValidator';
+
 import routingConfig, {
   CAMPAIGN_STAGE_ROUTING,
   DASHBOARD_ROUTING,
@@ -411,6 +413,11 @@ export async function runStageWithFallback(
         ]);
         
         if (result.success) {
+          const validationResult = validateLLMOutput(stageId, result.output);
+          if (validationResult.status === 'failed') {
+            console.warn(`[ModelRouter] Stage ${stageId} output validation failed:`, validationResult.errors);
+          }
+
           const stageRouting = getStageRouting(stageId);
           const reviewerModel = stageRouting?.mandatoryReviewer;
           let reviewerApproved = true;
@@ -498,7 +505,8 @@ export async function runStageWithFallback(
             fallbackUsed: !isPrimary,
             fallbackReason: !isPrimary ? lastError : undefined,
             retryCount,
-            durationMs: result.durationMs
+            durationMs: result.durationMs,
+            validationStatus: validationResult.status,
           };
         }
         
