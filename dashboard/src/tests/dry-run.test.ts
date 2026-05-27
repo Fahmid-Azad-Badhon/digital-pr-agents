@@ -287,4 +287,14 @@ describe('runScriptAction dry-run guard', () => {
     expect((error as Error).message).toContain('external script blocked');
   });
 
+  it('blocks unknown scripts before spawn is called', async () => {
+    const { runScriptAction } = await import('@/lib/scriptRunner');
+
+    const error = await (runScriptAction as (action: string, payload: Record<string, unknown>) => Promise<unknown>)(
+      'unregistered_action', { campaignId: 'test' }
+    ).then(() => null, (e: unknown) => e);
+
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toContain('unknown script blocked');
+  });
 });
