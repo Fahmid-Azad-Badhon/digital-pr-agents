@@ -40,6 +40,8 @@
     ".next-dev-3002/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".next/types/**/*.ts",
+    ".next-dev-3002/types/**/*.ts"
   ]
 }
