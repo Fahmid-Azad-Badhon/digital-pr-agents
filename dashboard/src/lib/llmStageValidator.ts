@@ -5,13 +5,16 @@ import {
   InsightNoteSchema,
   JournalistProfileSchema,
 } from '@/lib/llmService';
+import { CampaignIntakeRealSchema } from '@/schemas/campaign/campaign-intake-registry.schema';
+import { ClustersAnalysisSchema } from '@/schemas/campaign/clusters-analysis-registry.schema';
 import { looksLikeFallback } from '@/lib/fallbackMarkers';
 
 const DRY_RUN_OUTPUT = '[DRY RUN] External call blocked. No live LLM fetch performed.';
 
 export const STAGE_SCHEMA_REGISTRY: Record<string, z.ZodSchema> = {
+  S1_CAMPAIGN_INTAKE: CampaignIntakeRealSchema,
   S4A_DATA_RESEARCH_ANALYST: S4AnalysisSchema,
-  S4B_INSIGHT_ANALYST: S4AnalysisSchema,
+  S4B_INSIGHT_ANALYST: ClustersAnalysisSchema,
   S10_PITCH_DRAFTING: PitchOutputSchema,
   S9_JOURNALIST_INTELLIGENCE: z.array(JournalistProfileSchema),
   S2_DATA_EXTRACTION: z.array(InsightNoteSchema),

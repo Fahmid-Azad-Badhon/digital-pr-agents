@@ -12,6 +12,7 @@ vi.mock('fs/promises', () => ({
 vi.mock('@/lib/modelRouter', () => ({
   getStageOutputFile: vi.fn((stageId: string) => {
     const map: Record<string, string> = {
+      S1_CAMPAIGN_INTAKE: '01-campaign-intake.json',
       S2_DATA_EXTRACTION: '02-insights.md',
       S10_PITCH_DRAFTING: '08-pitch-draft.md',
       S11_OPTIMIZED_PITCH: '09-optimized-email.md',
@@ -39,16 +40,29 @@ const DRY_RUN_STRING = '[DRY RUN] External call blocked. No live LLM fetch perfo
 // getOutputType — Classification
 // =========================================================================
 describe('getOutputType', () => {
+  // JSON-producing stages (must match jsonPrefixes in getOutputType)
+  it('returns json for S1 stage', () => {
+    expect(getOutputType('S1_CAMPAIGN_INTAKE')).toBe('json');
+  });
+
   it('returns json for S2 stage', () => {
     expect(getOutputType('S2_DATA_EXTRACTION')).toBe('json');
   });
 
-  it('returns markdown for S10 stage', () => {
-    expect(getOutputType('S10_PITCH_DRAFTING')).toBe('markdown');
+  it('returns json for S3 stage', () => {
+    expect(getOutputType('S3_RESEARCH_ENRICHMENT')).toBe('json');
   });
 
-  it('returns markdown for S11 stage', () => {
-    expect(getOutputType('S11_OPTIMIZED_PITCH')).toBe('markdown');
+  it('returns json for S4A stage', () => {
+    expect(getOutputType('S4A_DATA_RESEARCH_ANALYST')).toBe('json');
+  });
+
+  it('returns json for S4B stage', () => {
+    expect(getOutputType('S4B_INSIGHT_ANALYST')).toBe('json');
+  });
+
+  it('returns json for S9 stage', () => {
+    expect(getOutputType('S9_JOURNALIST_INTELLIGENCE')).toBe('json');
   });
 
   it('returns json for S13 stage', () => {
@@ -59,6 +73,40 @@ describe('getOutputType', () => {
     expect(getOutputType('S16_LEARNING')).toBe('json');
   });
 
+  // Markdown-producing stages (default when no JSON/CSV prefix matches)
+  it('returns markdown for S5 stage', () => {
+    expect(getOutputType('S5_ANGLE_GENERATION')).toBe('markdown');
+  });
+
+  it('returns markdown for S6 stage', () => {
+    expect(getOutputType('S6_BEAT_MATCHING')).toBe('markdown');
+  });
+
+  it('returns markdown for S7 stage', () => {
+    expect(getOutputType('S7_PITCH_SELECTION_HUMAN_GATE')).toBe('markdown');
+  });
+
+  it('returns markdown for S10 stage', () => {
+    expect(getOutputType('S10_PITCH_DRAFTING')).toBe('markdown');
+  });
+
+  it('returns markdown for S11 stage', () => {
+    expect(getOutputType('S11_OPTIMIZED_PITCH')).toBe('markdown');
+  });
+
+  it('returns markdown for S12 stage', () => {
+    expect(getOutputType('S12_PACKAGE_ASSEMBLY')).toBe('markdown');
+  });
+
+  it('returns markdown for S14 stage', () => {
+    expect(getOutputType('S14_FINAL_FORMATTING')).toBe('markdown');
+  });
+
+  it('returns markdown for S15 stage', () => {
+    expect(getOutputType('S15_OUTREACH_ASSET_CREATION')).toBe('markdown');
+  });
+
+  // CSV-producing stages
   it('returns csv for S8 stage', () => {
     expect(getOutputType('S8_JOURNALIST_LIST')).toBe('csv');
   });
@@ -110,5 +158,23 @@ describe('saveStageOutput — JSON enforcement', () => {
   it('allows unregistered JSON stage', async () => {
     const result = await saveStageOutput('test-campaign', 'S13_VALIDATION', VALID_S2_OUTPUT, 'json');
     expect(result).toContain('s13-output.json');
+  });
+
+  it('writes valid S1 JSON for registered stage', async () => {
+    const validS1 = JSON.stringify({
+      name: 'Test Campaign', clientName: 'Test Client', studyTitle: 'Study',
+      topic: 'Test topic', targetRegion: 'US', targetBeats: ['Tech'],
+      goal: 'Get coverage', tone: 'Professional', notes: '',
+      generatedAt: new Date().toISOString(), status: 'intake-complete', briefLength: 500,
+    });
+    const result = await saveStageOutput('test-campaign', 'S1_CAMPAIGN_INTAKE', validS1, 'json');
+    expect(result).toBeDefined();
+  });
+
+  it('blocks invalid S1 JSON before write', async () => {
+    const invalidS1 = JSON.stringify({ name: 'Test', topic: 'test' });
+    await expect(
+      saveStageOutput('test-campaign', 'S1_CAMPAIGN_INTAKE', invalidS1, 'json')
+    ).rejects.toThrow('JSON validation blocked write for stage S1_CAMPAIGN_INTAKE');
   });
 });

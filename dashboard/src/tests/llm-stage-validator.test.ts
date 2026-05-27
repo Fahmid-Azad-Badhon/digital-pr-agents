@@ -32,6 +32,30 @@ const VALID_S9_OUTPUT = JSON.stringify([
   { id: 'JP_02', name: 'John Doe', outlet: 'Wired', coverage: 'Infrastructure reporter' },
 ]);
 
+const VALID_S1_OUTPUT = JSON.stringify({
+  name: 'Birth Injury Law March 2026',
+  clientName: 'Birth Injury Law',
+  studyTitle: 'The Cost of Having a Baby',
+  topic: 'Birth injury costs in America',
+  targetRegion: 'United States',
+  targetBeats: ['Health', 'Personal Finance', "Women's Health"],
+  goal: 'Earn national media coverage about birth injury costs',
+  tone: 'Professional',
+  notes: 'Campaign targeting personal finance and health journalists',
+  generatedAt: '2026-05-14T15:04:36.130Z',
+  status: 'intake-complete',
+  briefLength: 2163,
+});
+
+const VALID_S4B_OUTPUT = JSON.stringify({
+  generatedAt: '2026-05-14T15:10:00.000Z',
+  clusters: [
+    { id: 'cluster_1', insight: 'Birth injury costs vary significantly by state', confidence: 'high', priority: 'high' },
+    { id: 'cluster_2', insight: 'Insurance coverage gaps create financial strain', confidence: 'medium', priority: 'medium' },
+  ],
+  totals: { insights: 2, highPriority: 1 },
+});
+
 // ---------------------------------------------------------------------------
 // isDryRunOutput
 // ---------------------------------------------------------------------------
@@ -220,8 +244,9 @@ describe('validateLLMOutput — extraction from various formats', () => {
 // STAGE_SCHEMA_REGISTRY completeness
 // ---------------------------------------------------------------------------
 describe('STAGE_SCHEMA_REGISTRY', () => {
-  it('contains all expected JSON-producing stages', () => {
+  it('contains all expected registered stages', () => {
     const expectedStages = [
+      'S1_CAMPAIGN_INTAKE',
       'S4A_DATA_RESEARCH_ANALYST',
       'S4B_INSIGHT_ANALYST',
       'S10_PITCH_DRAFTING',
@@ -231,6 +256,12 @@ describe('STAGE_SCHEMA_REGISTRY', () => {
     for (const stage of expectedStages) {
       expect(STAGE_SCHEMA_REGISTRY).toHaveProperty(stage);
     }
+  });
+
+  it('does not contain intentionally deferred stages S3, S13, S16', () => {
+    expect(STAGE_SCHEMA_REGISTRY).not.toHaveProperty('S3_RESEARCH_ENRICHMENT');
+    expect(STAGE_SCHEMA_REGISTRY).not.toHaveProperty('S13_VALIDATION');
+    expect(STAGE_SCHEMA_REGISTRY).not.toHaveProperty('S16_CAMPAIGN_LOG_LEARNING_LOOP');
   });
 
   it('each entry is a Zod schema (has safeParse)', () => {
@@ -285,5 +316,144 @@ describe('validateJsonBeforeWrite', () => {
     expect(result.allowed).toBe(true);
     expect(result.status).toBe('skipped_unregistered');
     expect(result.errors).toContain('No schema registered for stage: UNKNOWN_STAGE');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// S1 Campaign Intake Schema Tests
+// ---------------------------------------------------------------------------
+describe('S1 CampaignIntakeRealSchema', () => {
+  it('returns passed for valid S1 camelCase output', () => {
+    const result = validateLLMOutput('S1_CAMPAIGN_INTAKE', VALID_S1_OUTPUT);
+    expect(result.status).toBe('passed');
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+    expect(result.parsed).toBeDefined();
+  });
+
+  it('returns failed for S1 output missing required name', () => {
+    const bad = JSON.stringify({ topic: 'test', targetRegion: 'US', tone: 'Professional', generatedAt: 'now', status: 'ok', briefLength: 100 });
+    const result = validateLLMOutput('S1_CAMPAIGN_INTAKE', bad);
+    expect(result.status).toBe('failed');
+    expect(result.valid).toBe(false);
+  });
+
+  it('returns failed for S1 output with briefLength as string', () => {
+    const bad = JSON.stringify({
+      name: 'Test', topic: 'test', targetRegion: 'US', tone: 'Professional',
+      generatedAt: 'now', status: 'ok', briefLength: 'not-a-number',
+    });
+    const result = validateLLMOutput('S1_CAMPAIGN_INTAKE', bad);
+    expect(result.status).toBe('failed');
+    expect(result.valid).toBe(false);
+  });
+
+  it('returns failed for empty S1 object', () => {
+    const result = validateLLMOutput('S1_CAMPAIGN_INTAKE', '{}');
+    expect(result.status).toBe('failed');
+    expect(result.valid).toBe(false);
+  });
+
+  it('validateJsonBeforeWrite blocks invalid S1 JSON', () => {
+    const result = validateJsonBeforeWrite('S1_CAMPAIGN_INTAKE', '{}');
+    expect(result.allowed).toBe(false);
+    expect(result.status).toBe('failed');
+    expect(result.errors.length).toBeGreaterThan(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// S4B ClustersAnalysisSchema Tests
+// ---------------------------------------------------------------------------
+describe('S4B ClustersAnalysisSchema', () => {
+  it('returns passed for valid S4B clusters output', () => {
+    const result = validateLLMOutput('S4B_INSIGHT_ANALYST', VALID_S4B_OUTPUT);
+    expect(result.status).toBe('passed');
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+    expect(result.parsed).toBeDefined();
+  });
+
+  it('returns failed for S4B output missing generatedAt', () => {
+    const bad = JSON.stringify({
+      clusters: [{ id: 'c1', insight: 'test', confidence: 'high', priority: 'high' }],
+      totals: { insights: 1, highPriority: 1 },
+    });
+    const result = validateLLMOutput('S4B_INSIGHT_ANALYST', bad);
+    expect(result.status).toBe('failed');
+    expect(result.valid).toBe(false);
+  });
+
+  it('returns failed for S4B output missing clusters', () => {
+    const bad = JSON.stringify({ generatedAt: 'now', totals: { insights: 1, highPriority: 0 } });
+    const result = validateLLMOutput('S4B_INSIGHT_ANALYST', bad);
+    expect(result.status).toBe('failed');
+    expect(result.valid).toBe(false);
+  });
+
+  it('returns failed for S4B output missing totals', () => {
+    const bad = JSON.stringify({
+      generatedAt: 'now',
+      clusters: [{ id: 'c1', insight: 'test', confidence: 'high', priority: 'high' }],
+    });
+    const result = validateLLMOutput('S4B_INSIGHT_ANALYST', bad);
+    expect(result.status).toBe('failed');
+    expect(result.valid).toBe(false);
+  });
+
+  it('returns failed when clusters is not an array', () => {
+    const bad = JSON.stringify({ generatedAt: 'now', clusters: 'not-an-array', totals: { insights: 1, highPriority: 0 } });
+    const result = validateLLMOutput('S4B_INSIGHT_ANALYST', bad);
+    expect(result.status).toBe('failed');
+    expect(result.valid).toBe(false);
+  });
+
+  it('returns failed when totals.insights is a string', () => {
+    const bad = JSON.stringify({
+      generatedAt: 'now',
+      clusters: [{ id: 'c1', insight: 'test', confidence: 'high', priority: 'high' }],
+      totals: { insights: 'not-a-number', highPriority: 0 },
+    });
+    const result = validateLLMOutput('S4B_INSIGHT_ANALYST', bad);
+    expect(result.status).toBe('failed');
+    expect(result.valid).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Deferred Stage Pass-Through Tests
+// ---------------------------------------------------------------------------
+describe('Deferred stages S3, S13, S16 remain unregistered', () => {
+  it('S3_RESEARCH_ENRICHMENT passes through as unregistered', () => {
+    const telemetry = validateLLMOutput('S3_RESEARCH_ENRICHMENT', VALID_S1_OUTPUT);
+    expect(telemetry.status).toBe('skipped');
+    expect(telemetry.valid).toBe(true);
+    expect(telemetry.errors).toContain('No schema registered for stage: S3_RESEARCH_ENRICHMENT');
+
+    const write = validateJsonBeforeWrite('S3_RESEARCH_ENRICHMENT', VALID_S1_OUTPUT);
+    expect(write.allowed).toBe(true);
+    expect(write.status).toBe('skipped_unregistered');
+  });
+
+  it('S13_VALIDATION passes through as unregistered', () => {
+    const telemetry = validateLLMOutput('S13_VALIDATION', VALID_S1_OUTPUT);
+    expect(telemetry.status).toBe('skipped');
+    expect(telemetry.valid).toBe(true);
+    expect(telemetry.errors).toContain('No schema registered for stage: S13_VALIDATION');
+
+    const write = validateJsonBeforeWrite('S13_VALIDATION', VALID_S1_OUTPUT);
+    expect(write.allowed).toBe(true);
+    expect(write.status).toBe('skipped_unregistered');
+  });
+
+  it('S16_CAMPAIGN_LOG_LEARNING_LOOP passes through as unregistered', () => {
+    const telemetry = validateLLMOutput('S16_CAMPAIGN_LOG_LEARNING_LOOP', VALID_S1_OUTPUT);
+    expect(telemetry.status).toBe('skipped');
+    expect(telemetry.valid).toBe(true);
+    expect(telemetry.errors).toContain('No schema registered for stage: S16_CAMPAIGN_LOG_LEARNING_LOOP');
+
+    const write = validateJsonBeforeWrite('S16_CAMPAIGN_LOG_LEARNING_LOOP', VALID_S1_OUTPUT);
+    expect(write.allowed).toBe(true);
+    expect(write.status).toBe('skipped_unregistered');
   });
 });
