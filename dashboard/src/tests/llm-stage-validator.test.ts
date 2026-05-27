@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   validateLLMOutput,
+  validateJsonBeforeWrite,
   isDryRunOutput,
   isFallbackContent,
   extractJsonFromOutput,
@@ -236,5 +237,53 @@ describe('STAGE_SCHEMA_REGISTRY', () => {
     for (const [, schema] of Object.entries(STAGE_SCHEMA_REGISTRY)) {
       expect(schema).toHaveProperty('safeParse');
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// validateJsonBeforeWrite — Blocking write-time validation
+// ---------------------------------------------------------------------------
+describe('validateJsonBeforeWrite', () => {
+  it('allows valid registered JSON', () => {
+    const result = validateJsonBeforeWrite('S4A_DATA_RESEARCH_ANALYST', VALID_S4_OUTPUT);
+    expect(result.allowed).toBe(true);
+    expect(result.status).toBe('passed');
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('blocks invalid registered JSON', () => {
+    const badOutput = JSON.stringify({ wrong_field: 'value', dataQualityScore: 'not-a-number' });
+    const result = validateJsonBeforeWrite('S4A_DATA_RESEARCH_ANALYST', badOutput);
+    expect(result.allowed).toBe(false);
+    expect(result.status).toBe('failed');
+    expect(result.errors.length).toBeGreaterThan(0);
+  });
+
+  it('blocks dry-run string for registered JSON stage', () => {
+    const result = validateJsonBeforeWrite('S4A_DATA_RESEARCH_ANALYST', DRY_RUN_STRING);
+    expect(result.allowed).toBe(false);
+    expect(result.status).toBe('skipped_dry_run');
+    expect(result.errors).toContain('Dry-run mode');
+  });
+
+  it('blocks fallback content for registered JSON stage', () => {
+    const result = validateJsonBeforeWrite('S4A_DATA_RESEARCH_ANALYST', 'This is a (Fallback) extraction');
+    expect(result.allowed).toBe(false);
+    expect(result.status).toBe('skipped_fallback');
+    expect(result.errors).toContain('Fallback content detected');
+  });
+
+  it('blocks empty output for registered JSON stage', () => {
+    const result = validateJsonBeforeWrite('S4A_DATA_RESEARCH_ANALYST', '');
+    expect(result.allowed).toBe(false);
+    expect(result.status).toBe('skipped_empty');
+    expect(result.errors).toContain('Empty output');
+  });
+
+  it('allows unregistered JSON stage (pass-through policy)', () => {
+    const result = validateJsonBeforeWrite('UNKNOWN_STAGE', VALID_S4_OUTPUT);
+    expect(result.allowed).toBe(true);
+    expect(result.status).toBe('skipped_unregistered');
+    expect(result.errors).toContain('No schema registered for stage: UNKNOWN_STAGE');
   });
 });

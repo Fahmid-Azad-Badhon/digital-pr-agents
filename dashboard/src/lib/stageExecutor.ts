@@ -21,6 +21,7 @@ import {
   type ModelCallResult
 } from '../lib/modelRouter';
 import { addLog } from '../lib/db';
+import { validateJsonBeforeWrite } from './llmStageValidator';
 
 // =============================================================================
 // CONFIGURATION
@@ -133,6 +134,15 @@ export async function saveStageOutput(
   const outputFile = getStageOutputFile(stageId);
   if (!outputFile) {
     throw new Error(`No output file configured for stage: ${stageId}`);
+  }
+
+  if (outputType === 'json') {
+    const validation = validateJsonBeforeWrite(stageId, output);
+    if (!validation.allowed) {
+      throw new Error(
+        `JSON validation blocked write for stage ${stageId} [${validation.status}]: ${validation.errors.join('; ')}`
+      );
+    }
   }
   
   const campaignDir = path.join(CAMPAIGNS_DIR, campaignSlug);
@@ -399,12 +409,12 @@ function buildPrompt(template: string, input: Record<string, unknown>): string {
   return prompt;
 }
 
-function getOutputType(stageId: string): 'json' | 'markdown' | 'csv' {
-  const jsonStages = ['S1', 'S2', 'S3', 'S4A', 'S4B', 'S9', 'S13', 'S16'];
-  const csvStages = ['S8'];
+export function getOutputType(stageId: string): 'json' | 'markdown' | 'csv' {
+  const jsonPrefixes = ['S1_', 'S2_', 'S3_', 'S4A_', 'S4B_', 'S9_', 'S13_', 'S16_'];
+  const csvPrefixes = ['S8_'];
   
-  if (jsonStages.some(s => stageId.includes(s))) return 'json';
-  if (csvStages.some(s => stageId.includes(s))) return 'csv';
+  if (jsonPrefixes.some(p => stageId.startsWith(p))) return 'json';
+  if (csvPrefixes.some(p => stageId.startsWith(p))) return 'csv';
   return 'markdown';
 }
 

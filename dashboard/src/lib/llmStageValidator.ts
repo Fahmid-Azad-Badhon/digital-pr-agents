@@ -107,3 +107,34 @@ export function validateLLMOutput(stageId: string, output: string): LLMValidatio
     return { valid: false, status: 'failed', errors: ['Invalid JSON'], parsed: undefined };
   }
 }
+
+export interface JsonWriteValidationResult {
+  allowed: boolean;
+  status: 'passed' | 'failed' | 'skipped_dry_run' | 'skipped_fallback' | 'skipped_empty' | 'skipped_unregistered';
+  errors: string[];
+}
+
+export function validateJsonBeforeWrite(stageId: string, output: string): JsonWriteValidationResult {
+  const telemetry = validateLLMOutput(stageId, output);
+
+  if (telemetry.status === 'passed') {
+    return { allowed: true, status: 'passed', errors: [] };
+  }
+
+  if (telemetry.status === 'failed') {
+    return { allowed: false, status: 'failed', errors: telemetry.errors };
+  }
+
+  const skippedReason = telemetry.errors[0] || '';
+  if (skippedReason.includes('Dry-run')) {
+    return { allowed: false, status: 'skipped_dry_run', errors: telemetry.errors };
+  }
+  if (skippedReason.includes('Fallback')) {
+    return { allowed: false, status: 'skipped_fallback', errors: telemetry.errors };
+  }
+  if (skippedReason.includes('Empty')) {
+    return { allowed: false, status: 'skipped_empty', errors: telemetry.errors };
+  }
+
+  return { allowed: true, status: 'skipped_unregistered', errors: telemetry.errors };
+}
