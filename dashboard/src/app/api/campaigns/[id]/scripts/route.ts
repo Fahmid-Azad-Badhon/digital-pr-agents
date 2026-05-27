@@ -9,6 +9,7 @@ import { checkRateLimit } from '@/lib/rateLimiter';
 import { assertValidCampaignId, resolveCampaignPath, sanitizeStageFile, sanitizeText } from '@/lib/requestGuard';
 import { validateInput } from '@/lib/schemaValidation';
 import { isScriptAction, runScriptAction } from '@/lib/scriptRunner';
+import { getRunModeFromRequest } from '@/lib/runMode';
 
 const ACTION_STAGE_HINT: Record<string, number> = {
   draft_study_input: 2,
@@ -67,6 +68,8 @@ export async function POST(
       return fail('CAMPAIGN_NOT_FOUND', `Campaign "${campaignId}" not found.`, { status: 404 });
     }
 
+    const runMode = getRunModeFromRequest(request);
+
     const payload: Record<string, unknown> = { campaignId };
     if (action === 'validate_stage') {
       payload.stageFile = sanitizeStageFile(body.stageFile);
@@ -87,6 +90,7 @@ export async function POST(
         stage: stageHint,
         action,
         actor: 'dashboard_user',
+        extra: { runMode },
       },
     });
 

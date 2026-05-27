@@ -10,6 +10,7 @@ import { assertValidCampaignId, resolveCampaignPath } from '@/lib/requestGuard';
 import { runScriptAction } from '@/lib/scriptRunner';
 import { validateStagePitchGovernance } from '@/lib/pitchGovernanceValidator';
 import { appendRuntimeEvent } from '@/lib/runtimeEvents';
+import { getRunModeFromRequest } from '@/lib/runMode';
 import { looksLikeFallback, FALLBACK_MARKERS } from '@/lib/fallbackMarkers';
 import { STAGES } from '@/types';
 
@@ -1618,6 +1619,8 @@ export async function POST(
       return fail('CAMPAIGN_NOT_FOUND', `Campaign "${campaignId}" not found.`, { status: 404 });
     }
 
+    const runMode = getRunModeFromRequest(request);
+
     const currentState = await readStageState(campaignPath);
     const currentStage = Math.max(1, Math.min(16, Number(currentState.currentStage ?? 1)));
 
@@ -1659,6 +1662,7 @@ export async function POST(
       status: 'running',
       message: `Stage S${stage} execution started.`,
       requestId: request.headers.get('x-request-id'),
+      runMode,
     }).catch(() => undefined);
 
     let result: Record<string, unknown>;
@@ -1720,6 +1724,7 @@ export async function POST(
       status: 'completed',
       message: `Stage S${stage} execution completed.`,
       requestId: request.headers.get('x-request-id'),
+      runMode,
     }).catch(() => undefined);
 
     await releaseExecutionLock(campaignPath, stage);
@@ -1782,6 +1787,7 @@ export async function POST(
           status: 'blocked',
           message: dependencyError.message,
           requestId: request.headers.get('x-request-id'),
+          runMode: getRunModeFromRequest(request),
         });
       } catch {
         // ignore event write failures
@@ -1825,6 +1831,7 @@ export async function POST(
         status: 'failed',
         message: error instanceof Error ? error.message : String(error),
         requestId: request.headers.get('x-request-id'),
+        runMode: getRunModeFromRequest(request),
       }).catch(() => undefined);
       await writeApiAuditLog(request, {
         level: 'error',

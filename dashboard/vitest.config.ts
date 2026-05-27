@@ -10,6 +10,9 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
     },
+    env: {
+      RUN_MODE: 'dry_run',
+    },
   },
   resolve: {
     alias: {

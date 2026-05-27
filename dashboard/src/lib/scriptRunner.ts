@@ -2,6 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { spawn } from 'child_process';
 import { SCRIPTS_ROOT, REPO_ROOT } from '@/lib/requestGuard';
+import { getRunModeFromEnv, shouldBlockExternalAction } from '@/lib/runMode';
 
 export type ScriptAction =
   | 'validate_stage'
@@ -62,6 +63,18 @@ const SCRIPT_MAP: Record<ScriptAction, ScriptSpec> = {
   },
 };
 
+const SAFE_SCRIPTS: ScriptAction[] = [
+  'validate_stage',
+  'draft_study_input',
+  'draft_journalist_intel',
+  'draft_pitch_draft',
+];
+
+const BLOCKED_EXTERNAL_SCRIPTS: ScriptAction[] = [
+  'import_muckrack_output',
+  'export_google_doc',
+];
+
 export function isScriptAction(value: unknown): value is ScriptAction {
   return typeof value === 'string' && Object.keys(SCRIPT_MAP).includes(value);
 }
@@ -70,6 +83,16 @@ export async function runScriptAction(
   action: ScriptAction,
   payload: Record<string, unknown>
 ): Promise<{ exitCode: number; stdout: string; stderr: string; durationMs: number; command: string }> {
+  const mode = getRunModeFromEnv();
+  if (shouldBlockExternalAction(mode)) {
+    if (BLOCKED_EXTERNAL_SCRIPTS.includes(action)) {
+      throw new Error(`Dry run: external script blocked: ${action}`);
+    }
+    if (!SAFE_SCRIPTS.includes(action)) {
+      throw new Error(`Dry run: unknown script blocked: ${action}`);
+    }
+  }
+
   const spec = SCRIPT_MAP[action];
   const scriptPath = path.join(SCRIPTS_ROOT, spec.fileName);
   await fs.access(scriptPath);

@@ -17,6 +17,8 @@
  * Note: User has OpenRouter integrated in OpenCode
  */
 
+import { getRunModeFromEnv, shouldBlockExternalAction } from '@/lib/runMode';
+
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || process.env.OPENCODE_API_KEY || 'free';
 const OPENROUTER_BASE = 'https://openrouter.ai/api/v1';
 
@@ -170,6 +172,11 @@ function isZombieResponse(content: string): boolean {
  * - Zombie check: Detect hidden refusals
  */
 export async function callLLM(prompt: string): Promise<string> {
+  const mode = getRunModeFromEnv();
+  if (shouldBlockExternalAction(mode)) {
+    return '[DRY RUN] External call blocked. No live LLM fetch performed.';
+  }
+
   return throttleRequest(async () => {
     const freeModels = MODEL_CONFIG.filter(m => m.status === 'free').map(m => m.model)
     const primaryModel = freeModels[0] // Nemotron
@@ -4130,6 +4137,11 @@ export async function runShadowTest(
   primaryModel: string,
   fallbackModel: string
 ): Promise<ShadowTestResult | null> {
+  const mode = getRunModeFromEnv();
+  if (shouldBlockExternalAction(mode)) {
+    return null;
+  }
+
   // Only run 20% of the time to save API costs
   if (Math.random() > SHADOW_TEST_CHANCE) {
     return null;

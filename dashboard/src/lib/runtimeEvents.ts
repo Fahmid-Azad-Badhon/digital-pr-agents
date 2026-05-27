@@ -11,6 +11,7 @@ export interface RuntimeEvent {
   status: RuntimeEventStatus;
   message: string;
   requestId?: string | null;
+  runMode?: string | null;
 }
 
 function eventLogPath(campaignPath: string) {

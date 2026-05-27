@@ -10,6 +10,8 @@
  * Get free API key: https://jina.ai/reader
  */
 
+import { getRunModeFromEnv, shouldBlockExternalAction } from '@/lib/runMode';
+
 const JINA_READER_BASE = 'https://r.jina.ai/read/';
 const JINA_SEARCH_BASE = 'https://s.jina.ai/';
 
@@ -24,6 +26,11 @@ function getJinaApiKey(): string | undefined {
  * @returns Extracted text content or null if failed
  */
 export async function fetchWebPage(url: string): Promise<string | null> {
+  const mode = getRunModeFromEnv();
+  if (shouldBlockExternalAction(mode)) {
+    return null;
+  }
+
   try {
     const encodedUrl = encodeURIComponent(url);
     const apiKey = getJinaApiKey();
@@ -69,6 +76,11 @@ export function getGoogleSearchUrl(query: string): string {
  * @returns Array of search result URLs
  */
 export async function searchNews(keywords: string[], maxResults: number = 5): Promise<string[]> {
+  const mode = getRunModeFromEnv();
+  if (shouldBlockExternalAction(mode)) {
+    return getFallbackUrls(keywords, maxResults);
+  }
+
   const query = keywords.join(' ');
   const searchUrl = `${JINA_SEARCH_BASE}${encodeURIComponent(query)}`;
   
@@ -169,6 +181,11 @@ export async function performWebResearch(topic: string, keywords: string[] = [])
   sources: string[];
   error?: string;
 }> {
+  const mode = getRunModeFromEnv();
+  if (shouldBlockExternalAction(mode)) {
+    return { success: false, findings: [], sources: [], error: 'Dry run: external web search blocked.' };
+  }
+
   try {
     const allKeywords = [topic, ...keywords].slice(0, 5);
     const query = allKeywords.join(' ');
