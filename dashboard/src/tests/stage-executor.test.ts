@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import fs from 'fs/promises';
-import { getOutputType, saveStageOutput } from '@/lib/stageExecutor';
+import { getOutputType, saveStageOutput, executeStage } from '@/lib/stageExecutor';
+import { getStageRoutingInfo, stageRequiresHumanApproval, runStageWithFallback, logModelRun } from '@/lib/modelRouter';
 
 vi.mock('fs/promises', () => ({
   default: {
@@ -27,6 +28,10 @@ vi.mock('@/lib/modelRouter', () => ({
   getStageRoutingInfo: vi.fn(),
   stageRequiresHumanApproval: vi.fn(),
   logModelRun: vi.fn(),
+}));
+
+vi.mock('@/lib/db', () => ({
+  addLog: vi.fn(),
 }));
 
 // ---------------------------------------------------------------------------
@@ -318,5 +323,91 @@ describe('saveStageOutput — unregistered JSON pass-through', () => {
       raw,
       'utf-8'
     );
+  });
+});
+
+// =============================================================================
+// Group D: executeStage — human approval dry-run safety
+// =============================================================================
+describe('executeStage — human approval dry-run safety', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getStageRoutingInfo).mockReturnValue({
+      primary: 'gpt_oss_120b',
+      fallbacks: ['hy3_preview'],
+      requiresHumanApproval: true,
+    });
+    vi.mocked(stageRequiresHumanApproval).mockReturnValue(true);
+    vi.mocked(runStageWithFallback).mockResolvedValue({
+      success: true,
+      output: '',
+      modelUsed: 'gpt_oss_120b',
+      provider: 'openai',
+      fallbackUsed: false,
+      fallbackReason: undefined,
+      retryCount: 0,
+      durationMs: 100,
+    });
+    vi.mocked(logModelRun).mockReturnValue(undefined);
+    vi.mocked(fs.access).mockResolvedValue(undefined);
+    vi.mocked(fs.mkdir).mockResolvedValue(undefined);
+    vi.mocked(fs.writeFile).mockResolvedValue(undefined);
+  });
+
+  it('saves human approval state when stage output is saved successfully', async () => {
+    vi.mocked(runStageWithFallback).mockResolvedValue({
+      success: true,
+      output: VALID_S1_JSON,
+      modelUsed: 'gpt_oss_120b',
+      provider: 'openai',
+      fallbackUsed: false,
+      fallbackReason: undefined,
+      retryCount: 0,
+      durationMs: 100,
+    });
+
+    const result = await executeStage({
+      campaignId: 'test-campaign',
+      campaignSlug: 'test-campaign',
+      stageId: 'S1_CAMPAIGN_INTAKE',
+      input: {},
+      useCase: 'test',
+    });
+
+    const writeCalls = vi.mocked(fs.writeFile).mock.calls;
+    const humanApprovalCalls = writeCalls.filter(
+      ([path]) => typeof path === 'string' && path.includes('human-approval.json')
+    );
+    expect(humanApprovalCalls).toHaveLength(1);
+    expect(humanApprovalCalls[0][1]).toContain('"status": "waiting"');
+    expect(result.paused).toBe(true);
+  });
+
+  it('does not save human approval state when output save is blocked (dry-run)', async () => {
+    vi.mocked(runStageWithFallback).mockResolvedValue({
+      success: true,
+      output: DRY_RUN_STRING,
+      modelUsed: 'gpt_oss_120b',
+      provider: 'openai',
+      fallbackUsed: false,
+      fallbackReason: undefined,
+      retryCount: 0,
+      durationMs: 100,
+    });
+
+    const result = await executeStage({
+      campaignId: 'test-campaign',
+      campaignSlug: 'test-campaign',
+      stageId: 'S1_CAMPAIGN_INTAKE',
+      input: {},
+      useCase: 'test',
+    });
+
+    const writeCalls = vi.mocked(fs.writeFile).mock.calls;
+    const humanApprovalCalls = writeCalls.filter(
+      ([path]) => typeof path === 'string' && path.includes('human-approval.json')
+    );
+    expect(humanApprovalCalls).toHaveLength(0);
+    expect(result.paused).toBe(false);
   });
 });

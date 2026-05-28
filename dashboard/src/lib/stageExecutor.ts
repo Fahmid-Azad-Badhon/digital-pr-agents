@@ -341,8 +341,10 @@ export async function executeStage(params: StageExecutionParams): Promise<StageE
   
   // Save output
   let outputFile: string | null = null;
+  let outputSaved = false;
   try {
     outputFile = await saveStageOutput(campaignSlug, stageId, modelResult.output, outputType);
+    outputSaved = true;
     await addLog(campaignId, stageId, 'model-router', 'info', `Output saved to: ${outputFile}`);
   } catch (saveError) {
     await addLog(campaignId, stageId, 'model-router', 'error', `Failed to save output: ${saveError}`);
@@ -366,7 +368,7 @@ export async function executeStage(params: StageExecutionParams): Promise<StageE
   });
   
   // Handle S7 human gate pause
-  if (requiresHumanApproval) {
+  if (requiresHumanApproval && outputSaved) {
     // Save initial approval state as "waiting"
     await saveHumanApprovalState(campaignSlug, {
       stageId: stageId,
