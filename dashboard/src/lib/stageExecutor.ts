@@ -21,7 +21,7 @@ import {
   type ModelCallResult
 } from '../lib/modelRouter';
 import { addLog } from '../lib/db';
-import { validateJsonBeforeWrite } from './llmStageValidator';
+import { validateJsonBeforeWrite, extractJsonFromOutput } from './llmStageValidator';
 
 // =============================================================================
 // CONFIGURATION
@@ -136,12 +136,18 @@ export async function saveStageOutput(
     throw new Error(`No output file configured for stage: ${stageId}`);
   }
 
+  let outputToWrite = output;
+
   if (outputType === 'json') {
     const validation = validateJsonBeforeWrite(stageId, output);
     if (!validation.allowed) {
       throw new Error(
         `JSON validation blocked write for stage ${stageId} [${validation.status}]: ${validation.errors.join('; ')}`
       );
+    }
+    const extracted = extractJsonFromOutput(output);
+    if (extracted) {
+      outputToWrite = JSON.stringify(JSON.parse(extracted), null, 2);
     }
   }
   
@@ -154,7 +160,7 @@ export async function saveStageOutput(
   }
   
   const filePath = path.join(campaignDir, outputFile);
-  await fs.writeFile(filePath, output, 'utf-8');
+  await fs.writeFile(filePath, outputToWrite, 'utf-8');
   
   return filePath;
 }
