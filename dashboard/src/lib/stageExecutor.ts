@@ -21,7 +21,7 @@ import {
   type ModelCallResult
 } from '../lib/modelRouter';
 import { addLog } from '../lib/db';
-import { validateJsonBeforeWrite, extractJsonFromOutput } from './llmStageValidator';
+import { validateJsonBeforeWrite, extractJsonFromOutput, isDryRunOutput } from './llmStageValidator';
 
 // =============================================================================
 // CONFIGURATION
@@ -350,6 +350,9 @@ export async function executeStage(params: StageExecutionParams): Promise<StageE
     await addLog(campaignId, stageId, 'model-router', 'error', `Failed to save output: ${saveError}`);
   }
   
+  // Detect dry-run mode from output content
+  const isDryRun = isDryRunOutput(modelResult.output);
+  
   // Log model usage
   logModelRun({
     timestamp: new Date().toISOString(),
@@ -368,7 +371,7 @@ export async function executeStage(params: StageExecutionParams): Promise<StageE
   });
   
   // Handle S7 human gate pause
-  if (requiresHumanApproval && outputSaved) {
+  if (requiresHumanApproval && outputSaved && !isDryRun) {
     // Save initial approval state as "waiting"
     await saveHumanApprovalState(campaignSlug, {
       stageId: stageId,

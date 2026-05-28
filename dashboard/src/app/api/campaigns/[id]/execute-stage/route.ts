@@ -10,7 +10,7 @@ import { assertValidCampaignId, resolveCampaignPath } from '@/lib/requestGuard';
 import { runScriptAction } from '@/lib/scriptRunner';
 import { validateStagePitchGovernance } from '@/lib/pitchGovernanceValidator';
 import { appendRuntimeEvent } from '@/lib/runtimeEvents';
-import { getRunModeFromRequest } from '@/lib/runMode';
+import { getRunModeFromRequest, shouldBlockExternalAction, type RunMode } from '@/lib/runMode';
 import { looksLikeFallback, FALLBACK_MARKERS } from '@/lib/fallbackMarkers';
 import { STAGES } from '@/types';
 
@@ -775,7 +775,10 @@ async function executeStage6(campaignPath: string) {
   return { outputFile: '06-beat-match.json' };
 }
 
-async function executeStage7(campaignPath: string) {
+async function executeStage7(campaignPath: string, runMode: RunMode) {
+  if (shouldBlockExternalAction(runMode)) {
+    return { outputFile: null, paused: false };
+  }
   const approval = {
     status: 'waiting',
     generatedAt: new Date().toISOString(),
@@ -1460,7 +1463,11 @@ const STAGE_OUTPUT_FILES: Record<number, string[]> = {
   16: ['16-campaign-learning-log.json'],
 };
 
-async function validateStageOutput(campaignPath: string, stage: number): Promise<void> {
+async function validateStageOutput(campaignPath: string, stage: number, runMode?: RunMode): Promise<void> {
+  // In non-live mode, skip S7 output validation because human-approval.json is intentionally not written
+  if (stage === 7 && runMode && shouldBlockExternalAction(runMode)) {
+    return;
+  }
   const files = STAGE_OUTPUT_FILES[stage] || [];
   if (files.length === 0) return;
 
@@ -1679,7 +1686,7 @@ export async function POST(
     } else if (stage === 6) {
       result = await executeStage6(campaignPath);
     } else if (stage === 7) {
-      result = await executeStage7(campaignPath);
+      result = await executeStage7(campaignPath, runMode);
     } else if (stage === 8) {
       result = await executeStage8(campaignId, campaignPath);
     } else if (stage === 9) {
@@ -1701,7 +1708,7 @@ export async function POST(
     }
 
     // Validate the executed stage's output artifacts before advancing
-    await validateStageOutput(campaignPath, stage);
+    await validateStageOutput(campaignPath, stage, runMode);
 
     // In strict mode, also validate that no upstream stage has fallback artifacts
     if (STRICT_MODE) {
@@ -1709,7 +1716,8 @@ export async function POST(
     }
 
     const nextStage = Math.min(stage + 1, 16);
-    const status = stage >= 16 ? 'completed' : (stage === 7 ? 'paused' : 'running');
+    const resultPaused = (result as { paused?: boolean }).paused === true;
+    const status = stage >= 16 ? 'completed' : (resultPaused ? 'paused' : 'running');
     await writeStageState(campaignPath, nextStage, status, stage);
     if (circuit.failures[failureKey]) {
       delete circuit.failures[failureKey];

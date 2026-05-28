@@ -16,6 +16,7 @@ vi.mock('@/lib/modelRouter', () => ({
     const map: Record<string, string> = {
       S1_CAMPAIGN_INTAKE: '01-campaign-intake.json',
       S2_DATA_EXTRACTION: '02-insights.md',
+      S7_PITCH_SELECTION_HUMAN_GATE: '07-selected-angle.md',
       S10_PITCH_DRAFTING: '08-pitch-draft.md',
       S11_OPTIMIZED_PITCH: '09-optimized-email.md',
       S13_VALIDATION: 's13-output.json',
@@ -326,6 +327,9 @@ describe('saveStageOutput — unregistered JSON pass-through', () => {
   });
 });
 
+// S7 markdown fixture (realistic production output, not dry-run)
+const VALID_S7_MARKDOWN = '# Selected Angle\n\n## Pitch Variant B: Data-Driven Storytelling\n\nSelected pitch variant based on beat alignment and personalization scoring.\n\n### Why This Angle\n- Strongest beat alignment with target publications\n- Customizable hook for top 3 journalist targets\n- Data points available in study for credible narrative\n\n### Customization Notes\n- Lead with the most surprising statistic\n- Reference recent coverage gaps identified in beat mapping\n- Close with specific relevance to journalist\'s beat';
+
 // =============================================================================
 // Group D: executeStage — human approval dry-run safety
 // =============================================================================
@@ -409,5 +413,102 @@ describe('executeStage — human approval dry-run safety', () => {
     );
     expect(humanApprovalCalls).toHaveLength(0);
     expect(result.paused).toBe(false);
+  });
+
+  // --- S7 markdown-specific tests ---
+
+  it('saves human approval state for S7 markdown production output', async () => {
+    vi.mocked(runStageWithFallback).mockResolvedValue({
+      success: true,
+      output: VALID_S7_MARKDOWN,
+      modelUsed: 'gpt_oss_120b',
+      provider: 'openai',
+      fallbackUsed: false,
+      fallbackReason: undefined,
+      retryCount: 0,
+      durationMs: 100,
+    });
+
+    const result = await executeStage({
+      campaignId: 'test-campaign',
+      campaignSlug: 'test-campaign',
+      stageId: 'S7_PITCH_SELECTION_HUMAN_GATE',
+      input: {},
+      useCase: 'test',
+    });
+
+    const writeCalls = vi.mocked(fs.writeFile).mock.calls;
+    const humanApprovalCalls = writeCalls.filter(
+      ([path]) => typeof path === 'string' && path.includes('human-approval.json')
+    );
+    expect(humanApprovalCalls).toHaveLength(1);
+    expect(humanApprovalCalls[0][1]).toContain('"status": "waiting"');
+    expect(result.paused).toBe(true);
+    expect(result.outputFile).toEqual(expect.stringContaining('07-selected-angle.md'));
+  });
+
+  it('does not save human approval state for S7 markdown dry-run output', async () => {
+    vi.mocked(runStageWithFallback).mockResolvedValue({
+      success: true,
+      output: DRY_RUN_STRING,
+      modelUsed: 'gpt_oss_120b',
+      provider: 'openai',
+      fallbackUsed: false,
+      fallbackReason: undefined,
+      retryCount: 0,
+      durationMs: 100,
+    });
+
+    const result = await executeStage({
+      campaignId: 'test-campaign',
+      campaignSlug: 'test-campaign',
+      stageId: 'S7_PITCH_SELECTION_HUMAN_GATE',
+      input: {},
+      useCase: 'test',
+    });
+
+    const writeCalls = vi.mocked(fs.writeFile).mock.calls;
+    const humanApprovalCalls = writeCalls.filter(
+      ([path]) => typeof path === 'string' && path.includes('human-approval.json')
+    );
+    expect(humanApprovalCalls).toHaveLength(0);
+    expect(result.paused).toBe(false);
+    // outputFile is still populated because markdown saveStageOutput succeeds for dry-run
+    expect(result.outputFile).toEqual(expect.stringContaining('07-selected-angle.md'));
+  });
+
+  it('does not write human approval artifact for non-S7 markdown stage', async () => {
+    vi.mocked(stageRequiresHumanApproval).mockReturnValue(false);
+    vi.mocked(getStageRoutingInfo).mockReturnValue({
+      primary: 'gpt_oss_120b',
+      fallbacks: ['hy3_preview'],
+      requiresHumanApproval: false,
+    });
+    vi.mocked(runStageWithFallback).mockResolvedValue({
+      success: true,
+      output: '# S10 Pitch Draft\n\nStandard pitch draft content for non-approval stage.',
+      modelUsed: 'gpt_oss_120b',
+      provider: 'openai',
+      fallbackUsed: false,
+      fallbackReason: undefined,
+      retryCount: 0,
+      durationMs: 100,
+    });
+
+    const result = await executeStage({
+      campaignId: 'test-campaign',
+      campaignSlug: 'test-campaign',
+      stageId: 'S10_PITCH_DRAFTING',
+      input: {},
+      useCase: 'test',
+    });
+
+    const writeCalls = vi.mocked(fs.writeFile).mock.calls;
+    const humanApprovalCalls = writeCalls.filter(
+      ([path]) => typeof path === 'string' && path.includes('human-approval.json')
+    );
+    expect(humanApprovalCalls).toHaveLength(0);
+    expect(result.paused).toBe(false);
+    expect(result.outputFile).toEqual(expect.stringContaining('08-pitch-draft.md'));
   });
 });
