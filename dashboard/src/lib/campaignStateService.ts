@@ -16,6 +16,8 @@ import { safeReadJsonFile } from './fileReadSafety';
 import { getIntegrationReadiness, stageRequiresIntegration } from './integrationReadiness';
 import { FALLBACK_MARKERS, looksLikeFallback } from './fallbackMarkers';
 import { PITCH_JOBS_ROOT } from './requestGuard';
+import { classifyProvenance, type ApprovalSource, type ProvenanceStatus } from './provenance';
+import { type RunMode } from './runMode';
 
 export type CampaignOverallStatus = 'draft' | 'running' | 'paused' | 'completed' | 'failed' | 'waiting_for_human_approval' | 'blocked';
 
@@ -74,7 +76,13 @@ export interface CampaignStateResult {
   humanApproval: {
     status: 'none' | 'waiting' | 'approved' | 'rejected';
     selectedAngleTitle: string | null;
+    selectedAngleId: string | null;
     approvedAt: string | null;
+    provenanceStatus: ProvenanceStatus;
+    provenanceWarning?: string;
+    runMode: RunMode | null;
+    source: ApprovalSource | null;
+    schemaVersion: number | null;
   };
   integrationReadiness: {
     muckrack: 'ready' | 'not_configured' | 'session_expired' | 'missing';
@@ -126,18 +134,46 @@ async function getHumanApproval(campaignPath: string): Promise<CampaignStateResu
     const approvalPath = path.join(campaignPath, 'human-approval.json');
     const approval = await safeReadJsonFile<{
       status?: string;
+      selectedAngleId?: string;
       selectedAngleTitle?: string;
       approvedAt?: string;
+      runMode?: unknown;
+      source?: unknown;
+      schemaVersion?: unknown;
     }>(approvalPath);
     if (approval) {
+      const hasRunMode = approval.runMode !== undefined && approval.runMode !== null;
+      const hasSource = approval.source !== undefined && approval.source !== null;
+      const hasSchemaVersion = approval.schemaVersion !== undefined && approval.schemaVersion !== null;
+      const { provenanceStatus, provenanceWarning } = classifyProvenance(
+        hasRunMode,
+        hasSource,
+        hasSchemaVersion,
+        approval.runMode,
+      );
       return {
         status: (approval.status as 'none' | 'waiting' | 'approved' | 'rejected') || 'none',
+        selectedAngleId: approval.selectedAngleId || null,
         selectedAngleTitle: approval.selectedAngleTitle || null,
         approvedAt: approval.approvedAt || null,
+        provenanceStatus,
+        provenanceWarning,
+        runMode: hasRunMode ? (approval.runMode as RunMode) : null,
+        source: hasSource ? (approval.source as ApprovalSource) : null,
+        schemaVersion: hasSchemaVersion ? (approval.schemaVersion as number) : null,
       };
     }
   } catch {}
-  return { status: 'none', selectedAngleTitle: null, approvedAt: null };
+  return {
+    status: 'none',
+    selectedAngleId: null,
+    selectedAngleTitle: null,
+    approvedAt: null,
+    provenanceStatus: 'missing',
+    runMode: null,
+    source: null,
+    schemaVersion: null,
+  };
 }
 
 async function checkOutputQuality(campaignPath: string, stageNumber: number): Promise<{

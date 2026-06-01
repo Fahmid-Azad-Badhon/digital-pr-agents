@@ -22,6 +22,8 @@ import {
 } from '../lib/modelRouter';
 import { addLog } from '../lib/db';
 import { validateJsonBeforeWrite, extractJsonFromOutput, isDryRunOutput } from './llmStageValidator';
+import { type RunMode } from './runMode';
+import { type ApprovalSource } from './provenance';
 
 // =============================================================================
 // CONFIGURATION
@@ -177,6 +179,11 @@ export interface HumanApprovalState {
   approvedBy: string | null;
   approvedAt: string | null;
   notes: string | null;
+  provenanceStatus: 'verified' | 'missing' | 'non_live' | 'unknown';
+  provenanceWarning?: string;
+  runMode: RunMode | null;
+  source: ApprovalSource | null;
+  schemaVersion: number | null;
 }
 
 const HUMAN_APPROVAL_FILE = 'human-approval.json';
@@ -380,7 +387,12 @@ export async function executeStage(params: StageExecutionParams): Promise<StageE
       selectedAngleTitle: null,
       approvedBy: null,
       approvedAt: null,
-      notes: 'Awaiting human selection'
+      notes: 'Awaiting human selection',
+      provenanceStatus: 'unknown',
+      provenanceWarning: 'Run mode unavailable at stageExecutor write site',
+      runMode: null,
+      source: 'stage_executor',
+      schemaVersion: 1,
     });
     
     await addLog(campaignId, stageId, 'human-gate', 'info', 'Workflow paused for human approval');
@@ -452,7 +464,12 @@ export async function resumeWorkflowFromS8(
       ...approvalState,
       status: 'approved',
       selectedAngleTitle: selectedAngle,
-      approvedAt: new Date().toISOString()
+      approvedAt: new Date().toISOString(),
+      provenanceStatus: 'unknown',
+      provenanceWarning: 'Run mode unavailable at stageExecutor write site',
+      runMode: null,
+      source: 'stage_executor',
+      schemaVersion: 1,
     });
   }
   

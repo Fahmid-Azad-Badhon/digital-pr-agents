@@ -1,15 +1,11 @@
-/**
- * =============================================================================
- * Human Approval API Route
- * =============================================================================
- */
-
 import { NextRequest } from 'next/server';
 import path from 'path';
 import fs from 'fs/promises';
 import { fail, ok } from '@/lib/apiResponse';
 import { writeApiAuditLog } from '@/lib/logger';
 import { PITCH_JOBS_ROOT } from '@/lib/requestGuard';
+import { getRunModeFromRequest } from '@/lib/runMode';
+import { classifyProvenance, type ApprovalSource } from '@/lib/provenance';
 
 const CAMPAIGNS_DIR = PITCH_JOBS_ROOT;
 
@@ -22,9 +18,36 @@ export async function GET(
   try {
     const approvalPath = path.join(CAMPAIGNS_DIR, campaignSlug, 'human-approval.json');
     const content = await fs.readFile(approvalPath, 'utf-8');
-    return ok(JSON.parse(content));
+    const data = JSON.parse(content);
+
+    const hasRunMode = data.runMode !== undefined && data.runMode !== null;
+    const hasSource = data.source !== undefined && data.source !== null;
+    const hasSchemaVersion = data.schemaVersion !== undefined && data.schemaVersion !== null;
+
+    const { provenanceStatus, provenanceWarning } = classifyProvenance(
+      hasRunMode,
+      hasSource,
+      hasSchemaVersion,
+      data.runMode,
+    );
+
+    return ok({
+      ...data,
+      provenanceStatus,
+      provenanceWarning,
+      runMode: data.runMode ?? null,
+      source: data.source ?? null,
+      schemaVersion: data.schemaVersion ?? null,
+    });
   } catch {
-    return ok({ stageId: 'S7', status: 'none' });
+    return ok({
+      stageId: 'S7',
+      status: 'none',
+      provenanceStatus: 'missing' as const,
+      runMode: null,
+      source: null,
+      schemaVersion: null,
+    });
   }
 }
 
@@ -42,18 +65,26 @@ export async function POST(
       return fail('ACTION_REQUIRED', 'Action is required.', { status: 400 });
     }
     
+    const runMode = getRunModeFromRequest(request);
     const campaignDir = path.join(CAMPAIGNS_DIR, campaignSlug);
     await fs.access(campaignDir);
+
+    if (runMode !== 'live') {
+      return ok({
+        blocked: true,
+        reason: 'Non-live mode; human-approval writes are not persisted.',
+      });
+    }
     
     const approvalPath = path.join(campaignDir, 'human-approval.json');
-    let approval = {
+    let approval: Record<string, unknown> = {
       stageId: 'S7_PITCH_SELECTION_HUMAN_GATE',
       status: 'waiting',
-      selectedAngleId: null as string | null,
-      selectedAngleTitle: null as string | null,
+      selectedAngleId: null,
+      selectedAngleTitle: null,
       approvedBy: 'human',
-      approvedAt: null as string | null,
-      notes: null as string | null
+      approvedAt: null,
+      notes: null,
     };
     
     try {
@@ -66,7 +97,7 @@ export async function POST(
     if (action === 'approve') {
       approval.status = 'approved';
       approval.selectedAngleId = selectedAngleId || null;
-      approval.selectedAngleTitle = selectedAngleTitle;
+      approval.selectedAngleTitle = selectedAngleTitle || null;
       approval.approvedAt = now;
       approval.notes = notes || null;
     } else if (action === 'reject') {
@@ -80,6 +111,11 @@ export async function POST(
     } else {
       return fail('UNKNOWN_ACTION', `Unknown action: ${action}`, { status: 400 });
     }
+
+    approval.provenanceStatus = 'verified';
+    approval.runMode = runMode;
+    approval.source = 'human_approval_ui' as ApprovalSource;
+    approval.schemaVersion = 1;
     
     await fs.writeFile(approvalPath, JSON.stringify(approval, null, 2));
     await writeApiAuditLog(request, {

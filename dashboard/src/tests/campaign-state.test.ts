@@ -258,6 +258,210 @@ describe('Cross-Endpoint Consistency Contract', () => {
   });
 });
 
+describe('Human Approval Provenance Classification', () => {
+  it('legacy artifact preserves status and selectedAngleTitle', () => {
+    const approval = {
+      status: 'approved' as const,
+      selectedAngleId: null,
+      selectedAngleTitle: 'Old Angle',
+      approvedAt: null,
+    };
+    expect(approval.status).toBe('approved');
+    expect(approval.selectedAngleTitle).toBe('Old Angle');
+  });
+
+  it('legacy artifact gets provenanceStatus unknown and warning', async () => {
+    const { classifyProvenance } = await import('../lib/provenance');
+    const result = classifyProvenance(false, false, false, undefined);
+    expect(result.provenanceStatus).toBe('unknown');
+    expect(result.provenanceWarning).toBe('Artifact written before provenance tracking (Batch 5F)');
+  });
+
+  it('classifyProvenance with no fields returns unknown not missing (missing is assigned at service level)', async () => {
+    const { classifyProvenance } = await import('../lib/provenance');
+    const result = classifyProvenance(false, false, false, undefined);
+    expect(result.provenanceStatus).toBe('unknown');
+    expect(result.provenanceWarning).toBe('Artifact written before provenance tracking (Batch 5F)');
+  });
+
+  it('live provenance artifact gets provenanceStatus verified', async () => {
+    const { classifyProvenance } = await import('../lib/provenance');
+    const result = classifyProvenance(true, true, true, 'live');
+    expect(result.provenanceStatus).toBe('verified');
+    expect(result.provenanceWarning).toBeUndefined();
+  });
+
+  it('non-live runMode returns non_live provenanceStatus', async () => {
+    const { classifyProvenance } = await import('../lib/provenance');
+    const result = classifyProvenance(true, true, true, 'dry_run');
+    expect(result.provenanceStatus).toBe('non_live');
+    expect(result.provenanceWarning).toBe('Artifact was written in non-live mode');
+  });
+
+  it('partial provenance returns unknown with partial warning', async () => {
+    const { classifyProvenance } = await import('../lib/provenance');
+    const result = classifyProvenance(true, false, false, 'live');
+    expect(result.provenanceStatus).toBe('unknown');
+    expect(result.provenanceWarning).toBe('Partial provenance metadata');
+  });
+
+  it('getHumanApproval-like processing preserves status and fields for legacy artifact', async () => {
+    const { classifyProvenance } = await import('../lib/provenance');
+    const legacyData: {
+      status?: string;
+      selectedAngleId?: string;
+      selectedAngleTitle?: string;
+      approvedAt?: string;
+      runMode?: unknown;
+      source?: unknown;
+      schemaVersion?: unknown;
+    } = {
+      status: 'approved',
+      selectedAngleTitle: 'Old Angle',
+      approvedAt: '2025-01-01T00:00:00.000Z',
+    };
+
+    const hasRunMode = legacyData.runMode !== undefined && legacyData.runMode !== null;
+    const hasSource = legacyData.source !== undefined && legacyData.source !== null;
+    const hasSchemaVersion = legacyData.schemaVersion !== undefined && legacyData.schemaVersion !== null;
+    const { provenanceStatus, provenanceWarning } = classifyProvenance(
+      hasRunMode, hasSource, hasSchemaVersion, legacyData.runMode,
+    );
+
+    const result = {
+      status: legacyData.status || 'none',
+      selectedAngleId: legacyData.selectedAngleId ?? null,
+      selectedAngleTitle: legacyData.selectedAngleTitle ?? null,
+      approvedAt: legacyData.approvedAt ?? null,
+      provenanceStatus,
+      provenanceWarning,
+      runMode: null,
+      source: null,
+      schemaVersion: null,
+    };
+
+    expect(result.status).toBe('approved');
+    expect(result.selectedAngleTitle).toBe('Old Angle');
+    expect(result.approvedAt).toBe('2025-01-01T00:00:00.000Z');
+    expect(result.provenanceStatus).toBe('unknown');
+    expect(result.provenanceWarning).toBe('Artifact written before provenance tracking (Batch 5F)');
+    expect(result.runMode).toBeNull();
+    expect(result.source).toBeNull();
+    expect(result.schemaVersion).toBeNull();
+  });
+
+  it('live provenance artifact preserves status and returns verified through processing pipeline', async () => {
+    const { classifyProvenance } = await import('../lib/provenance');
+    const liveData: {
+      status?: string;
+      selectedAngleId?: string;
+      selectedAngleTitle?: string;
+      approvedAt?: string;
+      runMode?: unknown;
+      source?: unknown;
+      schemaVersion?: unknown;
+    } = {
+      status: 'approved',
+      selectedAngleTitle: 'Live Angle',
+      approvedAt: '2026-01-01T00:00:00.000Z',
+      runMode: 'live',
+      source: 'human_approval_ui',
+      schemaVersion: 1,
+    };
+
+    const hasRunMode = liveData.runMode !== undefined && liveData.runMode !== null;
+    const hasSource = liveData.source !== undefined && liveData.source !== null;
+    const hasSchemaVersion = liveData.schemaVersion !== undefined && liveData.schemaVersion !== null;
+    const { provenanceStatus, provenanceWarning } = classifyProvenance(
+      hasRunMode, hasSource, hasSchemaVersion, liveData.runMode,
+    );
+
+    const result = {
+      status: liveData.status || 'none',
+      selectedAngleId: liveData.selectedAngleId ?? null,
+      selectedAngleTitle: liveData.selectedAngleTitle ?? null,
+      approvedAt: liveData.approvedAt ?? null,
+      provenanceStatus,
+      provenanceWarning,
+      runMode: hasRunMode ? liveData.runMode : null,
+      source: hasSource ? liveData.source : null,
+      schemaVersion: hasSchemaVersion ? liveData.schemaVersion : null,
+    };
+
+    expect(result.status).toBe('approved');
+    expect(result.selectedAngleTitle).toBe('Live Angle');
+    expect(result.provenanceStatus).toBe('verified');
+    expect(result.provenanceWarning).toBeUndefined();
+    expect(result.runMode).toBe('live');
+    expect(result.source).toBe('human_approval_ui');
+    expect(result.schemaVersion).toBe(1);
+  });
+
+  it('missing artifact processing returns provenanceStatus missing not a classifyProvenance value', async () => {
+    const { classifyProvenance } = await import('../lib/provenance');
+
+    const noProvenanceResult = classifyProvenance(false, false, false, undefined);
+    expect(noProvenanceResult.provenanceStatus).toBe('unknown');
+
+    const missingResult = { provenanceStatus: 'missing' as const };
+    expect(missingResult.provenanceStatus).toBe('missing');
+    expect(missingResult.provenanceStatus).not.toBe(noProvenanceResult.provenanceStatus);
+  });
+
+  it('provenanceStatus is orthogonal to approval status and does not affect status-like fields', () => {
+    const statusValues = ['none', 'waiting', 'approved', 'rejected'] as const;
+    const provenanceValues = ['verified', 'missing', 'non_live', 'unknown'] as const;
+
+    for (const s of statusValues) {
+      for (const p of provenanceValues) {
+        expect(s).not.toBe(p);
+      }
+    }
+  });
+
+  it('malformed string runMode with valid source/schema returns unknown not non_live', async () => {
+    const { classifyProvenance } = await import('../lib/provenance');
+    const result = classifyProvenance(true, true, true, 'garbage');
+    expect(result.provenanceStatus).toBe('unknown');
+    expect(result.provenanceWarning).toBe('Partial provenance metadata');
+  });
+
+  it('null runMode with valid source/schema returns unknown not non_live', async () => {
+    const { classifyProvenance } = await import('../lib/provenance');
+    const result = classifyProvenance(true, true, true, null);
+    expect(result.provenanceStatus).toBe('unknown');
+    expect(result.provenanceWarning).toBe('Partial provenance metadata');
+  });
+
+  it('numeric runMode with valid source/schema returns unknown not non_live', async () => {
+    const { classifyProvenance } = await import('../lib/provenance');
+    const result = classifyProvenance(true, true, true, 123);
+    expect(result.provenanceStatus).toBe('unknown');
+    expect(result.provenanceWarning).toBe('Partial provenance metadata');
+  });
+
+  it('object runMode with valid source/schema returns unknown not non_live', async () => {
+    const { classifyProvenance } = await import('../lib/provenance');
+    const result = classifyProvenance(true, true, true, {});
+    expect(result.provenanceStatus).toBe('unknown');
+    expect(result.provenanceWarning).toBe('Partial provenance metadata');
+  });
+
+  it('preview runMode with valid source/schema returns non_live', async () => {
+    const { classifyProvenance } = await import('../lib/provenance');
+    const result = classifyProvenance(true, true, true, 'preview');
+    expect(result.provenanceStatus).toBe('non_live');
+    expect(result.provenanceWarning).toBe('Artifact was written in non-live mode');
+  });
+
+  it('test runMode with valid source/schema returns non_live', async () => {
+    const { classifyProvenance } = await import('../lib/provenance');
+    const result = classifyProvenance(true, true, true, 'test');
+    expect(result.provenanceStatus).toBe('non_live');
+    expect(result.provenanceWarning).toBe('Artifact was written in non-live mode');
+  });
+});
+
 describe('Integration Readiness Types', () => {
   it('defines valid Muck Rack states', () => {
     const validMuckrackStates = ['ready', 'not_configured', 'session_expired', 'missing'];

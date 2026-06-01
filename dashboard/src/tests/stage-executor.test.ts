@@ -384,6 +384,11 @@ describe('executeStage — human approval dry-run safety', () => {
     );
     expect(humanApprovalCalls).toHaveLength(1);
     expect(humanApprovalCalls[0][1]).toContain('"status": "waiting"');
+    expect(humanApprovalCalls[0][1]).toContain('"provenanceStatus": "unknown"');
+    expect(humanApprovalCalls[0][1]).toContain('"source": "stage_executor"');
+    expect(humanApprovalCalls[0][1]).toContain('"schemaVersion": 1');
+    expect(humanApprovalCalls[0][1]).toContain('"runMode": null');
+    expect(humanApprovalCalls[0][1]).toContain('"provenanceWarning": "Run mode unavailable at stageExecutor write site"');
     expect(result.paused).toBe(true);
   });
 
@@ -443,6 +448,9 @@ describe('executeStage — human approval dry-run safety', () => {
     );
     expect(humanApprovalCalls).toHaveLength(1);
     expect(humanApprovalCalls[0][1]).toContain('"status": "waiting"');
+    expect(humanApprovalCalls[0][1]).toContain('"provenanceStatus": "unknown"');
+    expect(humanApprovalCalls[0][1]).toContain('"source": "stage_executor"');
+    expect(humanApprovalCalls[0][1]).toContain('"schemaVersion": 1');
     expect(result.paused).toBe(true);
     expect(result.outputFile).toEqual(expect.stringContaining('07-selected-angle.md'));
   });
