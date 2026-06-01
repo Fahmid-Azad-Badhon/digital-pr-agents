@@ -9,6 +9,7 @@ import { assertValidCampaignId, resolveCampaignPath, REPO_ROOT } from '@/lib/req
 import { validateStageHandoff } from '@/lib/stageHandoffValidator';
 import { createQuestion, escalateToHuman } from '@/lib/agentQuestioningSystem';
 import { getRuntimeBinding, verifyRuntimeBinding } from '@/lib/stageRuntimeRegistry';
+import { getApprovalProgressionDecision, type ProvenanceStatus } from '@/lib/provenance';
 
 const AutoProgressInputSchema = z.object({
   mode: z.enum(['pre_pitch', 'post_pitch', 'full']).optional().default('pre_pitch'),
@@ -49,6 +50,7 @@ type StageGateDecision = {
     data_conflicts_found: boolean;
     critical_gaps_found: boolean;
   };
+  provenanceWarning?: string;
   issues: {
     missing_fields: string[];
     weak_areas: string[];
@@ -404,10 +406,18 @@ export async function POST(
       if (stage === 7) {
         const approvalPath = path.join(campaignPath, 'human-approval.json');
         const approval = await fs.readFile(approvalPath, 'utf-8')
-          .then(content => JSON.parse(content) as { status?: string; selectedAngleTitle?: string; selectedAngleId?: string | number })
+          .then(content => JSON.parse(content) as { status?: string; selectedAngleTitle?: string; selectedAngleId?: string | number; provenanceStatus?: ProvenanceStatus; provenanceWarning?: string })
           .catch(() => null);
 
         const hasPitchSelection = approval?.status === 'approved' && Boolean(approval?.selectedAngleTitle || approval?.selectedAngleId);
+        let provenanceWarning: string | undefined;
+        if (hasPitchSelection) {
+          const provenanceDecision = getApprovalProgressionDecision({ status: approval?.status ?? null, provenanceStatus: approval?.provenanceStatus });
+          if (!provenanceDecision.allowed) {
+            return fail('PROVENANCE_BLOCKED', provenanceDecision.reason, { status: 400 });
+          }
+          provenanceWarning = 'warning' in provenanceDecision ? provenanceDecision.warning : undefined;
+        }
         if (!hasPitchSelection) {
           const waitDecision = buildPitchWaitDecision(campaignId);
           waitDecision.instruction_compliance = await evaluateInstructionCompliance(7);
@@ -433,7 +443,7 @@ export async function POST(
           );
         }
 
-        decisions.push({
+        const pitchDecision: StageGateDecision = {
           ...buildPassDecision(campaignId, 7),
           stage_gate_status: 'pitch_selected',
           decision: 'continue_to_next_stage',
@@ -451,7 +461,11 @@ export async function POST(
             create_approval_queue_item: false,
             resume_agent_workflow: true,
           },
-        });
+        };
+        if (provenanceWarning) {
+          pitchDecision.provenanceWarning = provenanceWarning;
+        }
+        decisions.push(pitchDecision);
         const pitchSelectedDecision = decisions[decisions.length - 1];
         pitchSelectedDecision.instruction_compliance = await evaluateInstructionCompliance(7);
         await appendStageGateDecision(campaignPath, pitchSelectedDecision);

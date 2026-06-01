@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import fs from 'fs/promises';
-import { getOutputType, saveStageOutput, executeStage } from '@/lib/stageExecutor';
+import { getOutputType, saveStageOutput, executeStage, checkCanResumeFromS8 } from '@/lib/stageExecutor';
 import { getStageRoutingInfo, stageRequiresHumanApproval, runStageWithFallback, logModelRun } from '@/lib/modelRouter';
 
 vi.mock('fs/promises', () => ({
@@ -8,6 +8,8 @@ vi.mock('fs/promises', () => ({
     access: vi.fn().mockResolvedValue(undefined),
     mkdir: vi.fn().mockResolvedValue(undefined),
     writeFile: vi.fn().mockResolvedValue(undefined),
+    readFile: vi.fn(),
+    rename: vi.fn().mockResolvedValue(undefined),
   },
 }));
 
@@ -518,5 +520,130 @@ describe('executeStage — human approval dry-run safety', () => {
     expect(humanApprovalCalls).toHaveLength(0);
     expect(result.paused).toBe(false);
     expect(result.outputFile).toEqual(expect.stringContaining('08-pitch-draft.md'));
+  });
+});
+
+// =============================================================================
+// checkCanResumeFromS8 — Provenance gate
+// =============================================================================
+describe('checkCanResumeFromS8', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(fs.access).mockResolvedValue(undefined);
+    vi.mocked(fs.mkdir).mockResolvedValue(undefined);
+    vi.mocked(fs.writeFile).mockResolvedValue(undefined);
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike) => {
+      const pStr = String(pathLike);
+      if (pStr.includes('human-approval.json')) {
+        return JSON.stringify({
+          stageId: 'S7_PITCH_SELECTION_HUMAN_GATE',
+          status: 'approved',
+          selectedAngleTitle: 'Test Angle',
+          selectedAngleId: 'angle-001',
+          provenanceStatus: 'verified',
+          provenanceWarning: undefined,
+          runMode: 'live',
+          source: 'human_approval_ui',
+          schemaVersion: 1,
+        });
+      }
+      throw new Error('ENOENT');
+    });
+  });
+
+  it('no approval record returns canResume=false', async () => {
+    vi.mocked(fs.readFile).mockRejectedValue(new Error('ENOENT'));
+    const result = await checkCanResumeFromS8('no-approval');
+    expect(result.canResume).toBe(false);
+    expect(result.reason).toBe('No human approval record found');
+  });
+
+  it('approved + verified provenance — canResume=true without warning', async () => {
+    const result = await checkCanResumeFromS8('test-campaign');
+    expect(result.canResume).toBe(true);
+    expect(result.selectedAngle).toBe('Test Angle');
+    expect(result.reason).toBeUndefined();
+  });
+
+  it('approved + unknown provenance — canResume=true with warning', async () => {
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike) => {
+      const pStr = String(pathLike);
+      if (pStr.includes('human-approval.json')) {
+        return JSON.stringify({
+          stageId: 'S7_PITCH_SELECTION_HUMAN_GATE',
+          status: 'approved',
+          selectedAngleTitle: 'Legacy Angle',
+          provenanceStatus: 'unknown',
+          provenanceWarning: 'Partial provenance metadata',
+          runMode: null,
+          source: 'stage_executor',
+          schemaVersion: 1,
+        });
+      }
+      throw new Error('ENOENT');
+    });
+    const result = await checkCanResumeFromS8('legacy-campaign');
+    expect(result.canResume).toBe(true);
+    expect(result.selectedAngle).toBe('Legacy Angle');
+    expect(result.reason).toBe('Partial provenance metadata');
+  });
+
+  it('approved + non_live provenance — canResume=false', async () => {
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike) => {
+      const pStr = String(pathLike);
+      if (pStr.includes('human-approval.json')) {
+        return JSON.stringify({
+          stageId: 'S7_PITCH_SELECTION_HUMAN_GATE',
+          status: 'approved',
+          selectedAngleTitle: 'Non-live Angle',
+          provenanceStatus: 'non_live',
+          provenanceWarning: 'Artifact was written in non-live mode',
+          runMode: 'dry_run',
+          source: 'human_approval_ui',
+          schemaVersion: 1,
+        });
+      }
+      throw new Error('ENOENT');
+    });
+    const result = await checkCanResumeFromS8('nonlive-campaign');
+    expect(result.canResume).toBe(false);
+    expect(result.reason).toContain('non-live');
+  });
+
+  it('approved + missing provenance — canResume=false', async () => {
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike) => {
+      const pStr = String(pathLike);
+      if (pStr.includes('human-approval.json')) {
+        return JSON.stringify({
+          stageId: 'S7_PITCH_SELECTION_HUMAN_GATE',
+          status: 'approved',
+          selectedAngleTitle: 'Missing Angle',
+          provenanceStatus: 'missing',
+        });
+      }
+      throw new Error('ENOENT');
+    });
+    const result = await checkCanResumeFromS8('missing-campaign');
+    expect(result.canResume).toBe(false);
+    expect(result.reason).toContain('Batch 5F');
+  });
+
+  it('legacy file with no provenanceStatus field — canResume=true with warning', async () => {
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike) => {
+      const pStr = String(pathLike);
+      if (pStr.includes('human-approval.json')) {
+        return JSON.stringify({
+          stageId: 'S7_PITCH_SELECTION_HUMAN_GATE',
+          status: 'approved',
+          selectedAngleTitle: 'Old Angle',
+          approvedAt: '2025-01-01T00:00:00.000Z',
+        });
+      }
+      throw new Error('ENOENT');
+    });
+    const result = await checkCanResumeFromS8('legacy-file-campaign');
+    expect(result.canResume).toBe(true);
+    expect(result.selectedAngle).toBe('Old Angle');
+    expect(result.reason).toContain('Batch 5F');
   });
 });

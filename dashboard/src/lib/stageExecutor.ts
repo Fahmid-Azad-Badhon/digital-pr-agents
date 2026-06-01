@@ -23,7 +23,7 @@ import {
 import { addLog } from '../lib/db';
 import { validateJsonBeforeWrite, extractJsonFromOutput, isDryRunOutput } from './llmStageValidator';
 import { type RunMode } from './runMode';
-import { type ApprovalSource } from './provenance';
+import { type ApprovalSource, getApprovalProgressionDecision } from './provenance';
 
 // =============================================================================
 // CONFIGURATION
@@ -232,10 +232,18 @@ export async function checkCanResumeFromS8(campaignSlug: string): Promise<{
   if (!approvalState.selectedAngleTitle && !approvalState.selectedAngleId) {
     return { canResume: false, selectedAngle: null, reason: 'No angle selected by human' };
   }
+
+  const provenanceDecision = getApprovalProgressionDecision({ status: approvalState.status, provenanceStatus: approvalState.provenanceStatus });
+  if (!provenanceDecision.allowed) {
+    return { canResume: false, selectedAngle: null, reason: provenanceDecision.reason };
+  }
+
+  const reason = 'warning' in provenanceDecision ? provenanceDecision.warning : undefined;
   
   return { 
     canResume: true, 
-    selectedAngle: approvalState.selectedAngleTitle || approvalState.selectedAngleId 
+    selectedAngle: approvalState.selectedAngleTitle || approvalState.selectedAngleId,
+    ...(reason ? { reason } : {}),
   };
 }
 
