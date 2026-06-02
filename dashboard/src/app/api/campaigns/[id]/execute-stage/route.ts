@@ -11,6 +11,7 @@ import { runScriptAction } from '@/lib/scriptRunner';
 import { validateStagePitchGovernance } from '@/lib/pitchGovernanceValidator';
 import { appendRuntimeEvent } from '@/lib/runtimeEvents';
 import { getRunModeFromRequest, shouldBlockExternalAction, type RunMode } from '@/lib/runMode';
+import { getApprovalProgressionDecision, type ProvenanceStatus } from '@/lib/provenance';
 import { looksLikeFallback, FALLBACK_MARKERS } from '@/lib/fallbackMarkers';
 import { STAGES } from '@/types';
 
@@ -1443,6 +1444,40 @@ async function executeStage16(campaignPath: string) {
   return { outputFile: '16-campaign-learning-log.json' };
 }
 
+async function checkHumanApprovalProgression(campaignPath: string): Promise<{
+  allowed: boolean;
+  reason?: string;
+  warning?: string;
+}> {
+  const approvalFile = stageFile(campaignPath, 'human-approval.json');
+  let approval: Record<string, unknown>;
+  try {
+    approval = JSON.parse(await fs.readFile(approvalFile, 'utf-8'));
+  } catch {
+    return { allowed: false, reason: 'No human approval record found' };
+  }
+  if (!approval || typeof approval !== 'object') {
+    return { allowed: false, reason: 'No human approval record found' };
+  }
+  const statusRaw = approval.status;
+  if (typeof statusRaw !== 'string' || !statusRaw) {
+    return { allowed: false, reason: 'No human approval status found' };
+  }
+  if (statusRaw !== 'approved') {
+    return { allowed: false, reason: `Human approval status is: ${statusRaw}` };
+  }
+  if (!approval.selectedAngleId && !approval.selectedAngleTitle) {
+    return { allowed: false, reason: 'No angle selected by human' };
+  }
+  const provenanceStatus = approval.provenanceStatus as ProvenanceStatus | undefined;
+  const decision = getApprovalProgressionDecision({ status: statusRaw, provenanceStatus });
+  if (!decision.allowed) {
+    return { allowed: false, reason: decision.reason };
+  }
+  const warning = 'warning' in decision ? decision.warning : undefined;
+  return { allowed: true, warning };
+}
+
 // Each stage's expected output files for post-execution validation
 const STAGE_OUTPUT_FILES: Record<number, string[]> = {
   1: ['01-campaign-intake.json'],
@@ -1659,6 +1694,27 @@ export async function POST(
       );
     }
 
+    let provenanceWarning: string | undefined;
+    if (stage >= 8) {
+      const guard = await checkHumanApprovalProgression(campaignPath);
+      if (!guard.allowed) {
+        return fail('PROVENANCE_BLOCKED', guard.reason ?? 'Human approval check failed', { status: 400 });
+      }
+      provenanceWarning = guard.warning;
+      if (provenanceWarning) {
+        await appendRuntimeEvent(campaignPath, {
+          timestamp: new Date().toISOString(),
+          campaignId,
+          stage,
+          action: 'execute_stage',
+          status: 'completed',
+          message: `Provenance warning: ${provenanceWarning}`,
+          requestId: request.headers.get('x-request-id'),
+          runMode,
+        }).catch(() => undefined);
+      }
+    }
+
     await acquireExecutionLock(campaignPath, stage);
 
     await appendRuntimeEvent(campaignPath, {
@@ -1755,6 +1811,7 @@ export async function POST(
       stage,
       currentStage: nextStage,
       status,
+      ...(provenanceWarning ? { provenanceWarning } : {}),
       ...result,
     });
   } catch (error) {
