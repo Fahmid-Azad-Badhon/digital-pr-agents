@@ -55,6 +55,36 @@ describe('S10 Output Contract', () => {
       const sole08Write = source.match(/fs\.writeFile\(\s*stage08Path\s*,/g);
       expect(sole08Write).not.toBeNull();
     });
+
+    it('defines buildPitchDraftJson helper for JSON output', () => {
+      expect(source).toContain('function buildPitchDraftJson');
+    });
+
+    it('writes structured JSON output file (10-pitch-draft.json)', () => {
+      expect(source).toContain('10-pitch-draft.json');
+      expect(source).toContain('JSON.stringify');
+    });
+
+    it('JSON output contains required schema fields (campaignId, angle, pitchContent)', () => {
+      const jsonSection = source.split('function buildPitchDraftJson')[1] || '';
+      expect(jsonSection).toContain('campaignId');
+      expect(jsonSection).toContain('angle');
+      expect(jsonSection).toContain('pitchContent');
+    });
+
+    it('JSON output maps tone from variant key to schema enum', () => {
+      const jsonSection = source.split('function buildPitchDraftJson')[1] || '';
+      expect(jsonSection).toContain('tone');
+      expect(jsonSection).toContain("'Professional'");
+      expect(jsonSection).toContain("'Casual'");
+      expect(jsonSection).toContain("'Storytelling'");
+    });
+
+    it('statistics field defaults to empty array in Phase 1', () => {
+      const jsonSection = source.split('function buildPitchDraftJson')[1] || '';
+      expect(jsonSection).toContain('statistics');
+      expect(jsonSection).toContain('[]');
+    });
   });
 
   describe('dashboard/route.ts -- executeStage10()', () => {

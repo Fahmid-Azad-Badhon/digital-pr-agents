@@ -889,6 +889,31 @@ function buildSelectedDraftMarkdown(selectedSpec, variantPath, jobDir, context) 
   ].join('\n');
 }
 
+function buildPitchDraftJson(context, selectedSpec, jobName) {
+  const draftBody = buildDraftBody(selectedSpec.key, context);
+  const subjectOptions = buildSubjectOptions(selectedSpec.key, context);
+  const toneMap = {
+    'straight-news': 'Professional',
+    'short-punchy': 'Casual',
+    'data-heavy': 'Professional',
+    'journalist-personalized': 'Storytelling',
+    'storytelling-narrative': 'Storytelling',
+    'localized': 'Storytelling'
+  };
+
+  return {
+    campaignId: jobName,
+    angle: context.angle.angleName,
+    pitchContent: draftBody,
+    headline: subjectOptions[0],
+    boilerplate: context.sender,
+    statistics: [],
+    personalization: context.hook,
+    tone: toneMap[selectedSpec.key] || 'Professional',
+    wordCount: bodyWordCount(draftBody)
+  };
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help || args.h) {
@@ -913,6 +938,7 @@ async function main() {
 
   const stage10Path = path.join(jobDir, '10-pitch-draft.md');
   const stage08Path = path.join(jobDir, '08-pitch-draft.md');
+  const stage10JsonPath = path.join(jobDir, '10-pitch-draft.json');
   const variantsDir = path.join(jobDir, 'draft-variants');
   await ensureDir(variantsDir);
 
@@ -968,8 +994,12 @@ async function main() {
   await fs.writeFile(stage10Path, `${selectedDraft}\n`, 'utf8');
   await fs.writeFile(stage08Path, `${selectedDraft}\n`, 'utf8');
 
+  const pitchDraftJson = buildPitchDraftJson(context, selected.spec, jobName);
+  await fs.writeFile(stage10JsonPath, JSON.stringify(pitchDraftJson, null, 2), 'utf8');
+
   console.log(`Drafted ${stage10Path} (canonical)`);
   console.log(`Drafted ${stage08Path} (legacy alias)`);
+  console.log(`Drafted ${stage10JsonPath} (structured JSON)`);
   for (const output of variantOutputs) {
     console.log(`Drafted ${output.variantPath}`);
   }
