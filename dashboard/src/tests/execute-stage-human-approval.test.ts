@@ -335,4 +335,60 @@ describe('execute-stage S8 provenance guard', () => {
     expect(body.error).toBe('PROVENANCE_BLOCKED');
     expect(stage8Called).toBe(false);
   });
+
+  it('direct S8 execution with approved + verified + whitespace-only selectedAngleId blocks', async () => {
+    let stage8Called = false;
+
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike) => {
+      const pStr = String(pathLike);
+      if (pStr.includes('stage-state.json')) return makeStageState(8);
+      if (pStr.includes('circuit-state.json')) throw new Error('ENOENT');
+      if (pStr.includes('human-approval.json')) {
+        return makeApproval({
+          selectedAngleId: '   ',
+          selectedAngleTitle: '   ',
+          provenanceStatus: 'verified',
+        });
+      }
+      stage8Called = true;
+      throw new Error('ENOENT');
+    });
+
+    const response = await POST(
+      mockRequest({ stage: 8 }),
+      { params: Promise.resolve({ id: 'test-campaign' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe('PROVENANCE_BLOCKED');
+    expect(stage8Called).toBe(false);
+  });
+
+  it('direct S8 execution with approved + verified + non-blank selectedAngleId still passes', async () => {
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike) => {
+      const pStr = String(pathLike);
+      if (pStr.includes('stage-state.json')) return makeStageState(8);
+      if (pStr.includes('circuit-state.json')) throw new Error('ENOENT');
+      if (pStr.includes('.stage-lock')) throw new Error('ENOENT');
+      if (pStr.includes('08-journalist-list.csv')) return 'mock,csv,data\n';
+      if (pStr.includes('human-approval.json')) {
+        return makeApproval({
+          selectedAngleId: 'angle-001',
+          selectedAngleTitle: '',
+          provenanceStatus: 'verified',
+        });
+      }
+      throw new Error('ENOENT');
+    });
+
+    const response = await POST(
+      mockRequest({ stage: 8 }),
+      { params: Promise.resolve({ id: 'test-campaign' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.data.stage).toBe(8);
+  });
 });

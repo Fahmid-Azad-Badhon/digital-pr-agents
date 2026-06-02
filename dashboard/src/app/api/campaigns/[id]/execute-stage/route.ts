@@ -1444,6 +1444,10 @@ async function executeStage16(campaignPath: string) {
   return { outputFile: '16-campaign-learning-log.json' };
 }
 
+function hasNonBlankString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
 async function checkHumanApprovalProgression(campaignPath: string): Promise<{
   allowed: boolean;
   reason?: string;
@@ -1466,7 +1470,7 @@ async function checkHumanApprovalProgression(campaignPath: string): Promise<{
   if (statusRaw !== 'approved') {
     return { allowed: false, reason: `Human approval status is: ${statusRaw}` };
   }
-  if (!approval.selectedAngleId && !approval.selectedAngleTitle) {
+  if (!hasNonBlankString(approval.selectedAngleId) && !hasNonBlankString(approval.selectedAngleTitle)) {
     return { allowed: false, reason: 'No angle selected by human' };
   }
   const provenanceStatus = approval.provenanceStatus as ProvenanceStatus | undefined;

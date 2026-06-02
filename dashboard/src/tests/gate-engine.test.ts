@@ -518,6 +518,36 @@ describe('runGate — G4 Human Selection Gate', () => {
       ]),
     );
   });
+
+  it('blocks approved + verified + whitespace-only selectedAngleId (no selectedAngleTitle)', async () => {
+    addGateRules(G4_GATE_RULES);
+    addAllG4CampaignFiles(JSON.stringify({
+      status: 'approved',
+      selectedAngleId: '   ',
+      provenanceStatus: 'verified',
+    }));
+    const { runGate } = await import('@/lib/gateEngine');
+    const result = await runGate(TEST_CAMPAIGN, 'G4_HUMAN_SELECTION_GATE');
+
+    expect(result.status).toBe('blocked');
+    expect(result.canContinue).toBe(false);
+    expect(result.blockingIssues[0].issueId).toBe('GI-G4-NO-ANGLE');
+  });
+
+  it('blocks approved + verified + whitespace-only selectedAngleTitle (no selectedAngleId)', async () => {
+    addGateRules(G4_GATE_RULES);
+    addAllG4CampaignFiles(JSON.stringify({
+      status: 'approved',
+      selectedAngleTitle: '   ',
+      provenanceStatus: 'verified',
+    }));
+    const { runGate } = await import('@/lib/gateEngine');
+    const result = await runGate(TEST_CAMPAIGN, 'G4_HUMAN_SELECTION_GATE');
+
+    expect(result.status).toBe('blocked');
+    expect(result.canContinue).toBe(false);
+    expect(result.blockingIssues[0].issueId).toBe('GI-G4-NO-ANGLE');
+  });
 });
 
 // ---------------------------------------------------------------------------

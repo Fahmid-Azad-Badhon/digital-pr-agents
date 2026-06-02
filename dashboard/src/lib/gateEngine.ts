@@ -214,6 +214,10 @@ async function runPitchSafetyGate(campaignPath: string, result: GateResult): Pro
   }
 }
 
+function hasNonBlankString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
 async function runHumanSelectionGate(campaignPath: string, result: GateResult): Promise<void> {
   const approvalPath = path.join(campaignPath, 'human-approval.json');
 
@@ -241,9 +245,9 @@ async function runHumanSelectionGate(campaignPath: string, result: GateResult): 
       result.warnings.push(`Provenance: ${decision.warning}`);
     }
 
-    if (approval.selectedAngleId) {
+    if (hasNonBlankString(approval.selectedAngleId)) {
       result.passedChecks.push('Selected angle ID exists');
-    } else if (approval.selectedAngleTitle) {
+    } else if (hasNonBlankString(approval.selectedAngleTitle)) {
       result.passedChecks.push('Selected angle title exists');
     } else {
       result.blockingIssues.push({
