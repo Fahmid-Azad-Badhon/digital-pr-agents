@@ -18,6 +18,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { PITCH_JOBS_ROOT } from '@/lib/requestGuard';
+import { getApprovalProgressionDecision, type ProvenanceStatus } from '@/lib/provenance';
 
 const CAMPAIGNS_DIR = PITCH_JOBS_ROOT;
 
@@ -118,108 +119,147 @@ export function getConditionsForStage(stageId: string): LogicConditions | null {
   return stage || null;
 }
 
+interface HumanApprovalArtifact {
+  status?: string;
+  provenanceStatus?: string;
+  selectedAngleId?: string;
+  selectedAngleTitle?: string;
+}
+
+function hasNonBlankString(value: string | undefined): boolean {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function parseHumanApprovalArtifact(data: unknown): HumanApprovalArtifact | null {
+  if (typeof data !== 'object' || data === null) return null;
+  const d = data as Record<string, unknown>;
+  const status = typeof d.status === 'string' ? d.status : undefined;
+  const provenanceStatus = typeof d.provenanceStatus === 'string' ? d.provenanceStatus : undefined;
+  const selectedAngleId = typeof d.selectedAngleId === 'string' ? d.selectedAngleId : undefined;
+  const selectedAngleTitle = typeof d.selectedAngleTitle === 'string' ? d.selectedAngleTitle : undefined;
+  return { status, provenanceStatus, selectedAngleId, selectedAngleTitle };
+}
+
 async function checkCondition(
   condition: string,
   campaignSlug: string
-): Promise<boolean> {
+): Promise<{ result: boolean; warnings: string[] }> {
   const campaignPath = path.join(CAMPAIGNS_DIR, campaignSlug);
   
-  const checks: Record<string, () => Promise<boolean>> = {
+  const checks: Record<string, () => Promise<{ result: boolean; warnings: string[] }>> = {
     'human-approval.json status = approved': async () => {
       try {
-        const data = JSON.parse(await fs.readFile(path.join(campaignPath, 'human-approval.json'), 'utf-8'));
-        return data.status === 'approved';
-      } catch { return false; }
+        const raw = JSON.parse(await fs.readFile(path.join(campaignPath, 'human-approval.json'), 'utf-8'));
+        const approval = parseHumanApprovalArtifact(raw);
+        if (!approval) return { result: false, warnings: [] };
+
+        const status: string | null = approval.status ?? null;
+        const provenanceStatus = approval.provenanceStatus as ProvenanceStatus | undefined;
+        const decision = getApprovalProgressionDecision({ status, provenanceStatus });
+
+        if (!decision.allowed) return { result: false, warnings: [] };
+
+        const warnings: string[] = [];
+        if (decision.warning) warnings.push(`Provenance: ${decision.warning}`);
+
+        const hasAngle =
+          hasNonBlankString(approval.selectedAngleId) ||
+          hasNonBlankString(approval.selectedAngleTitle);
+
+        return { result: hasAngle, warnings };
+      } catch { return { result: false, warnings: [] }; }
     },
     'claim-ledger.json exists': async () => {
       try {
         await fs.access(path.join(campaignPath, 'claim-ledger.json'));
-        return true;
-      } catch { return false; }
+        return { result: true, warnings: [] };
+      } catch { return { result: false, warnings: [] }; }
     },
     'beat-fit-check.json beatFit != weak': async () => {
       try {
         const data = JSON.parse(await fs.readFile(path.join(campaignPath, 'beat-fit-check.json'), 'utf-8'));
-        return data.beatFit !== 'weak';
-      } catch { return false; }
+        return { result: data.beatFit !== 'weak', warnings: [] };
+      } catch { return { result: false, warnings: [] }; }
     },
     'beat-fit-check.json exists': async () => {
       try {
         await fs.access(path.join(campaignPath, 'beat-fit-check.json'));
-        return true;
-      } catch { return false; }
+        return { result: true, warnings: [] };
+      } catch { return { result: false, warnings: [] }; }
     },
     'source-confidence.json exists': async () => {
       try {
         await fs.access(path.join(campaignPath, 'source-confidence.json'));
-        return true;
-      } catch { return false; }
+        return { result: true, warnings: [] };
+      } catch { return { result: false, warnings: [] }; }
     },
     'verified-findings.json exists': async () => {
       try {
         await fs.access(path.join(campaignPath, 'verified-findings.json'));
-        return true;
-      } catch { return false; }
+        return { result: true, warnings: [] };
+      } catch { return { result: false, warnings: [] }; }
     },
     '09-journalist-intelligence.json exists': async () => {
       try {
         await fs.access(path.join(campaignPath, '09-journalist-intelligence.json'));
-        return true;
-      } catch { return false; }
+        return { result: true, warnings: [] };
+      } catch { return { result: false, warnings: [] }; }
     },
     '10-pitch-draft.md exists': async () => {
       try {
         await fs.access(path.join(campaignPath, '10-pitch-draft.md'));
-        return true;
-      } catch { return false; }
+        return { result: true, warnings: [] };
+      } catch { return { result: false, warnings: [] }; }
     },
     '11-optimized-pitch.md exists': async () => {
       try {
         await fs.access(path.join(campaignPath, '11-optimized-pitch.md'));
-        return true;
-      } catch { return false; }
+        return { result: true, warnings: [] };
+      } catch { return { result: false, warnings: [] }; }
     },
     '12-outreach-package.json exists': async () => {
       try {
         await fs.access(path.join(campaignPath, '12-outreach-package.json'));
-        return true;
-      } catch { return false; }
+        return { result: true, warnings: [] };
+      } catch { return { result: false, warnings: [] }; }
     },
     'S7_PITCH_SELECTION_HUMAN_GATE not approved': async () => {
       try {
-        const data = JSON.parse(await fs.readFile(path.join(campaignPath, 'human-approval.json'), 'utf-8'));
-        return data.status !== 'approved';
-      } catch { return true; }
+        const raw = JSON.parse(await fs.readFile(path.join(campaignPath, 'human-approval.json'), 'utf-8'));
+        const approval = parseHumanApprovalArtifact(raw);
+        return { result: !approval || approval.status !== 'approved', warnings: [] };
+      } catch { return { result: true, warnings: [] }; }
     },
     'S7 not approved': async () => {
       try {
-        const data = JSON.parse(await fs.readFile(path.join(campaignPath, 'human-approval.json'), 'utf-8'));
-        return data.status !== 'approved';
-      } catch { return true; }
+        const raw = JSON.parse(await fs.readFile(path.join(campaignPath, 'human-approval.json'), 'utf-8'));
+        const approval = parseHumanApprovalArtifact(raw);
+        return { result: !approval || approval.status !== 'approved', warnings: [] };
+      } catch { return { result: true, warnings: [] }; }
     },
     'beatFit = weak': async () => {
       try {
         const data = JSON.parse(await fs.readFile(path.join(campaignPath, 'beat-fit-check.json'), 'utf-8'));
-        return data.beatFit === 'weak';
-      } catch { return false; }
+        return { result: data.beatFit === 'weak', warnings: [] };
+      } catch { return { result: false, warnings: [] }; }
     },
     'claim ledger missing': async () => {
       try {
         await fs.access(path.join(campaignPath, 'claim-ledger.json'));
-        return false;
-      } catch { return true; }
+        return { result: false, warnings: [] };
+      } catch { return { result: true, warnings: [] }; }
     },
     'source confidence = low': async () => {
       try {
         const data = JSON.parse(await fs.readFile(path.join(campaignPath, 'source-confidence.json'), 'utf-8'));
-        return data.sourceConfidence === 'low';
-      } catch { return false; }
+        return { result: data.sourceConfidence === 'low', warnings: [] };
+      } catch { return { result: false, warnings: [] }; }
     }
   };
 
   const check = checks[condition];
   if (check) return check();
-  return true;
+  return { result: true, warnings: [] };
 }
 
 async function evaluateConditions(
@@ -227,20 +267,22 @@ async function evaluateConditions(
   stageId: string,
   conditions: string[],
   type: string
-): Promise<{ passed: string[]; failed: string[] }> {
+): Promise<{ passed: string[]; failed: string[]; warnings: string[] }> {
   const passed: string[] = [];
   const failed: string[] = [];
+  const warnings: string[] = [];
 
   for (const condition of conditions) {
-    const result = await checkCondition(condition, campaignSlug);
+    const { result, warnings: condWarnings } = await checkCondition(condition, campaignSlug);
     if (result) {
       passed.push(condition);
     } else {
       failed.push(condition);
     }
+    warnings.push(...condWarnings);
   }
 
-  return { passed, failed };
+  return { passed, failed, warnings };
 }
 
 export async function evaluateCanRun(campaignSlug: string, stageId: string): Promise<LogicConditionResult> {
@@ -269,7 +311,7 @@ export async function evaluateCanRun(campaignSlug: string, stageId: string): Pro
     canContinue: false,
     blockedBy: failedConditions.failed,
     questionsToAsk: [],
-    warnings: [],
+    warnings: failedConditions.warnings,
     mustStop: failedConditions.failed.length > 0,
     mustEscalate: false,
     recommendedAction: failedConditions.failed.length > 0 
@@ -304,7 +346,7 @@ export async function evaluateMustStop(campaignSlug: string, stageId: string): P
     canContinue: failedConditions.failed.length === 0,
     blockedBy: failedConditions.failed,
     questionsToAsk: [],
-    warnings: [],
+    warnings: failedConditions.warnings,
     mustStop: failedConditions.failed.length > 0,
     mustEscalate: false,
     recommendedAction: failedConditions.failed.length > 0 
@@ -339,7 +381,7 @@ export async function evaluateCanContinue(campaignSlug: string, stageId: string)
     canContinue: failedConditions.failed.length === 0,
     blockedBy: failedConditions.failed,
     questionsToAsk: [],
-    warnings: [],
+    warnings: failedConditions.warnings,
     mustStop: false,
     mustEscalate: false,
     recommendedAction: failedConditions.failed.length > 0 
@@ -367,6 +409,7 @@ export async function evaluateMustAsk(campaignSlug: string, stageId: string): Pr
   }
 
   const questionsToAsk: LogicConditionResult['questionsToAsk'] = [];
+  const mustAskWarnings: string[] = [];
   
   const askConditions = [
     stage.mustAskHumanIf || [],
@@ -380,7 +423,8 @@ export async function evaluateMustAsk(campaignSlug: string, stageId: string): Pr
   ].flat();
 
   for (const condition of askConditions) {
-    const isTriggered = await checkCondition(condition, campaignSlug);
+    const { result: isTriggered, warnings: condWarnings } = await checkCondition(condition, campaignSlug);
+    mustAskWarnings.push(...condWarnings);
     if (isTriggered) {
       const questionTemplates: Record<string, { targetAgent: string; templateId: string }> = {
         'beat_match_unclear': { targetAgent: 'S6_BEAT_MATCHING', templateId: 'QT-S6-BEAT-001' },
@@ -414,7 +458,7 @@ export async function evaluateMustAsk(campaignSlug: string, stageId: string): Pr
     canContinue: true,
     blockedBy: [],
     questionsToAsk,
-    warnings: [],
+    warnings: mustAskWarnings,
     mustStop: false,
     mustEscalate: false,
     recommendedAction: questionsToAsk.length > 0 
@@ -434,6 +478,13 @@ export async function writeConditionResult(
   const canContinueResult = await evaluateCanContinue(campaignSlug, stageId);
   const mustAskResult = await evaluateMustAsk(campaignSlug, stageId);
 
+  const combinedWarnings = [
+    ...canRunResult.warnings,
+    ...mustStopResult.warnings,
+    ...canContinueResult.warnings,
+    ...mustAskResult.warnings,
+  ].filter((w, i, a) => a.indexOf(w) === i);
+
   const result: AgentLogicResults = {
     campaignSlug,
     updatedAt: new Date().toISOString(),
@@ -443,7 +494,7 @@ export async function writeConditionResult(
       canContinue: canContinueResult.canContinue,
       blockedBy: [...canRunResult.blockedBy, ...mustStopResult.blockedBy],
       questionsToAsk: mustAskResult.questionsToAsk,
-      warnings: [],
+      warnings: combinedWarnings,
       mustStop: mustStopResult.mustStop,
       mustEscalate: false,
       recommendedAction: canRunResult.canRun 
