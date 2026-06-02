@@ -388,17 +388,17 @@ describe('runGate — G6 Pitch Safety Gate', () => {
 // C. G4 Human Selection Gate
 // ---------------------------------------------------------------------------
 describe('runGate — G4 Human Selection Gate', () => {
-  it('passes on approved with legacy (no provenanceStatus)', async () => {
+  it('warns on approved human-approval.json with legacy (no provenanceStatus)', async () => {
     addGateRules(G4_GATE_RULES);
     addAllG4CampaignFiles(G4_APPROVED);
     const { runGate } = await import('@/lib/gateEngine');
     const result = await runGate(TEST_CAMPAIGN, 'G4_HUMAN_SELECTION_GATE');
 
-    expect(result.status).toBe('pass');
+    expect(result.status).toBe('warning');
     expect(result.canContinue).toBe(true);
     expect(result.passedChecks).toContain('Human approval status is approved');
     expect(result.passedChecks).toContain('Selected angle ID exists');
-    expect(result.passedChecks).toEqual(
+    expect(result.warnings).toEqual(
       expect.arrayContaining([
         expect.stringMatching(/Provenance:/),
       ]),
@@ -489,30 +489,30 @@ describe('runGate — G4 Human Selection Gate', () => {
     expect(result.blockingIssues[0].issueId).toBe('GI-G4-PROVENANCE-BLOCKED');
   });
 
-  it('passes on approved + unknown provenance', async () => {
+  it('warns on approved + unknown provenance', async () => {
     addGateRules(G4_GATE_RULES);
     addAllG4CampaignFiles(G4_APPROVED_UNKNOWN);
     const { runGate } = await import('@/lib/gateEngine');
     const result = await runGate(TEST_CAMPAIGN, 'G4_HUMAN_SELECTION_GATE');
 
-    expect(result.status).toBe('pass');
+    expect(result.status).toBe('warning');
     expect(result.canContinue).toBe(true);
-    expect(result.passedChecks).toEqual(
+    expect(result.warnings).toEqual(
       expect.arrayContaining([
         expect.stringMatching(/Provenance:/),
       ]),
     );
   });
 
-  it('passes on approved + legacy (no provenanceStatus)', async () => {
+  it('warns on approved + legacy (no provenanceStatus)', async () => {
     addGateRules(G4_GATE_RULES);
     addAllG4CampaignFiles(G4_APPROVED_LEGACY);
     const { runGate } = await import('@/lib/gateEngine');
     const result = await runGate(TEST_CAMPAIGN, 'G4_HUMAN_SELECTION_GATE');
 
-    expect(result.status).toBe('pass');
+    expect(result.status).toBe('warning');
     expect(result.canContinue).toBe(true);
-    expect(result.passedChecks).toEqual(
+    expect(result.warnings).toEqual(
       expect.arrayContaining([
         expect.stringMatching(/Provenance:/),
       ]),

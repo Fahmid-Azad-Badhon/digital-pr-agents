@@ -238,7 +238,7 @@ async function runHumanSelectionGate(campaignPath: string, result: GateResult): 
     result.passedChecks.push('Human approval status is approved');
 
     if (decision.warning) {
-      result.passedChecks.push(`Provenance: ${decision.warning}`);
+      result.warnings.push(`Provenance: ${decision.warning}`);
     }
 
     if (approval.selectedAngleId) {
