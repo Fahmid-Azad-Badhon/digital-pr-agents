@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { PITCH_JOBS_ROOT } from '@/lib/requestGuard';
+import { getApprovalProgressionDecision, type ProvenanceStatus } from '@/lib/provenance';
 
 export type GateStatus = 'pass' | 'warning' | 'blocked' | 'needs_human_review' | 'needs_rerun';
 export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
@@ -247,7 +248,7 @@ export async function runG3AngleQualityGate(campaignId: string): Promise<GateRes
 
 export async function runG4HumanSelectionGate(campaignId: string): Promise<GateResult> {
   const ctx = await getGateContext(campaignId);
-  
+
   if (ctx.currentStage < 7) {
     return {
       gateId: 'G4_HUMAN_SELECTION_GATE',
@@ -258,8 +259,80 @@ export async function runG4HumanSelectionGate(campaignId: string): Promise<GateR
       riskLevel: 'low'
     };
   }
-  
-  const approvalFile = ctx.files.find((f: string) => f.includes('approvals') || f.includes('human-approval'));
+
+  // Prefer human-approval.json (single object) over legacy approvals.json (array)
+  const humanApprovalFile = ctx.files.find((f: string) => f === 'human-approval.json');
+
+  if (humanApprovalFile) {
+    try {
+      const content = await fs.readFile(path.join(ctx.campaignPath, humanApprovalFile), 'utf-8');
+      const approval = JSON.parse(content);
+
+      if (typeof approval !== 'object' || approval === null || Array.isArray(approval)) {
+        return {
+          gateId: 'G4_HUMAN_SELECTION_GATE',
+          status: 'blocked',
+          canContinue: false,
+          reason: 'human-approval.json has unexpected format - expected a single object',
+          requiredAction: 'Re-create human-approval.json in S7',
+          riskLevel: 'critical'
+        };
+      }
+
+      const status: string | null = approval.status ?? null;
+      const provenanceStatus: ProvenanceStatus | undefined = approval.provenanceStatus;
+    const decision = getApprovalProgressionDecision({ status, provenanceStatus });
+
+    if (!decision.allowed) {
+        return {
+          gateId: 'G4_HUMAN_SELECTION_GATE',
+          status: 'blocked',
+          canContinue: false,
+          reason: decision.reason,
+          requiredAction: 'Resolve provenance or approval issue in S7',
+          riskLevel: 'critical'
+        };
+      }
+
+      if (!approval.selectedAngleId && !approval.selectedAngleTitle) {
+        return {
+          gateId: 'G4_HUMAN_SELECTION_GATE',
+          status: 'needs_human_review',
+          canContinue: false,
+          reason: 'S7 approval found but no angle selected',
+          requiredAction: 'Human must select angle in S7',
+          riskLevel: 'high'
+        };
+      }
+
+      const result: GateResult = {
+        gateId: 'G4_HUMAN_SELECTION_GATE',
+        status: 'pass',
+        canContinue: true,
+        reason: 'Human selection approved - can proceed to S8',
+        requiredAction: 'none',
+        riskLevel: 'low'
+      };
+
+      if (decision.warning) {
+        result.details = { provenanceWarning: decision.warning };
+      }
+
+      return result;
+    } catch {
+      return {
+        gateId: 'G4_HUMAN_SELECTION_GATE',
+        status: 'blocked',
+        canContinue: false,
+        reason: 'Failed to read or parse human-approval.json',
+        requiredAction: 'Re-create human-approval.json in S7',
+        riskLevel: 'critical'
+      };
+    }
+  }
+
+  // Fallback to legacy approvals.json array format
+  const approvalFile = ctx.files.find((f: string) => f.includes('approvals'));
   
   if (!approvalFile) {
     return {
@@ -274,10 +347,22 @@ export async function runG4HumanSelectionGate(campaignId: string): Promise<GateR
   
   try {
     const content = await fs.readFile(path.join(ctx.campaignPath, approvalFile), 'utf-8');
-    const approvals = JSON.parse(content);
-    const s7Approval = approvals.find((a: any) => a.stage?.includes('S7'));
-    
-    if (!s7Approval || s7Approval.status !== 'approved') {
+    const parsed = JSON.parse(content);
+
+    if (!Array.isArray(parsed)) {
+      return {
+        gateId: 'G4_HUMAN_SELECTION_GATE',
+        status: 'blocked',
+        canContinue: false,
+        reason: 'approvals.json has unexpected format - expected an array',
+        requiredAction: 'Re-create approvals in S7',
+        riskLevel: 'critical'
+      };
+    }
+
+    const s7Approval = parsed.find((a: { stage?: string }) => a.stage?.includes('S7'));
+
+    if (!s7Approval) {
       return {
         gateId: 'G4_HUMAN_SELECTION_GATE',
         status: 'needs_human_review',
@@ -287,16 +372,57 @@ export async function runG4HumanSelectionGate(campaignId: string): Promise<GateR
         riskLevel: 'critical'
       };
     }
-  } catch {}
-  
-  return {
-    gateId: 'G4_HUMAN_SELECTION_GATE',
-    status: 'pass',
-    canContinue: true,
-    reason: 'Human selection approved - can proceed to S8',
-    requiredAction: 'none',
-    riskLevel: 'low'
-  };
+
+    const status: string | null = s7Approval.status ?? null;
+    const provenanceStatus: ProvenanceStatus | undefined = s7Approval.provenanceStatus;
+    const decision = getApprovalProgressionDecision({ status, provenanceStatus });
+
+    if (!decision.allowed) {
+      return {
+        gateId: 'G4_HUMAN_SELECTION_GATE',
+        status: 'blocked',
+        canContinue: false,
+        reason: decision.reason,
+        requiredAction: 'Resolve provenance or approval issue in S7',
+        riskLevel: 'critical'
+      };
+    }
+
+    if (!s7Approval.selectedAngleId && !s7Approval.selectedAngleTitle) {
+      return {
+        gateId: 'G4_HUMAN_SELECTION_GATE',
+        status: 'needs_human_review',
+        canContinue: false,
+        reason: 'S7 approval found but no angle selected',
+        requiredAction: 'Human must select angle in S7',
+        riskLevel: 'high'
+      };
+    }
+
+    const result: GateResult = {
+      gateId: 'G4_HUMAN_SELECTION_GATE',
+      status: 'pass',
+      canContinue: true,
+      reason: 'Human selection approved - can proceed to S8',
+      requiredAction: 'none',
+      riskLevel: 'low'
+    };
+
+    if (decision.warning) {
+      result.details = { provenanceWarning: decision.warning };
+    }
+
+    return result;
+  } catch {
+    return {
+      gateId: 'G4_HUMAN_SELECTION_GATE',
+      status: 'blocked',
+      canContinue: false,
+      reason: 'Failed to read or parse approval file',
+      requiredAction: 'Re-create approval file in S7',
+      riskLevel: 'critical'
+    };
+  }
 }
 
 export async function runG5JournalistFitGate(campaignId: string): Promise<GateResult> {

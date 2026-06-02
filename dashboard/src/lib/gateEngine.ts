@@ -10,6 +10,7 @@
 
 import fs from 'fs/promises';
 import path from 'path';
+import { getApprovalProgressionDecision, type ProvenanceStatus } from '@/lib/provenance';
 
 const CAMPAIGNS_DIR = 'D:\\Codex Folder\\digital-pr-agents\\pitch-jobs';
 const SYSTEM_DIR = 'D:\\Codex Folder\\digital-pr-agents\\system';
@@ -215,31 +216,42 @@ async function runPitchSafetyGate(campaignPath: string, result: GateResult): Pro
 
 async function runHumanSelectionGate(campaignPath: string, result: GateResult): Promise<void> {
   const approvalPath = path.join(campaignPath, 'human-approval.json');
-  
+
   try {
     const approval = JSON.parse(await fs.readFile(approvalPath, 'utf-8'));
-    
-    if (approval.status === 'approved') {
-      result.passedChecks.push('Human approval status is approved');
-      
-      if (approval.selectedAngleId) {
-        result.passedChecks.push('Selected angle ID exists');
-      } else {
-        result.blockingIssues.push({
-          issueId: 'GI-G4-NO-ANGLE',
-          issue: 'No angle selected',
-          affectedFile: 'human-approval.json',
-          affectedText: null,
-          requiredAction: 'Select an angle in S7'
-        });
-      }
-    } else {
+
+    const status: string | null = approval?.status ?? null;
+    const provenanceStatus: ProvenanceStatus | undefined = approval?.provenanceStatus;
+    const decision = getApprovalProgressionDecision({ status, provenanceStatus });
+
+    if (!decision.allowed) {
       result.blockingIssues.push({
-        issueId: 'GI-G4-NOT-APPROVED',
-        issue: `Human approval status is ${approval.status}, not approved`,
+        issueId: 'GI-G4-PROVENANCE-BLOCKED',
+        issue: decision.reason,
         affectedFile: 'human-approval.json',
         affectedText: null,
-        requiredAction: 'Get human approval in S7'
+        requiredAction: 'Resolve provenance or approval issue in S7'
+      });
+      return;
+    }
+
+    result.passedChecks.push('Human approval status is approved');
+
+    if (decision.warning) {
+      result.warnings.push(`Provenance: ${decision.warning}`);
+    }
+
+    if (approval.selectedAngleId) {
+      result.passedChecks.push('Selected angle ID exists');
+    } else if (approval.selectedAngleTitle) {
+      result.passedChecks.push('Selected angle title exists');
+    } else {
+      result.blockingIssues.push({
+        issueId: 'GI-G4-NO-ANGLE',
+        issue: 'No angle selected',
+        affectedFile: 'human-approval.json',
+        affectedText: null,
+        requiredAction: 'Select an angle in S7'
       });
     }
   } catch {

@@ -111,7 +111,7 @@ const G4_GATE_RULES = [
     gateVersion: '1.0',
     runsAfterStage: 'S7_PITCH_SELECTION_HUMAN_GATE',
     requiredFiles: ['human-approval.json'],
-    canContinueOnWarning: false,
+    canContinueOnWarning: true,
     blocksStages: [
       'S8_JOURNALIST_COLLECTION',
       'S9_JOURNALIST_INTELLIGENCE',
@@ -142,6 +142,25 @@ const G4_APPROVED = JSON.stringify({
 
 const G4_PENDING = JSON.stringify({ status: 'pending' });
 const G4_NO_ANGLE = JSON.stringify({ status: 'approved' });
+const G4_APPROVED_NON_LIVE = JSON.stringify({
+  status: 'approved',
+  selectedAngleId: 'angle-1',
+  provenanceStatus: 'non_live',
+});
+const G4_APPROVED_MISSING_PROV = JSON.stringify({
+  status: 'approved',
+  selectedAngleId: 'angle-1',
+  provenanceStatus: 'missing',
+});
+const G4_APPROVED_UNKNOWN = JSON.stringify({
+  status: 'approved',
+  selectedAngleId: 'angle-1',
+  provenanceStatus: 'unknown',
+});
+const G4_APPROVED_LEGACY = JSON.stringify({
+  status: 'approved',
+  selectedAngleId: 'angle-1',
+});
 
 const G7_PASSED = JSON.stringify({
   passed: true,
@@ -369,16 +388,21 @@ describe('runGate — G6 Pitch Safety Gate', () => {
 // C. G4 Human Selection Gate
 // ---------------------------------------------------------------------------
 describe('runGate — G4 Human Selection Gate', () => {
-  it('passes with approved human-approval.json and selectedAngleId', async () => {
+  it('warns on approved human-approval.json with legacy (no provenanceStatus)', async () => {
     addGateRules(G4_GATE_RULES);
     addAllG4CampaignFiles(G4_APPROVED);
     const { runGate } = await import('@/lib/gateEngine');
     const result = await runGate(TEST_CAMPAIGN, 'G4_HUMAN_SELECTION_GATE');
 
-    expect(result.status).toBe('pass');
+    expect(result.status).toBe('warning');
     expect(result.canContinue).toBe(true);
     expect(result.passedChecks).toContain('Human approval status is approved');
     expect(result.passedChecks).toContain('Selected angle ID exists');
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/Provenance:/),
+      ]),
+    );
   });
 
   it('blocks when status is not approved', async () => {
@@ -389,7 +413,7 @@ describe('runGate — G4 Human Selection Gate', () => {
 
     expect(result.status).toBe('blocked');
     expect(result.canContinue).toBe(false);
-    expect(result.blockingIssues[0].issueId).toBe('GI-G4-NOT-APPROVED');
+    expect(result.blockingIssues[0].issueId).toBe('GI-G4-PROVENANCE-BLOCKED');
   });
 
   it('blocks when approved but selectedAngleId is missing', async () => {
@@ -426,6 +450,73 @@ describe('runGate — G4 Human Selection Gate', () => {
     expect(result.status).toBe('blocked');
     expect(result.canContinue).toBe(false);
     expect(result.blockingIssues[0].issueId).toBe('GI-G4-MISSING');
+  });
+
+  it('passes with approved + verified provenance + selectedAngleTitle', async () => {
+    addGateRules(G4_GATE_RULES);
+    addCampaignFile('human-approval.json', JSON.stringify({
+      status: 'approved',
+      selectedAngleTitle: 'Test Angle',
+      provenanceStatus: 'verified',
+    }));
+    const { runGate } = await import('@/lib/gateEngine');
+    const result = await runGate(TEST_CAMPAIGN, 'G4_HUMAN_SELECTION_GATE');
+
+    expect(result.status).toBe('pass');
+    expect(result.canContinue).toBe(true);
+    expect(result.warnings).toHaveLength(0);
+  });
+
+  it('blocks approved + non_live provenance', async () => {
+    addGateRules(G4_GATE_RULES);
+    addAllG4CampaignFiles(G4_APPROVED_NON_LIVE);
+    const { runGate } = await import('@/lib/gateEngine');
+    const result = await runGate(TEST_CAMPAIGN, 'G4_HUMAN_SELECTION_GATE');
+
+    expect(result.status).toBe('blocked');
+    expect(result.canContinue).toBe(false);
+    expect(result.blockingIssues[0].issueId).toBe('GI-G4-PROVENANCE-BLOCKED');
+  });
+
+  it('blocks approved + explicit missing provenance', async () => {
+    addGateRules(G4_GATE_RULES);
+    addAllG4CampaignFiles(G4_APPROVED_MISSING_PROV);
+    const { runGate } = await import('@/lib/gateEngine');
+    const result = await runGate(TEST_CAMPAIGN, 'G4_HUMAN_SELECTION_GATE');
+
+    expect(result.status).toBe('blocked');
+    expect(result.canContinue).toBe(false);
+    expect(result.blockingIssues[0].issueId).toBe('GI-G4-PROVENANCE-BLOCKED');
+  });
+
+  it('warns on approved + unknown provenance', async () => {
+    addGateRules(G4_GATE_RULES);
+    addAllG4CampaignFiles(G4_APPROVED_UNKNOWN);
+    const { runGate } = await import('@/lib/gateEngine');
+    const result = await runGate(TEST_CAMPAIGN, 'G4_HUMAN_SELECTION_GATE');
+
+    expect(result.status).toBe('warning');
+    expect(result.canContinue).toBe(true);
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/Provenance:/),
+      ]),
+    );
+  });
+
+  it('warns on approved + legacy (no provenanceStatus)', async () => {
+    addGateRules(G4_GATE_RULES);
+    addAllG4CampaignFiles(G4_APPROVED_LEGACY);
+    const { runGate } = await import('@/lib/gateEngine');
+    const result = await runGate(TEST_CAMPAIGN, 'G4_HUMAN_SELECTION_GATE');
+
+    expect(result.status).toBe('warning');
+    expect(result.canContinue).toBe(true);
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/Provenance:/),
+      ]),
+    );
   });
 });
 
