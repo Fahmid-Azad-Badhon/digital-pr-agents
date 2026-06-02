@@ -161,6 +161,61 @@ describe('runG4HumanSelectionGate - human-approval.json (single object)', () => 
     expect(result.reason).toContain('no angle selected');
   });
 
+  it('blocks with whitespace-only selectedAngleId and selectedAngleTitle', async () => {
+    addCampaignFile('human-approval.json', JSON.stringify({
+      status: 'approved',
+      selectedAngleId: '   ',
+      selectedAngleTitle: '   ',
+      provenanceStatus: 'verified',
+    }));
+    const { runG4HumanSelectionGate } = await import('@/lib/gateSystem');
+    const result = await runG4HumanSelectionGate(TEST_CAMPAIGN);
+
+    expect(result.status).toBe('needs_human_review');
+    expect(result.canContinue).toBe(false);
+    expect(result.reason).toContain('no angle selected');
+  });
+
+  it('blocks with whitespace-only selectedAngleId only', async () => {
+    addCampaignFile('human-approval.json', JSON.stringify({
+      status: 'approved',
+      selectedAngleId: '   ',
+      provenanceStatus: 'verified',
+    }));
+    const { runG4HumanSelectionGate } = await import('@/lib/gateSystem');
+    const result = await runG4HumanSelectionGate(TEST_CAMPAIGN);
+
+    expect(result.status).toBe('needs_human_review');
+    expect(result.canContinue).toBe(false);
+    expect(result.reason).toContain('no angle selected');
+  });
+
+  it('blocks with whitespace-only selectedAngleTitle only', async () => {
+    addCampaignFile('human-approval.json', JSON.stringify({
+      status: 'approved',
+      selectedAngleTitle: '   ',
+      provenanceStatus: 'verified',
+    }));
+    const { runG4HumanSelectionGate } = await import('@/lib/gateSystem');
+    const result = await runG4HumanSelectionGate(TEST_CAMPAIGN);
+
+    expect(result.status).toBe('needs_human_review');
+    expect(result.canContinue).toBe(false);
+    expect(result.reason).toContain('no angle selected');
+  });
+
+  it('blocks with whitespace-only selectedAngleId only (approvals.json legacy)', async () => {
+    addCampaignFile('approvals.json', JSON.stringify([
+      { stage: 'S7', status: 'approved', selectedAngleId: '   ', provenanceStatus: 'verified' },
+    ]));
+    const { runG4HumanSelectionGate } = await import('@/lib/gateSystem');
+    const result = await runG4HumanSelectionGate(TEST_CAMPAIGN);
+
+    expect(result.status).toBe('needs_human_review');
+    expect(result.canContinue).toBe(false);
+    expect(result.reason).toContain('no angle selected');
+  });
+
   it('blocks when not approved (pending status)', async () => {
     addCampaignFile('human-approval.json', JSON.stringify({
       status: 'pending',
@@ -231,6 +286,30 @@ describe('runG4HumanSelectionGate - legacy approvals.json (array format)', () =>
     expect(result.status).toBe('pass');
     expect(result.canContinue).toBe(true);
     expect(result.details?.provenanceWarning).toBeDefined();
+  });
+
+  it('blocks with whitespace-only selectedAngleId (legacy)', async () => {
+    addCampaignFile('approvals.json', JSON.stringify([
+      { stage: 'S7', status: 'approved', selectedAngleId: '   ', provenanceStatus: 'verified' },
+    ]));
+    const { runG4HumanSelectionGate } = await import('@/lib/gateSystem');
+    const result = await runG4HumanSelectionGate(TEST_CAMPAIGN);
+
+    expect(result.status).toBe('needs_human_review');
+    expect(result.canContinue).toBe(false);
+    expect(result.reason).toContain('no angle selected');
+  });
+
+  it('blocks with whitespace-only selectedAngleTitle (legacy)', async () => {
+    addCampaignFile('approvals.json', JSON.stringify([
+      { stage: 'S7', status: 'approved', selectedAngleTitle: '   ', provenanceStatus: 'verified' },
+    ]));
+    const { runG4HumanSelectionGate } = await import('@/lib/gateSystem');
+    const result = await runG4HumanSelectionGate(TEST_CAMPAIGN);
+
+    expect(result.status).toBe('needs_human_review');
+    expect(result.canContinue).toBe(false);
+    expect(result.reason).toContain('no angle selected');
   });
 
   it('blocks when no S7 entry found', async () => {

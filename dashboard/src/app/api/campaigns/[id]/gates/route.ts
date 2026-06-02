@@ -4,6 +4,7 @@ import path from 'path';
 import { fail, ok } from '@/lib/apiResponse';
 import { resolveCampaignPath } from '@/lib/requestGuard';
 import { writeApiAuditLog } from '@/lib/logger';
+import { runG4HumanSelectionGate as canonicalG4Gate } from '@/lib/gateSystem';
 
 type GateStatus = 'pass' | 'warning' | 'blocked' | 'needs_human_review' | 'needs_rerun';
 type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
@@ -15,6 +16,7 @@ interface GateResult {
   reason: string;
   requiredAction: string;
   riskLevel: RiskLevel;
+  details?: Record<string, unknown>;
 }
 
 async function getGateContext(campaignId: string): Promise<any> {
@@ -147,40 +149,7 @@ async function runG3AngleQualityGate(campaignId: string): Promise<GateResult> {
 }
 
 async function runG4HumanSelectionGate(campaignId: string): Promise<GateResult> {
-  const ctx = await getGateContext(campaignId);
-  
-  if (ctx.currentStage < 7) {
-    return {
-      gateId: 'G4_HUMAN_SELECTION_GATE',
-      status: 'pass',
-      canContinue: true,
-      reason: 'Stage before S7 - human selection not yet required',
-      requiredAction: 'none',
-      riskLevel: 'low'
-    };
-  }
-  
-  const approvalFile = ctx.files.find((f: string) => f.includes('approvals') || f.includes('human-approval'));
-  
-  if (!approvalFile) {
-    return {
-      gateId: 'G4_HUMAN_SELECTION_GATE',
-      status: 'needs_human_review',
-      canContinue: false,
-      reason: 'S7 reached but no human approval found',
-      requiredAction: 'Human must select angle in S7',
-      riskLevel: 'critical'
-    };
-  }
-  
-  return {
-    gateId: 'G4_HUMAN_SELECTION_GATE',
-    status: 'pass',
-    canContinue: true,
-    reason: 'Human selection approved',
-    requiredAction: 'none',
-    riskLevel: 'low'
-  };
+  return canonicalG4Gate(campaignId);
 }
 
 async function runG5JournalistFitGate(campaignId: string): Promise<GateResult> {

@@ -246,6 +246,10 @@ export async function runG3AngleQualityGate(campaignId: string): Promise<GateRes
   };
 }
 
+function hasNonBlankString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
 export async function runG4HumanSelectionGate(campaignId: string): Promise<GateResult> {
   const ctx = await getGateContext(campaignId);
 
@@ -294,7 +298,7 @@ export async function runG4HumanSelectionGate(campaignId: string): Promise<GateR
         };
       }
 
-      if (!approval.selectedAngleId && !approval.selectedAngleTitle) {
+      if (!hasNonBlankString(approval.selectedAngleId) && !hasNonBlankString(approval.selectedAngleTitle)) {
         return {
           gateId: 'G4_HUMAN_SELECTION_GATE',
           status: 'needs_human_review',
@@ -388,7 +392,7 @@ export async function runG4HumanSelectionGate(campaignId: string): Promise<GateR
       };
     }
 
-    if (!s7Approval.selectedAngleId && !s7Approval.selectedAngleTitle) {
+    if (!hasNonBlankString(s7Approval.selectedAngleId) && !hasNonBlankString(s7Approval.selectedAngleTitle)) {
       return {
         gateId: 'G4_HUMAN_SELECTION_GATE',
         status: 'needs_human_review',
