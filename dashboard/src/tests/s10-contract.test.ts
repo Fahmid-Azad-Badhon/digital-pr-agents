@@ -41,6 +41,13 @@ const VALIDATOR_PATH = path.join(
   'lib',
   'jsonSchemaValidator.ts'
 );
+const OUTPUT_CONTRACT_VALIDATOR_PATH = path.join(
+  REPO_ROOT,
+  'dashboard',
+  'src',
+  'lib',
+  'stageOutputContractValidator.ts'
+);
 
 describe('S10 Output Contract', () => {
 
@@ -146,15 +153,14 @@ describe('S10 Output Contract', () => {
       expect(jsonAssertion).not.toBeNull();
     });
 
-    it('imports validateJsonFileAgainstSchema for Phase 4 schema validation', () => {
-      expect(source).toContain('validateJsonFileAgainstSchema');
-      expect(source).toContain('jsonSchemaValidator');
+    it('imports validateS10OutputContract instead of direct validateJsonFileAgainstSchema', () => {
+      expect(source).toContain('validateS10OutputContract');
+      expect(source).toContain('stageOutputContractValidator');
+      expect(source).not.toContain('jsonSchemaValidator');
     });
 
-    it('calls schema validation for 10-pitch-draft.json against pitch-draft.schema.json', () => {
-      expect(source).toContain('validateJsonFileAgainstSchema');
-      expect(source).toContain('pitch-draft.schema.json');
-      expect(source).toContain('10-pitch-draft.json');
+    it('calls validateS10OutputContract(campaignPath) for JSON schema validation', () => {
+      expect(source).toContain('validateS10OutputContract(campaignPath)');
     });
 
     it('does not import schemaValidation.ts or stageContractValidator.ts directly', () => {
@@ -239,8 +245,8 @@ describe('S10 Output Contract', () => {
       expect(routeOk && registryOk).toBe(true);
     });
 
-    it('route calls schema validation for 10-pitch-draft.json after existence assertion', () => {
-      const schemaCall = routeSource.match(/validateJsonFileAgainstSchema[\s\S]*?10-pitch-draft\.json/);
+    it('route calls validateS10OutputContract after JSON artifact assertion', () => {
+      const schemaCall = routeSource.match(/validateS10OutputContract[\s\S]*?campaignPath/);
       expect(schemaCall).not.toBeNull();
     });
   });
@@ -286,6 +292,36 @@ describe('S10 Output Contract', () => {
       expect(statsProp.items.properties).toBeDefined();
       expect(statsProp.items.properties.value).toBeDefined();
       expect(statsProp.items.properties.context).toBeDefined();
+    });
+  });
+
+  describe('dashboard/stageOutputContractValidator.ts -- S10 output contract validation', () => {
+    let source: string;
+
+    beforeAll(async () => {
+      source = await fs.readFile(OUTPUT_CONTRACT_VALIDATOR_PATH, 'utf8');
+    });
+
+    it('exports validateS10OutputContract function', () => {
+      expect(source).toContain('validateS10OutputContract');
+    });
+
+    it('imports validateJsonFileAgainstSchema from jsonSchemaValidator', () => {
+      expect(source).toContain('validateJsonFileAgainstSchema');
+      expect(source).toContain('jsonSchemaValidator');
+    });
+
+    it('validates 10-pitch-draft.json against pitch-draft.schema.json', () => {
+      expect(source).toContain('10-pitch-draft.json');
+      expect(source).toContain('pitch-draft.schema.json');
+    });
+
+    it('does not import stageContractValidator', () => {
+      expect(source).not.toContain('stageContractValidator');
+    });
+
+    it('does not import stageHandoffValidator', () => {
+      expect(source).not.toContain('stageHandoffValidator');
     });
   });
 });

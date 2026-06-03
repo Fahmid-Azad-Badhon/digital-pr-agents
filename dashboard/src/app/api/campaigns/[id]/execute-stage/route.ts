@@ -6,7 +6,7 @@ import { fail, ok } from '@/lib/apiResponse';
 import { evaluateMutationAuth } from '@/lib/authGuard';
 import { writeApiAuditLog, writeSystemLog } from '@/lib/logger';
 import { checkRateLimit } from '@/lib/rateLimiter';
-import { assertValidCampaignId, resolveCampaignPath, PITCH_JOBS_ROOT } from '@/lib/requestGuard';
+import { assertValidCampaignId, resolveCampaignPath } from '@/lib/requestGuard';
 import { runScriptAction } from '@/lib/scriptRunner';
 import { validateStagePitchGovernance } from '@/lib/pitchGovernanceValidator';
 import { appendRuntimeEvent } from '@/lib/runtimeEvents';
@@ -14,7 +14,7 @@ import { getRunModeFromRequest, shouldBlockExternalAction, type RunMode } from '
 import { getApprovalProgressionDecision, type ProvenanceStatus } from '@/lib/provenance';
 import { looksLikeFallback, FALLBACK_MARKERS } from '@/lib/fallbackMarkers';
 import { STAGES } from '@/types';
-import { validateJsonFileAgainstSchema } from '@/lib/jsonSchemaValidator';
+import { validateS10OutputContract } from '@/lib/stageOutputContractValidator';
 
 // Strict mode - when enabled, stages block instead of falling back to synthetic outputs
 // Default: ENABLED (true) for production safety. Set STRICT_REAL_ONLY=false to disable.
@@ -924,12 +924,7 @@ async function executeStage10(campaignId: string, campaignPath: string) {
     'Generate a real structured pitch draft JSON from verified journalist intelligence data.'
   );
 
-  const pitchDraftSchemaPath = path.join(path.dirname(PITCH_JOBS_ROOT), 'schemas', 'pitch-draft.schema.json');
-  await validateJsonFileAgainstSchema({
-    dataFilePath: path.join(campaignPath, '10-pitch-draft.json'),
-    schemaFilePath: pitchDraftSchemaPath,
-    artifactName: '10-pitch-draft.json',
-  });
+  await validateS10OutputContract(campaignPath);
 
   return { outputFile: '10-pitch-draft.md', script: run.result?.command };
 }
