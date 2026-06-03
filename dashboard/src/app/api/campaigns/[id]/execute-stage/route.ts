@@ -915,6 +915,14 @@ async function executeStage10(campaignId: string, campaignPath: string) {
   if (!governance.valid) {
     throw new Error(`S10 governance failed: ${governance.issues.map(i => i.message).join('; ')}`);
   }
+
+  await assertRealArtifact(
+    campaignPath,
+    10,
+    '10-pitch-draft.json',
+    'Generate a real structured pitch draft JSON from verified journalist intelligence data.'
+  );
+
   return { outputFile: '10-pitch-draft.md', script: run.result?.command };
 }
 
@@ -1493,7 +1501,7 @@ const STAGE_OUTPUT_FILES: Record<number, string[]> = {
   7: ['human-approval.json'],
   8: ['08-journalist-list.csv'],
   9: ['09-journalist-intelligence.json', '06-journalist-intel.md', '07-journalist-coverage.md'],
-  10: ['10-pitch-draft.md'],
+  10: ['10-pitch-draft.md', '10-pitch-draft.json'],
   11: ['11-optimized-pitch.md'],
   12: ['12-outreach-package.md'],
   13: ['13-validation-report.json'],

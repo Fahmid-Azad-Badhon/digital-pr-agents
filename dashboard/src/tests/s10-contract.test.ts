@@ -124,6 +124,26 @@ describe('S10 Output Contract', () => {
       const strictMandatory = source.match(/mandatory.*10-pitch-draft\.md|10-pitch-draft\.md.*mandatory/);
       expect(strictMandatory).not.toBeNull();
     });
+
+    it('STAGE_OUTPUT_FILES[10] includes 10-pitch-draft.json for Phase 3', () => {
+      const s10Line = source
+        .split('\n')
+        .find(l => l.includes("10: ['10-pitch-draft.md"));
+      expect(s10Line).toBeDefined();
+      expect(s10Line).toContain('10-pitch-draft.json');
+    });
+
+    it('executeStage10() asserts 10-pitch-draft.json artifact after script run', () => {
+      const jsonAssertion = source.match(/assertRealArtifact[\s\S]*?10-pitch-draft\.json/);
+      expect(jsonAssertion).not.toBeNull();
+    });
+
+    it('does not add pitch-draft schema validation in Phase 3 route change', () => {
+      const hasSchemaImport = source.includes('schemaValidation') || source.includes('AJV') || source.includes('ajv');
+      const hasPitchDraftSchema = source.includes('pitch-draft.schema.json');
+      expect(hasSchemaImport).toBe(false);
+      expect(hasPitchDraftSchema).toBe(false);
+    });
   });
 
   describe('dashboard/stageRuntimeRegistry.ts -- S10 binding', () => {
@@ -192,6 +212,12 @@ describe('S10 Output Contract', () => {
       const routeOk = routeSource.includes('10-pitch-draft.md');
       const registryOk = registrySource.includes(CANONICAL) && registrySource.includes('S10_PITCH_DRAFTING');
       expect(scriptOk && routeOk && registryOk).toBe(true);
+    });
+
+    it('route STAGE_OUTPUT_FILES[10] and registry agree on 10-pitch-draft.json', () => {
+      const routeOk = routeSource.includes('10-pitch-draft.json');
+      const registryOk = registrySource.includes(JSON_OUTPUT) && registrySource.includes('S10_PITCH_DRAFTING');
+      expect(routeOk && registryOk).toBe(true);
     });
   });
 });
