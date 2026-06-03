@@ -211,6 +211,12 @@ async function checkCondition(
         return { result: true, warnings: [] };
       } catch { return { result: false, warnings: [] }; }
     },
+    '10-pitch-draft.json exists': async () => {
+      try {
+        await fs.access(path.join(campaignPath, '10-pitch-draft.json'));
+        return { result: true, warnings: [] };
+      } catch { return { result: false, warnings: [] }; }
+    },
     '11-optimized-pitch.md exists': async () => {
       try {
         await fs.access(path.join(campaignPath, '11-optimized-pitch.md'));

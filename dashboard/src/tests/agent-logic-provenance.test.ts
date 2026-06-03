@@ -195,3 +195,72 @@ describe('Batch 5G-b3 — agentLogicConditionEngine provenance hardening', () =>
   });
 
 });
+
+describe('Batch 5H-e-p1 — S10 JSON artifact existence condition', () => {
+  const S10_STAGE_ID = 'S10_PITCH_DRAFTING';
+
+  beforeEach(async () => {
+    vi.resetModules();
+    mockFileContents.clear();
+    mockFileContents.set(
+      path.join(SYSTEM_DIR, 'agent-logic-conditions.json'),
+      JSON.stringify({
+        version: '1.0',
+        updatedAt: '2026-05-09T00:00:00Z',
+        globalRules: { noAgentMayRunIf: [], noWritingAgentMayUse: [], humanApprovalRequiredBefore: [] },
+        stageLogic: [{
+          stageId: S10_STAGE_ID,
+          canRunIf: [],
+          mustStopIf: [],
+          mustAskHumanIf: [],
+          mustWarnIf: [],
+          mustRerunIf: [],
+          mustEscalateIf: [],
+          canContinueIf: ['10-pitch-draft.json exists'],
+          handoffIf: [],
+        }],
+      }),
+    );
+  });
+
+  it('"10-pitch-draft.json exists" passes when file exists', async () => {
+    setMockFile('10-pitch-draft.json', JSON.stringify({ campaignId: 'test' }));
+    const evaluateCanContinue = (await import('@/lib/agentLogicConditionEngine')).evaluateCanContinue;
+    const result = await evaluateCanContinue(CAMPAIGN_SLUG, S10_STAGE_ID);
+    expect(result.canContinue).toBe(true);
+    expect(result.blockedBy).toHaveLength(0);
+  });
+
+  it('"10-pitch-draft.json exists" blocks when file is missing', async () => {
+    const evaluateCanContinue = (await import('@/lib/agentLogicConditionEngine')).evaluateCanContinue;
+    const result = await evaluateCanContinue(CAMPAIGN_SLUG, S10_STAGE_ID);
+    expect(result.canContinue).toBe(false);
+    expect(result.blockedBy).toContain('10-pitch-draft.json exists');
+  });
+
+  it('unknown condition still silently passes (no broad behavior change)', async () => {
+    mockFileContents.set(
+      path.join(SYSTEM_DIR, 'agent-logic-conditions.json'),
+      JSON.stringify({
+        version: '1.0',
+        updatedAt: '2026-05-09T00:00:00Z',
+        globalRules: { noAgentMayRunIf: [], noWritingAgentMayUse: [], humanApprovalRequiredBefore: [] },
+        stageLogic: [{
+          stageId: S10_STAGE_ID,
+          canRunIf: [],
+          mustStopIf: [],
+          mustAskHumanIf: [],
+          mustWarnIf: [],
+          mustRerunIf: [],
+          mustEscalateIf: [],
+          canContinueIf: ['some-nonexistent-condition-that-should-pass'],
+          handoffIf: [],
+        }],
+      }),
+    );
+    const evaluateCanContinue = (await import('@/lib/agentLogicConditionEngine')).evaluateCanContinue;
+    const result = await evaluateCanContinue(CAMPAIGN_SLUG, S10_STAGE_ID);
+    expect(result.canContinue).toBe(true);
+    expect(result.blockedBy).toHaveLength(0);
+  });
+});

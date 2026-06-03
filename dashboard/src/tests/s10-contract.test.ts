@@ -22,9 +22,17 @@ const REGISTRY_PATH = path.join(
   'lib',
   'stageRuntimeRegistry.ts'
 );
+const HANDOFF_PATH = path.join(
+  REPO_ROOT,
+  'dashboard',
+  'src',
+  'lib',
+  'stageHandoffValidator.ts'
+);
 
 const CANONICAL = '10-pitch-draft.md';
 const LEGACY = '08-pitch-draft.md';
+const JSON_OUTPUT = '10-pitch-draft.json';
 
 describe('S10 Output Contract', () => {
 
@@ -139,6 +147,30 @@ describe('S10 Output Contract', () => {
         .find(l => l.includes('S10_PITCH_DRAFTING'));
       expect(s10Line).toBeDefined();
       expect(s10Line).toContain(LEGACY);
+    });
+
+    it('declares 10-pitch-draft.json in S10 outputFiles array', () => {
+      const s10Line = source
+        .split('\n')
+        .find(l => l.includes('S10_PITCH_DRAFTING'));
+      expect(s10Line).toBeDefined();
+      expect(s10Line).toContain(JSON_OUTPUT);
+    });
+  });
+
+  describe('dashboard/stageHandoffValidator.ts -- S10 handoff metadata', () => {
+    let source: string;
+
+    beforeAll(async () => {
+      source = await fs.readFile(HANDOFF_PATH, 'utf8');
+    });
+
+    it('accepts 10-pitch-draft.json in S10 handoff requirements', () => {
+      const s10Line = source
+        .split('\n')
+        .find(l => l.includes('stage: 10'));
+      expect(s10Line).toBeDefined();
+      expect(source).toContain(JSON_OUTPUT);
     });
   });
 

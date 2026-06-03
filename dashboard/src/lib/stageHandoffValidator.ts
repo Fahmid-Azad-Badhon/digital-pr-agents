@@ -58,7 +58,7 @@ const STAGE_REQUIREMENTS: StageRequirement[] = [
     { requirement: 'Journalist intelligence', acceptedFiles: ['09-journalist-intelligence.json'] },
   ] },
   { stage: 10, requirements: [
-    { requirement: 'Pitch draft', acceptedFiles: ['10-pitch-draft.md', '08-pitch-draft.md'] },
+    { requirement: 'Pitch draft', acceptedFiles: ['10-pitch-draft.md', '08-pitch-draft.md', '10-pitch-draft.json'] },
   ] },
   { stage: 11, requirements: [
     { requirement: 'Optimized pitch', acceptedFiles: ['11-optimized-pitch.md', '09-optimized-email.md'] },
