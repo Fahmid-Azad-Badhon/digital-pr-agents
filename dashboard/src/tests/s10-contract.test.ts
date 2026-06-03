@@ -33,6 +33,14 @@ const HANDOFF_PATH = path.join(
 const CANONICAL = '10-pitch-draft.md';
 const LEGACY = '08-pitch-draft.md';
 const JSON_OUTPUT = '10-pitch-draft.json';
+const SCHEMA_PATH = path.join(REPO_ROOT, 'schemas', 'pitch-draft.schema.json');
+const VALIDATOR_PATH = path.join(
+  REPO_ROOT,
+  'dashboard',
+  'src',
+  'lib',
+  'jsonSchemaValidator.ts'
+);
 
 describe('S10 Output Contract', () => {
 
@@ -138,11 +146,22 @@ describe('S10 Output Contract', () => {
       expect(jsonAssertion).not.toBeNull();
     });
 
-    it('does not add pitch-draft schema validation in Phase 3 route change', () => {
-      const hasSchemaImport = source.includes('schemaValidation') || source.includes('AJV') || source.includes('ajv');
-      const hasPitchDraftSchema = source.includes('pitch-draft.schema.json');
-      expect(hasSchemaImport).toBe(false);
-      expect(hasPitchDraftSchema).toBe(false);
+    it('imports validateJsonFileAgainstSchema for Phase 4 schema validation', () => {
+      expect(source).toContain('validateJsonFileAgainstSchema');
+      expect(source).toContain('jsonSchemaValidator');
+    });
+
+    it('calls schema validation for 10-pitch-draft.json against pitch-draft.schema.json', () => {
+      expect(source).toContain('validateJsonFileAgainstSchema');
+      expect(source).toContain('pitch-draft.schema.json');
+      expect(source).toContain('10-pitch-draft.json');
+    });
+
+    it('does not import schemaValidation.ts or stageContractValidator.ts directly', () => {
+      const hasDirectSchemaValidation = source.match(/from\s+['"]@\/lib\/schemaValidation['"]/);
+      const hasDirectContractValidator = source.match(/from\s+['"]@\/lib\/stageContractValidator['"]/);
+      expect(hasDirectSchemaValidation).toBeNull();
+      expect(hasDirectContractValidator).toBeNull();
     });
   });
 
@@ -218,6 +237,55 @@ describe('S10 Output Contract', () => {
       const routeOk = routeSource.includes('10-pitch-draft.json');
       const registryOk = registrySource.includes(JSON_OUTPUT) && registrySource.includes('S10_PITCH_DRAFTING');
       expect(routeOk && registryOk).toBe(true);
+    });
+
+    it('route calls schema validation for 10-pitch-draft.json after existence assertion', () => {
+      const schemaCall = routeSource.match(/validateJsonFileAgainstSchema[\s\S]*?10-pitch-draft\.json/);
+      expect(schemaCall).not.toBeNull();
+    });
+  });
+
+  describe('dashboard/jsonSchemaValidator.ts -- S10 schema validation', () => {
+    let validatorSource: string;
+    let schemaSource: string;
+
+    beforeAll(async () => {
+      validatorSource = await fs.readFile(VALIDATOR_PATH, 'utf8');
+      schemaSource = await fs.readFile(SCHEMA_PATH, 'utf8');
+    });
+
+    it('defines validateJsonFileAgainstSchema function', () => {
+      expect(validatorSource).toContain('validateJsonFileAgainstSchema');
+    });
+
+    it('imports AJV for JSON Schema draft-07 validation', () => {
+      expect(validatorSource).toContain('ajv');
+    });
+
+    it('references pitch-draft.schema.json required fields (campaignId, pitchContent, angle)', () => {
+      const schema = JSON.parse(schemaSource);
+      expect(schema.required).toContain('campaignId');
+      expect(schema.required).toContain('pitchContent');
+      expect(schema.required).toContain('angle');
+    });
+
+    it('schema defines tone enum with values matching script output', () => {
+      const schema = JSON.parse(schemaSource);
+      const toneProp = schema.properties?.tone;
+      expect(toneProp).toBeDefined();
+      expect(toneProp.enum).toContain('Professional');
+      expect(toneProp.enum).toContain('Casual');
+      expect(toneProp.enum).toContain('Storytelling');
+    });
+
+    it('accepts statistics as optional array of objects', () => {
+      const schema = JSON.parse(schemaSource);
+      const statsProp = schema.properties?.statistics;
+      expect(statsProp).toBeDefined();
+      expect(statsProp.type).toBe('array');
+      expect(statsProp.items.properties).toBeDefined();
+      expect(statsProp.items.properties.value).toBeDefined();
+      expect(statsProp.items.properties.context).toBeDefined();
     });
   });
 });
