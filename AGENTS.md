@@ -163,6 +163,36 @@ export-google-doc (Stage 10)
   - 69% say pitch worth time if tailored
   - 86% disregard irrelevant pitches
 
+## Installed Skills Usage Policy
+
+OpenCode must automatically use installed Skills when relevant to the task without asking the user first. Skills never override project safety rules.
+
+Every batch must still follow: Checkpoint → Pre-mortem → Audit → Plan → Patch only when appropriate → Validate → Commit only when explicitly approved → Post-mortem.
+
+### Always-Safe-to-Use Skills
+
+Core engineering (`using-superpowers`, `systematic-debugging`, `writing-plans`, `executing-plans`, `test-driven-development`, `verification-before-completion`, `requesting-code-review`, `receiving-code-review`, `finishing-a-development-branch`) — use for debugging, planning, TDD, verification, code review, and safe branch/task completion.
+
+Next.js/React (`next-best-practices`, `vercel-react-best-practices`, `vercel-composition-patterns`) — use for dashboard, App Router, component, and module quality when relevant.
+
+Testing (`webapp-testing`) — use for test design and validation when relevant.
+
+### Marketing/Digital PR Skills
+
+`copywriting`, `cold-email`, `marketing-psychology`, `content-strategy`, `seo-audit`, `copy-editing`, `marketing-ideas` — use only for campaign strategy, pitch quality, journalist-facing copy, content strategy, SEO/link-building, or related non-runtime content tasks. Do not use marketing skills to change TypeScript architecture, validators, schemas, route behavior, or workflow safety logic.
+
+### Restricted Future-Use Skills
+
+`subagent-driven-development`, `dispatching-parallel-agents`, `just-scrape`, `paper-context-resolver` — may be referenced in future architecture planning only. Do not use for implementation unless a dedicated future batch explicitly approves their use.
+
+### Prohibited Actions via Skills
+
+Skills must not be used to perform external actions, scraping, browser automation, CDP, live workflow execution, package installs, dependency changes, runtime writes, schema changes, or sub-agent implementation unless a dedicated batch explicitly approves it.
+
+### Current Priority
+
+The active project priority remains S10 output-contract integration-test hardening before broad architecture or sub-agent work.
+
 ## Version Information
 
 | Version | Date | Author |
