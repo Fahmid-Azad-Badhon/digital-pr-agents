@@ -1,6 +1,9 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import fs from 'fs/promises';
 import path from 'path';
+import os from 'os';
+import { validateS10OutputContract } from '@/lib/stageOutputContractValidator';
+import { JsonSchemaValidationError } from '@/lib/jsonSchemaValidator';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 const SCRIPT_PATH = path.join(REPO_ROOT, 'scripts', 'draft-pitch-draft.js');
@@ -322,6 +325,78 @@ describe('S10 Output Contract', () => {
 
     it('does not import stageHandoffValidator', () => {
       expect(source).not.toContain('stageHandoffValidator');
+    });
+  });
+
+  describe('validateS10OutputContract — behavioral real-file tests', () => {
+    let rootDir: string;
+    let dirIndex = 0;
+
+    beforeAll(async () => {
+      rootDir = await fs.mkdtemp(path.join(os.tmpdir(), 's10-output-contract-'));
+    });
+
+    afterAll(async () => {
+      await fs.rm(rootDir, { recursive: true, force: true }).catch(() => undefined);
+    });
+
+    const VALID_10_JSON = {
+      campaignId: 'test-campaign',
+      pitchContent: 'This is a test pitch with enough content for schema validation.',
+      angle: 'Test angle for validation',
+    };
+
+    async function makeDir(): Promise<string> {
+      const dir = path.join(rootDir, `test-${++dirIndex}`);
+      await fs.mkdir(dir, { recursive: true });
+      return dir;
+    }
+
+    async function writeValidJson(dir: string): Promise<void> {
+      await fs.writeFile(path.join(dir, '10-pitch-draft.json'), JSON.stringify(VALID_10_JSON));
+    }
+
+    it('valid JSON passes', async () => {
+      const dir = await makeDir();
+      await writeValidJson(dir);
+      await expect(validateS10OutputContract(dir)).resolves.toBeUndefined();
+    });
+
+    it('missing required field fails', async () => {
+      const dir = await makeDir();
+      await fs.writeFile(
+        path.join(dir, '10-pitch-draft.json'),
+        JSON.stringify({ campaignId: 'test-campaign', angle: 'test' }),
+      );
+      await expect(validateS10OutputContract(dir)).rejects.toBeInstanceOf(JsonSchemaValidationError);
+    });
+
+    it('malformed JSON fails', async () => {
+      const dir = await makeDir();
+      await fs.writeFile(path.join(dir, '10-pitch-draft.json'), '{invalid json content');
+      await expect(validateS10OutputContract(dir)).rejects.toBeInstanceOf(JsonSchemaValidationError);
+    });
+
+    it('missing 10-pitch-draft.json fails', async () => {
+      const dir = await makeDir();
+      await expect(validateS10OutputContract(dir)).rejects.toBeInstanceOf(JsonSchemaValidationError);
+    });
+
+    it('valid JSON passes without 08-pitch-draft.md', async () => {
+      const dir = await makeDir();
+      await writeValidJson(dir);
+      const hasLegacy = await fs.access(path.join(dir, '08-pitch-draft.md')).then(() => true).catch(() => false);
+      expect(hasLegacy).toBe(false);
+      await expect(validateS10OutputContract(dir)).resolves.toBeUndefined();
+    });
+
+    it('helper does not write files', async () => {
+      const dir = await makeDir();
+      await writeValidJson(dir);
+      const before = await fs.readdir(dir);
+      await validateS10OutputContract(dir);
+      const after = await fs.readdir(dir);
+      expect(after).toEqual(before);
     });
   });
 });
