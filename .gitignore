@@ -109,6 +109,19 @@ data/
 !system/prompt-version-log.json
 !system/gate-rules.json
 !system/workflow-state-machine.json
+!system/claim-ledger.json
+!system/claim-ledger-rules.json
+!system/agent-question-bank.json
+!system/agent-question-routing.json
+!system/question-issue-types.json
+!system/question-priority-rules.json
+!system/question-answer-contracts.json
+!system/replay-config.json
+!system/replay-rules.json
+!system/context-isolation.json
+!system/input-locks.json
+!system/anti-sales-language-rules.json
+!system/cta-softness-rules.json
 
 # Source-of-truth JSON schemas used by tracked runtime validation.
 !schemas/campaign-brief.schema.json

@@ -1,0 +1,244 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-05-09",
+  "routingRules": [
+    {
+      "issueType": "missing_campaign_context",
+      "primaryTargetAgent": "S0_CAMPAIGN_CLARIFICATION",
+      "fallbackTargetAgents": ["HUMAN", "S1_CAMPAIGN_INTAKE"],
+      "doNotAsk": ["S10_PITCH_DRAFTING", "S11_PITCH_OPTIMIZATION"],
+      "description": "Used when the campaign topic, client, geography, goal, or deliverable is unclear."
+    },
+    {
+      "issueType": "unclear_campaign_goal",
+      "primaryTargetAgent": "S0_CAMPAIGN_CLARIFICATION",
+      "fallbackTargetAgents": ["HUMAN"],
+      "doNotAsk": ["S10_PITCH_DRAFTING", "S11_PITCH_OPTIMIZATION"],
+      "description": "Used when the campaign objective is unclear."
+    },
+    {
+      "issueType": "missing_client_or_brand_context",
+      "primaryTargetAgent": "S0_CAMPAIGN_CLARIFICATION",
+      "fallbackTargetAgents": ["HUMAN"],
+      "doNotAsk": ["S10_PITCH_DRAFTING", "S11_PITCH_OPTIMIZATION"],
+      "description": "Used when client name, brand voice, or brand context is missing."
+    },
+    {
+      "issueType": "unclear_geography",
+      "primaryTargetAgent": "S0_CAMPAIGN_CLARIFICATION",
+      "fallbackTargetAgents": ["HUMAN", "S1_CAMPAIGN_INTAKE"],
+      "doNotAsk": [],
+      "description": "Used when target geography is unclear."
+    },
+    {
+      "issueType": "missing_source_material",
+      "primaryTargetAgent": "HUMAN",
+      "fallbackTargetAgents": ["S0_CAMPAIGN_CLARIFICATION"],
+      "doNotAsk": [],
+      "description": "Used when source material is missing."
+    },
+    {
+      "issueType": "unreadable_source_material",
+      "primaryTargetAgent": "S2_DATA_EXTRACTION",
+      "fallbackTargetAgents": ["HUMAN"],
+      "doNotAsk": [],
+      "description": "Used when source material cannot be read or parsed."
+    },
+    {
+      "issueType": "unclear_statistic",
+      "primaryTargetAgent": "S2_DATA_EXTRACTION",
+      "fallbackTargetAgents": ["S4A_DATA_RESEARCH_ANALYST"],
+      "doNotAsk": [],
+      "description": "A statistic is unclear, incomplete, or lacks source."
+    },
+    {
+      "issueType": "missing_metric_definition",
+      "primaryTargetAgent": "S2_DATA_EXTRACTION",
+      "fallbackTargetAgents": ["S3_RESEARCH_ENRICHMENT"],
+      "doNotAsk": [],
+      "description": "Metric definition is missing or unclear."
+    },
+    {
+      "issueType": "possible_derived_metric",
+      "primaryTargetAgent": "S2_DATA_EXTRACTION",
+      "fallbackTargetAgents": ["S4A_DATA_RESEARCH_ANALYST"],
+      "doNotAsk": [],
+      "description": "A metric appears to be derived rather than directly reported."
+    },
+    {
+      "issueType": "source_credibility_unclear",
+      "primaryTargetAgent": "S3_RESEARCH_ENRICHMENT",
+      "fallbackTargetAgents": ["S4A_DATA_RESEARCH_ANALYST"],
+      "doNotAsk": [],
+      "description": "Source credibility needs clarification."
+    },
+    {
+      "issueType": "conflicting_sources",
+      "primaryTargetAgent": "S3_RESEARCH_ENRICHMENT",
+      "fallbackTargetAgents": ["S4A_DATA_RESEARCH_ANALYST"],
+      "doNotAsk": [],
+      "description": "Two or more sources provide conflicting information."
+    },
+    {
+      "issueType": "research_scope_unclear",
+      "primaryTargetAgent": "S3_RESEARCH_ENRICHMENT",
+      "fallbackTargetAgents": ["S1_CAMPAIGN_INTAKE", "HUMAN"],
+      "doNotAsk": [],
+      "description": "Research scope needs clarification."
+    },
+    {
+      "issueType": "claim_safety_unclear",
+      "primaryTargetAgent": "S4A_DATA_RESEARCH_ANALYST",
+      "fallbackTargetAgents": ["S13_VALIDATION"],
+      "doNotAsk": [],
+      "description": "Safety of using a claim in pitch is unclear."
+    },
+    {
+      "issueType": "unsupported_claim_detected",
+      "primaryTargetAgent": "S4A_DATA_RESEARCH_ANALYST",
+      "fallbackTargetAgents": ["S13_VALIDATION"],
+      "doNotAsk": [],
+      "description": "A claim in pitch is not supported by evidence."
+    },
+    {
+      "issueType": "soft_language_needed",
+      "primaryTargetAgent": "S4A_DATA_RESEARCH_ANALYST",
+      "fallbackTargetAgents": ["S13_VALIDATION"],
+      "doNotAsk": [],
+      "description": "Strong claim needs soft language for safe use."
+    },
+    {
+      "issueType": "strongest_finding_unclear",
+      "primaryTargetAgent": "S4A_DATA_RESEARCH_ANALYST",
+      "fallbackTargetAgents": ["S4B_INSIGHT_ANALYST"],
+      "doNotAsk": [],
+      "description": "Which finding is strongest needs clarification."
+    },
+    {
+      "issueType": "story_tension_unclear",
+      "primaryTargetAgent": "S4B_INSIGHT_ANALYST",
+      "fallbackTargetAgents": ["S5_ANGLE_GENERATION"],
+      "doNotAsk": [],
+      "description": "Story tension or narrative hook is unclear."
+    },
+    {
+      "issueType": "angle_frame_unclear",
+      "primaryTargetAgent": "S5_ANGLE_GENERATION",
+      "fallbackTargetAgents": ["S4B_INSIGHT_ANALYST"],
+      "doNotAsk": [],
+      "description": "Angle frame or approach needs clarification."
+    },
+    {
+      "issueType": "angle_score_dispute",
+      "primaryTargetAgent": "S7_HUMAN_GATE",
+      "fallbackTargetAgents": ["S5_ANGLE_GENERATION", "HUMAN"],
+      "doNotAsk": [],
+      "description": "Angle scoring needs human clarification."
+    },
+    {
+      "issueType": "beat_match_unclear",
+      "primaryTargetAgent": "S6_BEAT_MATCHING",
+      "fallbackTargetAgents": ["S5_ANGLE_GENERATION"],
+      "doNotAsk": [],
+      "description": "Beat match quality needs clarification."
+    },
+    {
+      "issueType": "human_angle_approval_required",
+      "primaryTargetAgent": "HUMAN",
+      "fallbackTargetAgents": ["S7_HUMAN_GATE"],
+      "doNotAsk": [],
+      "description": "Human approval required for selected angle."
+    },
+    {
+      "issueType": "selected_angle_missing",
+      "primaryTargetAgent": "S7_HUMAN_GATE",
+      "fallbackTargetAgents": ["HUMAN"],
+      "doNotAsk": [],
+      "description": "Selected angle is missing or undefined."
+    },
+    {
+      "issueType": "journalist_collection_scope_unclear",
+      "primaryTargetAgent": "S8_JOURNALIST_COLLECTION",
+      "fallbackTargetAgents": ["S7_HUMAN_GATE", "HUMAN"],
+      "doNotAsk": [],
+      "description": "Journalist collection scope needs clarification."
+    },
+    {
+      "issueType": "journalist_fit_unclear",
+      "primaryTargetAgent": "S9_JOURNALIST_INTELLIGENCE",
+      "fallbackTargetAgents": ["S8_JOURNALIST_COLLECTION"],
+      "doNotAsk": [],
+      "description": "Journalist fit for selected angle is unclear."
+    },
+    {
+      "issueType": "journalist_personalization_unclear",
+      "primaryTargetAgent": "S9_JOURNALIST_INTELLIGENCE",
+      "fallbackTargetAgents": ["S8_JOURNALIST_COLLECTION"],
+      "doNotAsk": [],
+      "description": "Personalization evidence for journalist is unclear."
+    },
+    {
+      "issueType": "pitch_fact_missing",
+      "primaryTargetAgent": "S4A_DATA_RESEARCH_ANALYST",
+      "fallbackTargetAgents": ["S13_VALIDATION"],
+      "doNotAsk": [],
+      "description": "Pitch contains a fact not in claim ledger."
+    },
+    {
+      "issueType": "pitch_claim_not_in_ledger",
+      "primaryTargetAgent": "S4A_DATA_RESEARCH_ANALYST",
+      "fallbackTargetAgents": ["S13_VALIDATION"],
+      "doNotAsk": [],
+      "description": "Pitch claim is not in claim-ledger.json."
+    },
+    {
+      "issueType": "pitch_tone_issue",
+      "primaryTargetAgent": "S11_PITCH_OPTIMIZATION",
+      "fallbackTargetAgents": ["S13_VALIDATION"],
+      "doNotAsk": [],
+      "description": "Pitch tone needs improvement."
+    },
+    {
+      "issueType": "pitch_structure_issue",
+      "primaryTargetAgent": "S10_PITCH_DRAFTING",
+      "fallbackTargetAgents": ["S12_PACKAGE_ASSEMBLY"],
+      "doNotAsk": [],
+      "description": "Pitch structure needs clarification."
+    },
+    {
+      "issueType": "package_completeness_issue",
+      "primaryTargetAgent": "S12_PACKAGE_ASSEMBLY",
+      "fallbackTargetAgents": ["S13_VALIDATION"],
+      "doNotAsk": [],
+      "description": "Package is incomplete."
+    },
+    {
+      "issueType": "validation_failure",
+      "primaryTargetAgent": "S13_VALIDATION",
+      "fallbackTargetAgents": [],
+      "doNotAsk": [],
+      "description": "S13 validation failed and needs clarification."
+    },
+    {
+      "issueType": "final_send_approval_required",
+      "primaryTargetAgent": "HUMAN",
+      "fallbackTargetAgents": [],
+      "doNotAsk": [],
+      "description": "Final send approval required from human."
+    },
+    {
+      "issueType": "production_asset_unclear",
+      "primaryTargetAgent": "S15_OUTREACH_ASSET_CREATION",
+      "fallbackTargetAgents": ["S12_PACKAGE_ASSEMBLY"],
+      "doNotAsk": [],
+      "description": "Production asset requirements unclear."
+    },
+    {
+      "issueType": "learning_loop_context_unclear",
+      "primaryTargetAgent": "S16_CAMPAIGN_LEARNING_LOOP",
+      "fallbackTargetAgents": ["S13_VALIDATION"],
+      "doNotAsk": [],
+      "description": "Learning loop context needs clarification."
+    }
+  ]
+}

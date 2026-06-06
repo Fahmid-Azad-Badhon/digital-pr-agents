@@ -1,0 +1,86 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-05-09",
+  "priorityRules": [
+    {
+      "condition": "question affects factual claims used in pitch",
+      "priority": "critical",
+      "blocking": true
+    },
+    {
+      "condition": "question affects S7 human approval",
+      "priority": "critical",
+      "blocking": true
+    },
+    {
+      "condition": "question affects final send approval",
+      "priority": "critical",
+      "blocking": true
+    },
+    {
+      "condition": "source material is missing before S2",
+      "priority": "critical",
+      "blocking": true
+    },
+    {
+      "condition": "selected angle is missing before S8",
+      "priority": "critical",
+      "blocking": true
+    },
+    {
+      "condition": "unsupported claim before S10/S11/S12",
+      "priority": "critical",
+      "blocking": true
+    },
+    {
+      "condition": "S13 validation failed",
+      "priority": "critical",
+      "blocking": true
+    },
+    {
+      "condition": "statistic is unclear before S4A",
+      "priority": "high",
+      "blocking": true
+    },
+    {
+      "condition": "source credibility is unclear",
+      "priority": "high",
+      "blocking": false
+    },
+    {
+      "condition": "beat match is unclear",
+      "priority": "high",
+      "blocking": false
+    },
+    {
+      "condition": "localization claim is unclear",
+      "priority": "high",
+      "blocking": false
+    },
+    {
+      "condition": "tone could be improved",
+      "priority": "medium",
+      "blocking": false
+    },
+    {
+      "condition": "package section is incomplete",
+      "priority": "medium",
+      "blocking": false
+    },
+    {
+      "condition": "supporting context is optional",
+      "priority": "low",
+      "blocking": false
+    },
+    {
+      "condition": "optional note or formatting preference",
+      "priority": "low",
+      "blocking": false
+    },
+    {
+      "condition": "dashboard label only",
+      "priority": "low",
+      "blocking": false
+    }
+  ]
+}

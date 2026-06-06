@@ -1,0 +1,123 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Replay Mode Configuration",
+  "version": "1.0.0",
+  "lastUpdated": "2026-05-09",
+  "description": "Configuration for Replay Mode - enabling safe rerunning of campaign stages",
+  "replayTypes": {
+    "stage_only": {
+      "description": "Rerun only one specific stage",
+      "archivesOutput": true,
+      "createsSnapshot": true,
+      "marksDownstreamStale": false,
+      "requiresHumanApproval": false
+    },
+    "stage_and_downstream": {
+      "description": "Rerun selected stage and all downstream stages",
+      "archivesOutput": true,
+      "createsSnapshot": true,
+      "marksDownstreamStale": true,
+      "requiresHumanApproval": false
+    },
+    "validation_only": {
+      "description": "Rerun S13 validation only",
+      "archivesOutput": true,
+      "createsSnapshot": false,
+      "marksDownstreamStale": false,
+      "requiresHumanApproval": false
+    },
+    "evaluation_only": {
+      "description": "Rerun the Evaluation Layer only",
+      "archivesOutput": false,
+      "createsSnapshot": false,
+      "marksDownstreamStale": false,
+      "requiresHumanApproval": false
+    },
+    "prompt_test": {
+      "description": "Rerun a stage with a new prompt version",
+      "archivesOutput": false,
+      "createsSnapshot": true,
+      "marksDownstreamStale": false,
+      "requiresHumanApproval": false,
+      "storesInPromptTestResults": true
+    },
+    "model_test": {
+      "description": "Rerun a stage with a different model override",
+      "archivesOutput": false,
+      "createsSnapshot": true,
+      "marksDownstreamStale": false,
+      "requiresHumanApproval": false,
+      "storesInModelTestResults": true
+    },
+    "dry_run": {
+      "description": "Simulate replay without real model calls",
+      "archivesOutput": false,
+      "createsSnapshot": true,
+      "marksDownstreamStale": true,
+      "requiresHumanApproval": false,
+      "modelCallsEnabled": false
+    },
+    "comparison_only": {
+      "description": "Compare two previous runs without rerunning",
+      "archivesOutput": false,
+      "createsSnapshot": false,
+      "marksDownstreamStale": false,
+      "requiresHumanApproval": false
+    }
+  },
+  "runIdFormat": "{campaignSlug}-{stageId}-{YYYYMMDD-HHMMSS}-run{runNumber}",
+  "snapshotRetentionDays": 90,
+  "archiveRetentionDays": 365,
+  "maxConcurrentReplays": 1,
+  "allowedTriggers": ["human", "system", "dashboard", "test"],
+  "staleArtifactMarking": {
+    "enabled": true,
+    "markS11S12S13StaleOnS10Replay": true,
+    "markS12S13StaleOnS11Replay": true,
+    "markS13StaleOnS12Replay": true,
+    "markFinalReadinessStaleOnS13Replay": true
+  },
+  "safetyFeatures": {
+    "blockIfS7ReplayWouldChangeAngle": true,
+    "warnIfUpstreamStageReplay": true,
+    "preserveClaimLedgerOnS2S3S4Replay": false,
+    "requireRerunReason": true
+  },
+  "comparisonOptions": {
+    "compareJsonFields": true,
+    "compareMarkdownSections": true,
+    "compareClaimLedgerChanges": true,
+    "compareScoreChanges": true,
+    "compareSourceReferences": true
+  },
+  "dryRunOutput": {
+    "includeRequiredInputsCheck": true,
+    "includeStageDependencyImpact": true,
+    "includeStaleArtifactDetection": true,
+    "includeApprovalInvalidationCheck": true,
+    "includeExpectedFilesToArchive": true,
+    "includeExpectedFilesToRewrite": true,
+    "includeGatesThatWouldRerun": true,
+    "includeValidationsThatWouldRerun": true,
+    "writeTo": "dry-run-replay-report.json"
+  },
+  "dashboard": {
+    "showReplayHistory": true,
+    "showRunIds": true,
+    "showComparisonReports": true,
+    "showStaleArtifacts": true,
+    "showScoreDelta": true,
+    "showValidationStatus": true,
+    "buttons": {
+      "replayStage": true,
+      "replayStageAndDownstream": true,
+      "replayValidationOnly": true,
+      "compareRuns": true,
+      "restorePreviousOutput": true,
+      "viewSnapshot": true,
+      "viewReplayReport": true,
+      "markReplayAccepted": true,
+      "markReplayRejected": true
+    }
+  }
+}

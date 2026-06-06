@@ -1,0 +1,45 @@
+{
+  "version": "1.0",
+  "updatedAt": "2026-05-09T00:00:00Z",
+  "rules": {
+    "pressureLevels": {
+      "low": "A simple offer or question that requires no immediate action",
+      "medium": "Asks for a response but does not pressure or demand",
+      "high": "Pushes for coverage, publication, link, urgency, or direct action"
+    },
+    "goodCTAs": [
+      "Would this be useful for something you're working on?",
+      "I'm happy to send the full dataset if helpful.",
+      "Would a localized version be useful?",
+      "I can share state-level breakdowns or expert commentary if useful.",
+      "Would you like me to send the full report?",
+      "Happy to send visuals or a local breakdown if helpful.",
+      "Let me know if you'd like me to send anything else."
+    ],
+    "badCTAs": [
+      "Please publish this.",
+      "Can you cover this today?",
+      "Let me know ASAP.",
+      "You should write about this.",
+      "This deserves coverage.",
+      "Your readers need to know this.",
+      "Please include our client.",
+      "Can you add our link?",
+      "Cover this immediately",
+      "Must be published today"
+    ],
+    "ctaMustBe": [
+      "low-pressure",
+      "easy to answer yes/no or ignore",
+      "offer-oriented not demand-oriented",
+      "helpful not pushy"
+    ],
+    "ctaMustNotBe": [
+      "demanding",
+      "urgent without cause",
+      "asking for publication",
+      "asking for link inclusion",
+      "pressuring for immediate action"
+    ]
+  }
+}

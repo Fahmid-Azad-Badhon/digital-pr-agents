@@ -1,0 +1,57 @@
+{
+  "version": "1.0",
+  "updatedAt": "2026-05-09T00:00:00Z",
+  "rules": {
+    "mustNotSoundLike": [
+      "sales email",
+      "advertisement",
+      "client promotion",
+      "generic PR blast",
+      "corporate announcement"
+    ],
+    "clientRole": [
+      "source of analysis",
+      "organization that conducted study",
+      "expert available for comment",
+      "data provider or commentator"
+    ],
+    "clientRoleMustNotBe": [
+      "hero of the story",
+      "solution to the whole problem",
+      "main subject of the pitch",
+      "sales offer",
+      "service promotion",
+      "reason journalist should cover"
+    ],
+    "bannedPhrases": [
+      "Our client is the leading...",
+      "Our client can help victims...",
+      "Our client is fighting for...",
+      "Our client wants people to know...",
+      "This is why people should contact our client...",
+      "The best firm/company/provider...",
+      "Our client is leading the fight..."
+    ],
+    "approvedPhrases": [
+      "The analysis was conducted by [Client].",
+      "[Client] can provide the full dataset or localized breakdowns if useful.",
+      "[Client] is available to discuss the findings from a [perspective] perspective.",
+      "Credit to [Client] is appreciated if used."
+    ],
+    "leadWith": [
+      "strongest verified statistic",
+      "timely data hook",
+      "public-interest finding",
+      "local relevance",
+      "clear source context"
+    ],
+    "doNotLeadWith": [
+      "client praise",
+      "brand introduction",
+      "generic concern",
+      "I hope you're well",
+      "I wanted to reach out",
+      "Our client is excited to announce"
+    ]
+  }
+}

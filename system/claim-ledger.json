@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Claim Ledger - Single Source of Truth",
+  "description": "Track all statistics and claims used in pitches to prevent hallucination",
+  "version": "1.0.0",
+  "lastUpdated": "2026-05-09",
+  "claims": [],
+  "schema": {
+    "claim": "string - The exact statistic or claim text",
+    "source": "string - Source of the claim (e.g., NHTSA, CDC, internal study)",
+    "verified": "boolean - Whether claim has been verified",
+    "verificationMethod": "string - How it was verified (manual, automated, cross-reference)",
+    "verifiedAt": "datetime - When verification occurred",
+    "usedIn": "array - Files where claim appears",
+    "riskLevel": "string - low, medium, high",
+    "originalWording": "string - Original text from source",
+    "context": "string - How claim should be used in pitch",
+    "contraIndications": "array - Things to avoid when using this claim"
+  },
+  "validationRules": {
+    "requireSource": true,
+    "requireVerificationBeforeUse": false,
+    "autoFlagUnverified": true,
+    "autoFlagNoSource": true,
+    "riskThresholds": {
+      "low": "verified: true, has source",
+      "medium": "verified: true OR has source (but not both)",
+      "high": "verified: false, no source, or new claim not in ledger"
+    }
+  }
+}

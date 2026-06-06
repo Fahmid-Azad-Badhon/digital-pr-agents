@@ -1,0 +1,301 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Replay Mode Safety Rules",
+  "version": "1.0.0",
+  "lastUpdated": "2026-05-09",
+  "description": "Safety rules and constraints for Replay Mode operations",
+  "preReplayChecks": [
+    {
+      "check": "required_inputs_exist",
+      "description": "Verify all required input files for the stage exist",
+      "blockOnFailure": true,
+      "errorMessage": "Cannot replay: required input files are missing"
+    },
+    {
+      "check": "stage_exists",
+      "description": "Verify the selected stage exists in stage-contracts",
+      "blockOnFailure": true,
+      "errorMessage": "Cannot replay: stage does not exist"
+    },
+    {
+      "check": "stage_contract_exists",
+      "description": "Verify stage contract defines the stage",
+      "blockOnFailure": true,
+      "errorMessage": "Cannot replay: stage contract not found"
+    },
+    {
+      "check": "model_route_exists",
+      "description": "Verify model routing exists for the stage",
+      "blockOnFailure": true,
+      "errorMessage": "Cannot replay: model route not defined"
+    },
+    {
+      "check": "gates_allow_replay",
+      "description": "Verify all required gates have passed",
+      "blockOnFailure": false,
+      "errorMessage": "Warning: some required gates may not have passed"
+    },
+    {
+      "check": "human_approval_requirements",
+      "description": "Check if S7 approval will become stale",
+      "blockOnFailure": false,
+      "errorMessage": "Warning: S7 human approval will become stale if S5/S6 are replayed"
+    }
+  ],
+  "replayOperations": [
+    {
+      "operation": "create_input_snapshot",
+      "description": "Create snapshot of all inputs before replay",
+      "alwaysRun": true,
+      "continueOnFailure": false
+    },
+    {
+      "operation": "archive_existing_output",
+      "description": "Archive current output before overwriting",
+      "alwaysRun": true,
+      "continueOnFailure": false
+    },
+    {
+      "operation": "run_stage",
+      "description": "Execute the stage with appropriate model",
+      "alwaysRun": true,
+      "continueOnFailure": false
+    },
+    {
+      "operation": "validate_output",
+      "description": "Run validation if applicable (S13)",
+      "alwaysRun": false,
+      "runIf": "stage is S13"
+    },
+    {
+      "operation": "run_gate",
+      "description": "Run gate evaluation if required",
+      "alwaysRun": false,
+      "runIf": "stage has gateAfter defined"
+    },
+    {
+      "operation": "run_evaluation",
+      "description": "Run evaluation layer if enabled",
+      "alwaysRun": false,
+      "runIf": "evaluation enabled in config"
+    },
+    {
+      "operation": "write_replay_report",
+      "description": "Write replay report to file",
+      "alwaysRun": true,
+      "continueOnFailure": false
+    },
+    {
+      "operation": "update_replay_history",
+      "description": "Update replay-history.json",
+      "alwaysRun": true,
+      "continueOnFailure": false
+    },
+    {
+      "operation": "update_dashboard",
+      "description": "Notify dashboard of replay completion",
+      "alwaysRun": true,
+      "continueOnFailure": true
+    }
+  ],
+  "humanApprovalRules": [
+    {
+      "condition": "replay stage is S5 or S6",
+      "effect": "S7 approval becomes stale",
+      "action": "set human-approval.json status to needs_revision",
+      "reason": "Upstream angle generation was replayed. Human selection must be reviewed again."
+    },
+    {
+      "condition": "replay stage is S7",
+      "effect": "Workflow must pause for new approval",
+      "action": "set human-approval.json status to pending",
+      "reason": "S7 was replayed. New human approval required."
+    },
+    {
+      "condition": "replay stage is S8-S12 without angle change",
+      "effect": "Existing S7 approval remains valid",
+      "action": "none required",
+      "reason": "Selected angle unchanged, approval still valid"
+    },
+    {
+      "condition": "replay stage is S8-S12 with angle change",
+      "effect": "S7 approval must be redone",
+      "action": "set human-approval.json status to needs_revision",
+      "reason": "Selected angle changed. Human approval must be redone."
+    }
+  ],
+  "claimLedgerRules": [
+    {
+      "condition": "replay stage is S2, S3, or S4A",
+      "effect": "claim-ledger.json may change",
+      "downstreamImpact": ["S10", "S11", "S12", "S13"],
+      "action": "mark S10, S11, S12, S13 as needs_revision",
+      "createStaleArtifacts": true
+    },
+    {
+      "condition": "replay stage is S10",
+      "effect": "Pitch content changes",
+      "downstreamImpact": ["S11", "S12", "S13"],
+      "action": "mark S11, S12, S13 as stale",
+      "createStaleArtifacts": true
+    },
+    {
+      "condition": "replay stage is S11",
+      "effect": "Optimized pitch changes",
+      "downstreamImpact": ["S12", "S13"],
+      "action": "mark S12, S13 as stale",
+      "createStaleArtifacts": true
+    },
+    {
+      "condition": "replay stage is S12",
+      "effect": "Package changes",
+      "downstreamImpact": ["S13"],
+      "action": "mark S13 as stale",
+      "createStaleArtifacts": true
+    },
+    {
+      "condition": "replay stage is S13",
+      "effect": "Final readiness may change",
+      "downstreamImpact": ["final-readiness.json"],
+      "action": "update final-readiness.json",
+      "createStaleArtifacts": false
+    }
+  ],
+  "restoreRules": [
+    {
+      "rule": "never_restore_silently",
+      "description": "Restore must always have rerunReason or restoreReason",
+      "enforced": true
+    },
+    {
+      "rule": "restore_marks_downstream_stale",
+      "description": "Restoring an output marks downstream outputs as stale",
+      "enforced": true
+    },
+    {
+      "rule": "restore_updates_replay_history",
+      "description": "Restore events are logged in replay-history.json",
+      "enforced": true
+    },
+    {
+      "rule": "restore_validates_before_accepting",
+      "description": "Restored outputs should go through validation",
+      "enforced": false,
+      "note": "Optional - depends on stage"
+    }
+  ],
+  "promptTestRules": [
+    {
+      "rule": "load_specified_prompt_version",
+      "description": "Load the exact prompt version specified in the request",
+      "enforced": true
+    },
+    {
+      "rule": "do_not_auto_promote_prompt",
+      "description": "Do not replace production prompt automatically",
+      "enforced": true
+    },
+    {
+      "rule": "record_prompt_test_result",
+      "description": "Record result in prompt-test-results.json",
+      "enforced": true
+    },
+    {
+      "rule": "require_human_acceptance_to_promote",
+      "description": "Human must accept to promote prompt version",
+      "enforced": true
+    },
+    {
+      "rule": "compare_against_previous_version",
+      "description": "Compare output against previous prompt version",
+      "enforced": true
+    }
+  ],
+  "modelTestRules": [
+    {
+      "rule": "validate_model_allowed_for_stage",
+      "description": "Verify model is allowed for the stage's model role",
+      "enforced": true
+    },
+    {
+      "rule": "do_not_auto_change_routing",
+      "description": "Do not change default routing automatically",
+      "enforced": true
+    },
+    {
+      "rule": "record_model_test_result",
+      "description": "Record result in model-test-results.json",
+      "enforced": true
+    },
+    {
+      "rule": "compare_against_default_model",
+      "description": "Compare against primary model output",
+      "enforced": true
+    },
+    {
+      "rule": "track_fallback_impact",
+      "description": "Track if fallback usage changes",
+      "enforced": true
+    }
+  ],
+  "dryRunRules": [
+    {
+      "rule": "no_model_calls",
+      "description": "Dry-run must not call real models",
+      "enforced": true
+    },
+    {
+      "rule": "no_output_overwrite",
+      "description": "Dry-run must not overwrite any outputs",
+      "enforced": true
+    },
+    {
+      "rule": "write_dry_run_report",
+      "description": "Write dry-run-replay-report.json",
+      "enforced": true
+    },
+    {
+      "rule": "simulate_all_checks",
+      "description": "Simulate all pre-replay checks and report results",
+      "enforced": true
+    }
+  ],
+  "prohibitedActions": [
+    {
+      "action": "bypass_s7_approval",
+      "description": "Replay must never bypass S7 human approval",
+      "enforced": true,
+      "violationSeverity": "critical"
+    },
+    {
+      "action": "bypass_s13_validation",
+      "description": "Replay must never bypass S13 validation",
+      "enforced": true,
+      "violationSeverity": "critical"
+    },
+    {
+      "action": "fake_progress",
+      "description": "Replay must never create fake progress",
+      "enforced": true,
+      "violationSeverity": "critical"
+    },
+    {
+      "action": "mark_ready_to_send",
+      "description": "Replay must never mark campaign as ready_to_send",
+      "enforced": true,
+      "violationSeverity": "critical"
+    },
+    {
+      "action": "silently_overwrite",
+      "description": "Replay must never silently overwrite without archiving",
+      "enforced": true,
+      "violationSeverity": "high"
+    },
+    {
+      "action": "delete_archived_outputs",
+      "description": "Replay must never delete archived outputs",
+      "enforced": true,
+      "violationSeverity": "high"
+    }
+  ]
+}

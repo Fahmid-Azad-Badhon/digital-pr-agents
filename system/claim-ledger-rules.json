@@ -1,0 +1,245 @@
+{
+  "version": "1.0",
+  "updatedAt": "2026-05-09",
+  "claimTypes": [
+    "statistic",
+    "trend",
+    "comparison",
+    "context",
+    "policy",
+    "localization",
+    "methodology",
+    "source_note",
+    "expert_context",
+    "journalist_personalization",
+    "client_credit"
+  ],
+  "claimStatuses": [
+    {
+      "status": "verified",
+      "description": "Strong source support, can be used in pitch with allowed wording",
+      "safeToUseInPitch": true,
+      "requiresAllowedWording": true,
+      "canBeModifiedBy": ["S4A_DATA_RESEARCH_ANALYST", "HUMAN"]
+    },
+    {
+      "status": "usable_with_soft_language",
+      "description": "Supported but must use careful language, cannot be strengthened",
+      "safeToUseInPitch": true,
+      "requiresAllowedWording": true,
+      "canBeModifiedBy": ["S4A_DATA_RESEARCH_ANALYST", "HUMAN"]
+    },
+    {
+      "status": "needs_source",
+      "description": "Potentially useful but cannot be used until source is added",
+      "safeToUseInPitch": false,
+      "requiresAllowedWording": false,
+      "canBeModifiedBy": ["S2_DATA_EXTRACTION", "S3_RESEARCH_ENRICHMENT"]
+    },
+    {
+      "status": "unsupported",
+      "description": "Should not be used in pitch or production outputs",
+      "safeToUseInPitch": false,
+      "requiresAllowedWording": false,
+      "canBeModifiedBy": ["S4A_DATA_RESEARCH_ANALYST", "S13_VALIDATION", "HUMAN"]
+    },
+    {
+      "status": "rejected",
+      "description": "Should never be used - proven false or harmful",
+      "safeToUseInPitch": false,
+      "requiresAllowedWording": false,
+      "canBeModifiedBy": ["S4A_DATA_RESEARCH_ANALYST", "S13_VALIDATION", "HUMAN"]
+    },
+    {
+      "status": "human_review_required",
+      "description": "Sensitive or unclear, requires human approval before use",
+      "safeToUseInPitch": false,
+      "requiresAllowedWording": false,
+      "canBeModifiedBy": ["HUMAN"]
+    }
+  ],
+  "sourceQualityLevels": [
+    {
+      "level": "A",
+      "description": "Federal government, peer-reviewed research, official statistics",
+      "canVerify": true,
+      "canCreateVerifiedClaim": true
+    },
+    {
+      "level": "B",
+      "description": "Academic institutions, major research organizations",
+      "canVerify": true,
+      "canCreateVerifiedClaim": true
+    },
+    {
+      "level": "C",
+      "description": "Industry associations, well-known nonprofits",
+      "canVerify": false,
+      "canCreateVerifiedClaim": false
+    },
+    {
+      "level": "D",
+      "description": "News sources, blogs",
+      "canVerify": false,
+      "canCreateVerifiedClaim": false
+    },
+    {
+      "level": "E",
+      "description": "Social media, unsourced content",
+      "canVerify": false,
+      "canCreateVerifiedClaim": false
+    }
+  ],
+  "riskTags": [
+    "causation-risk",
+    "legal-risk",
+    "safety-risk",
+    "health-risk",
+    "children-risk",
+    "financial-risk",
+    "policy-risk",
+    "political-risk",
+    "demographic-risk",
+    "localization-risk",
+    "source-weakness-risk",
+    "client-promotion-risk",
+    "methodology-risk",
+    "journalist-fit-risk",
+    "tone-risk"
+  ],
+  "claimCreationRules": [
+    {
+      "stage": "S2_DATA_EXTRACTION",
+      "canCreateDraft": true,
+      "canVerify": false,
+      "initialStatus": "needs_source",
+      "requiresSourceIds": false
+    },
+    {
+      "stage": "S3_RESEARCH_ENRICHMENT",
+      "canCreateDraft": true,
+      "canVerify": false,
+      "initialStatus": "needs_source",
+      "requiresSourceIds": true
+    },
+    {
+      "stage": "S4A_DATA_RESEARCH_ANALYST",
+      "canCreateDraft": false,
+      "canVerify": true,
+      "canSetStatus": ["verified", "usable_with_soft_language", "unsupported", "rejected"],
+      "requiresSourceIds": true,
+      "requiresSourceQuality": true
+    },
+    {
+      "stage": "S10_PITCH_DRAFTING",
+      "canCreateDraft": false,
+      "canVerify": false,
+      "canOnlyReference": true
+    },
+    {
+      "stage": "S13_VALIDATION",
+      "canCreateDraft": false,
+      "canVerify": false,
+      "canFlagIssues": true,
+      "canSetStatus": ["unsupported", "rejected"]
+    },
+    {
+      "stage": "HUMAN",
+      "canCreateDraft": false,
+      "canVerify": true,
+      "canOverrideStatus": true,
+      "canApproveHumanReviewRequired": true
+    }
+  ],
+  "pitchUsageRules": [
+    {
+      "status": "verified",
+      "canUseInPitch": true,
+      "canModifyWording": false,
+      "mustUseAllowedWording": true
+    },
+    {
+      "status": "usable_with_soft_language",
+      "canUseInPitch": true,
+      "canModifyWording": false,
+      "mustUseAllowedWording": true
+    },
+    {
+      "status": "needs_source",
+      "canUseInPitch": false,
+      "blockingMessage": "Cannot use claim - needs source verification"
+    },
+    {
+      "status": "unsupported",
+      "canUseInPitch": false,
+      "blockingMessage": "Cannot use unsupported claim"
+    },
+    {
+      "status": "rejected",
+      "canUseInPitch": false,
+      "blockingMessage": "Cannot use rejected claim"
+    },
+    {
+      "status": "human_review_required",
+      "canUseInPitch": false,
+      "blockingMessage": "Requires human approval before use"
+    }
+  ],
+  "validationChecks": [
+    {
+      "check": "claim_ledger_exists",
+      "description": "claim-ledger.json file exists",
+      "severity": "critical"
+    },
+    {
+      "check": "all_verified_claims_have_sources",
+      "description": "All verified claims have sourceIds",
+      "severity": "high"
+    },
+    {
+      "check": "verified_claims_have_quality",
+      "description": "Verified claims have sourceQuality A, B, or C",
+      "severity": "high"
+    },
+    {
+      "check": "soft_language_claims_have_wording",
+      "description": "usable_with_soft_language claims have allowedWording",
+      "severity": "high"
+    },
+    {
+      "check": "unsafe_claims_not_safe",
+      "description": "unsupported/rejected/needs_source claims have safeToUseInPitch = false",
+      "severity": "critical"
+    },
+    {
+      "check": "risky_claims_have_tags",
+      "description": "Claims with risk have riskTags defined",
+      "severity": "medium"
+    },
+    {
+      "check": "pitch_claims_in_ledger",
+      "description": "All claims in pitch exist in claim-ledger.json",
+      "severity": "critical"
+    },
+    {
+      "check": "no_blocked_claims_in_pitch",
+      "description": "Pitch does not contain unsupported/rejected/needs_source claims",
+      "severity": "critical"
+    },
+    {
+      "check": "soft_language_not_strengthened",
+      "description": "Soft-language claims not strengthened beyond allowedWording",
+      "severity": "high"
+    },
+    {
+      "check": "numbers_match_ledger",
+      "description": "Numbers in pitch match allowedWording or verified claim text",
+      "severity": "high"
+    },
+    {
+      "check": "human_review_claims_approved",
+      "description": "human_review_required claims are not used unless approved",
+      "severity": "critical"
+    }
+  ]
+}

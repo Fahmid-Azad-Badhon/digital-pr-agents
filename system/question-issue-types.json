@@ -1,0 +1,150 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-05-09",
+  "issueTypes": [
+    {
+      "issueType": "unclear_statistic",
+      "category": "data",
+      "defaultPriority": "high",
+      "defaultBlocking": true,
+      "ownerAgent": "S2_DATA_EXTRACTION",
+      "description": "A statistic is unclear, incomplete, inconsistent, or lacks source location.",
+      "requiredAnswerFields": ["clarifiedStatistic", "sourceId", "confidence", "caveat", "safeToUse"]
+    },
+    {
+      "issueType": "missing_source_material",
+      "category": "campaign_context",
+      "defaultPriority": "critical",
+      "defaultBlocking": true,
+      "ownerAgent": "HUMAN",
+      "description": "Required source material is missing.",
+      "requiredAnswerFields": ["sourceNeeded", "alternative", "canContinueWithout"]
+    },
+    {
+      "issueType": "claim_safety_unclear",
+      "category": "claim_safety",
+      "defaultPriority": "critical",
+      "defaultBlocking": true,
+      "ownerAgent": "S4A_DATA_RESEARCH_ANALYST",
+      "description": "Safety of using a claim in pitch is unclear.",
+      "requiredAnswerFields": ["claimStatus", "safeToUseInPitch", "approvedWording", "riskTags", "requiredAction"]
+    },
+    {
+      "issueType": "unsupported_claim_detected",
+      "category": "claim_safety",
+      "defaultPriority": "critical",
+      "defaultBlocking": true,
+      "ownerAgent": "S4A_DATA_RESEARCH_ANALYST",
+      "description": "A claim in pitch is not supported by evidence.",
+      "requiredAnswerFields": ["claimStatus", "safeToUseInPitch", "approvedWording", "riskTags", "requiredAction"]
+    },
+    {
+      "issueType": "pitch_claim_not_in_ledger",
+      "category": "claim_safety",
+      "defaultPriority": "critical",
+      "defaultBlocking": true,
+      "ownerAgent": "S4A_DATA_RESEARCH_ANALYST",
+      "description": "Pitch claim is not in claim-ledger.json.",
+      "requiredAnswerFields": ["claimStatus", "safeToUseInPitch", "approvedWording", "riskTags", "requiredAction"]
+    },
+    {
+      "issueType": "journalist_fit_unclear",
+      "category": "journalist",
+      "defaultPriority": "high",
+      "defaultBlocking": false,
+      "ownerAgent": "S9_JOURNALIST_INTELLIGENCE",
+      "description": "Journalist fit for selected angle is unclear.",
+      "requiredAnswerFields": ["beatFit", "recentCoverageEvidence", "riskOfPoorFit", "recommendedAction", "confidence"]
+    },
+    {
+      "issueType": "selected_angle_missing",
+      "category": "human_approval",
+      "defaultPriority": "critical",
+      "defaultBlocking": true,
+      "ownerAgent": "S7_HUMAN_GATE",
+      "description": "Selected angle is missing or undefined.",
+      "requiredAnswerFields": ["selectedAngleId", "selectedAt", "approvalStatus"]
+    },
+    {
+      "issueType": "final_send_approval_required",
+      "category": "human_approval",
+      "defaultPriority": "critical",
+      "defaultBlocking": true,
+      "ownerAgent": "HUMAN",
+      "description": "Final send approval required from human.",
+      "requiredAnswerFields": ["approvalStatus", "approvedAt", "conditions"]
+    },
+    {
+      "issueType": "validation_failure",
+      "category": "validation",
+      "defaultPriority": "critical",
+      "defaultBlocking": true,
+      "ownerAgent": "S13_VALIDATION",
+      "description": "S13 validation failed and needs clarification.",
+      "requiredAnswerFields": ["failedChecks", "requiredActions", "blockingIssues"]
+    },
+    {
+      "issueType": "conflicting_sources",
+      "category": "source_quality",
+      "defaultPriority": "high",
+      "defaultBlocking": false,
+      "ownerAgent": "S3_RESEARCH_ENRICHMENT",
+      "description": "Two or more sources provide conflicting information.",
+      "requiredAnswerFields": ["conflictDescription", "recommendedSource", "reasoning", "confidence"]
+    },
+    {
+      "issueType": "source_credibility_unclear",
+      "category": "source_quality",
+      "defaultPriority": "medium",
+      "defaultBlocking": false,
+      "ownerAgent": "S3_RESEARCH_ENRICHMENT",
+      "description": "Source credibility needs clarification.",
+      "requiredAnswerFields": ["credibilityAssessment", "sourceType", "riskLevel", "recommendation"]
+    },
+    {
+      "issueType": "beat_match_unclear",
+      "category": "beat",
+      "defaultPriority": "medium",
+      "defaultBlocking": false,
+      "ownerAgent": "S6_BEAT_MATCHING",
+      "description": "Beat match quality needs clarification.",
+      "requiredAnswerFields": ["beatMatchScore", "fitReasoning", "alternativeBeats", "confidence"]
+    },
+    {
+      "issueType": "missing_campaign_context",
+      "category": "campaign_context",
+      "defaultPriority": "high",
+      "defaultBlocking": true,
+      "ownerAgent": "S0_CAMPAIGN_CLARIFICATION",
+      "description": "Campaign topic, client, geography, goal, or deliverable is unclear.",
+      "requiredAnswerFields": ["clarifiedContext", "source", "confidence"]
+    },
+    {
+      "issueType": "unclear_geography",
+      "category": "campaign_context",
+      "defaultPriority": "high",
+      "defaultBlocking": true,
+      "ownerAgent": "S0_CAMPAIGN_CLARIFICATION",
+      "description": "Target geography is unclear.",
+      "requiredAnswerFields": ["clarifiedGeography", "scope", "confidence"]
+    },
+    {
+      "issueType": "pitch_tone_issue",
+      "category": "pitch",
+      "defaultPriority": "medium",
+      "defaultBlocking": false,
+      "ownerAgent": "S11_PITCH_OPTIMIZATION",
+      "description": "Pitch tone needs improvement.",
+      "requiredAnswerFields": ["toneIssue", "recommendation", "canContinue"]
+    },
+    {
+      "issueType": "missing_metric_definition",
+      "category": "data",
+      "defaultPriority": "medium",
+      "defaultBlocking": false,
+      "ownerAgent": "S2_DATA_EXTRACTION",
+      "description": "Metric definition is missing or unclear.",
+      "requiredAnswerFields": ["metricDefinition", "source", "confidence"]
+    }
+  ]
+}

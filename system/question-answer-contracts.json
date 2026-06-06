@@ -1,0 +1,142 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-05-09",
+  "contracts": [
+    {
+      "issueType": "unclear_statistic",
+      "askingAgentsAllowed": ["S4A_DATA_RESEARCH_ANALYST", "S10_PITCH_DRAFTING", "S13_VALIDATION", "S5_ANGLE_GENERATION"],
+      "targetAgent": "S2_DATA_EXTRACTION",
+      "requiredQuestionFields": ["statText", "whereItAppears", "whyItIsUnclear"],
+      "requiredAnswerFields": ["clarifiedStatistic", "sourceId", "sourceLocation", "confidence", "caveat", "safeToUse"],
+      "blockingDefault": true
+    },
+    {
+      "issueType": "missing_source_material",
+      "askingAgentsAllowed": ["S2_DATA_EXTRACTION", "S1_CAMPAIGN_INTAKE"],
+      "targetAgent": "HUMAN",
+      "requiredQuestionFields": ["whatIsMissing", "expectedFormat", "whyNeeded"],
+      "requiredAnswerFields": ["sourceProvided", "alternativeSource", "canContinueWithout"],
+      "blockingDefault": true
+    },
+    {
+      "issueType": "claim_safety_unclear",
+      "askingAgentsAllowed": ["S5_ANGLE_GENERATION", "S10_PITCH_DRAFTING", "S11_PITCH_OPTIMIZATION", "S13_VALIDATION"],
+      "targetAgent": "S4A_DATA_RESEARCH_ANALYST",
+      "requiredQuestionFields": ["claimText", "whereItAppears", "intendedUse", "riskConcern"],
+      "requiredAnswerFields": ["claimStatus", "safeToUseInPitch", "approvedWording", "riskTags", "sourceIds", "requiredAction"],
+      "blockingDefault": true
+    },
+    {
+      "issueType": "pitch_claim_not_in_ledger",
+      "askingAgentsAllowed": ["S10_PITCH_DRAFTING", "S11_PITCH_OPTIMIZATION", "S12_PACKAGE_ASSEMBLY", "S13_VALIDATION"],
+      "targetAgent": "S4A_DATA_RESEARCH_ANALYST",
+      "requiredQuestionFields": ["claimText", "whereItAppears", "claimId"],
+      "requiredAnswerFields": ["claimStatus", "safeToUseInPitch", "approvedWording", "riskTags", "claimId"],
+      "blockingDefault": true
+    },
+    {
+      "issueType": "unsupported_claim_detected",
+      "askingAgentsAllowed": ["S13_VALIDATION"],
+      "targetAgent": "S4A_DATA_RESEARCH_ANALYST",
+      "requiredQuestionFields": ["claimText", "whereItAppears", "evidenceUsed"],
+      "requiredAnswerFields": ["claimStatus", "safeToUseInPitch", "approvedWording", "riskTags", "requiredAction"],
+      "blockingDefault": true
+    },
+    {
+      "issueType": "journalist_fit_unclear",
+      "askingAgentsAllowed": ["S10_PITCH_DRAFTING", "S13_VALIDATION"],
+      "targetAgent": "S9_JOURNALIST_INTELLIGENCE",
+      "requiredQuestionFields": ["journalistId", "selectedAngleId", "fitConcern"],
+      "requiredAnswerFields": ["beatFit", "recentCoverageEvidence", "riskOfPoorFit", "recommendedAction", "confidence"],
+      "blockingDefault": false
+    },
+    {
+      "issueType": "journalist_personalization_unclear",
+      "askingAgentsAllowed": ["S10_PITCH_DRAFTING"],
+      "targetAgent": "S9_JOURNALIST_INTELLIGENCE",
+      "requiredQuestionFields": ["journalistId", "personalizationNeed"],
+      "requiredAnswerFields": ["personalizationEvidence", "safeToUse", "recommendedAngle", "confidence"],
+      "blockingDefault": false
+    },
+    {
+      "issueType": "selected_angle_missing",
+      "askingAgentsAllowed": ["S8_JOURNALIST_COLLECTION", "S9_JOURNALIST_INTELLIGENCE", "S10_PITCH_DRAFTING"],
+      "targetAgent": "S7_HUMAN_GATE",
+      "requiredQuestionFields": ["whyMissing", "currentStage"],
+      "requiredAnswerFields": ["selectedAngleId", "selectedAt", "approvalStatus", "angleContent"],
+      "blockingDefault": true
+    },
+    {
+      "issueType": "beat_match_unclear",
+      "askingAgentsAllowed": ["S7_HUMAN_GATE", "S10_PITCH_DRAFTING"],
+      "targetAgent": "S6_BEAT_MATCHING",
+      "requiredQuestionFields": ["angleId", "beatConcern"],
+      "requiredAnswerFields": ["beatMatchScore", "fitReasoning", "alternativeBeats", "confidence"],
+      "blockingDefault": false
+    },
+    {
+      "issueType": "conflicting_sources",
+      "askingAgentsAllowed": ["S4A_DATA_RESEARCH_ANALYST", "S5_ANGLE_GENERATION"],
+      "targetAgent": "S3_RESEARCH_ENRICHMENT",
+      "requiredQuestionFields": ["conflictDescription", "source1Id", "source2Id"],
+      "requiredAnswerFields": ["conflictDescription", "recommendedSource", "reasoning", "confidence"],
+      "blockingDefault": false
+    },
+    {
+      "issueType": "source_credibility_unclear",
+      "askingAgentsAllowed": ["S4A_DATA_RESEARCH_ANALYST", "S5_ANGLE_GENERATION"],
+      "targetAgent": "S3_RESEARCH_ENRICHMENT",
+      "requiredQuestionFields": ["sourceId", "credibilityConcern"],
+      "requiredAnswerFields": ["credibilityAssessment", "sourceType", "riskLevel", "recommendation"],
+      "blockingDefault": false
+    },
+    {
+      "issueType": "missing_campaign_context",
+      "askingAgentsAllowed": ["S1_CAMPAIGN_INTAKE", "S2_DATA_EXTRACTION", "S3_RESEARCH_ENRICHMENT"],
+      "targetAgent": "S0_CAMPAIGN_CLARIFICATION",
+      "requiredQuestionFields": ["whatIsUnclear", "whyNeeded"],
+      "requiredAnswerFields": ["clarifiedContext", "source", "confidence"],
+      "blockingDefault": true
+    },
+    {
+      "issueType": "unclear_geography",
+      "askingAgentsAllowed": ["S1_CAMPAIGN_INTAKE", "S3_RESEARCH_ENRICHMENT", "S6_BEAT_MATCHING"],
+      "targetAgent": "S0_CAMPAIGN_CLARIFICATION",
+      "requiredQuestionFields": ["whatIsUnclear", "contextAvailable"],
+      "requiredAnswerFields": ["clarifiedGeography", "scope", "confidence"],
+      "blockingDefault": true
+    },
+    {
+      "issueType": "validation_failure",
+      "askingAgentsAllowed": ["S12_PACKAGE_ASSEMBLY", "S14_FINAL_FORMATTING", "HUMAN"],
+      "targetAgent": "S13_VALIDATION",
+      "requiredQuestionFields": ["failedChecks", "whatNeedsClarification"],
+      "requiredAnswerFields": ["failedChecks", "requiredActions", "blockingIssues", "canProceed"],
+      "blockingDefault": true
+    },
+    {
+      "issueType": "final_send_approval_required",
+      "askingAgentsAllowed": ["S14_FINAL_FORMATTING", "S15_OUTREACH_ASSET_CREATION"],
+      "targetAgent": "HUMAN",
+      "requiredQuestionFields": ["currentStatus", "whatNeedsApproval"],
+      "requiredAnswerFields": ["approvalStatus", "approvedAt", "conditions", "notes"],
+      "blockingDefault": true
+    },
+    {
+      "issueType": "pitch_tone_issue",
+      "askingAgentsAllowed": ["S10_PITCH_DRAFTING", "S12_PACKAGE_ASSEMBLY", "S13_VALIDATION"],
+      "targetAgent": "S11_PITCH_OPTIMIZATION",
+      "requiredQuestionFields": ["currentTone", "issueDescription"],
+      "requiredAnswerFields": ["toneIssue", "recommendation", "canContinue"],
+      "blockingDefault": false
+    },
+    {
+      "issueType": "missing_metric_definition",
+      "askingAgentsAllowed": ["S4A_DATA_RESEARCH_ANALYST", "S5_ANGLE_GENERATION"],
+      "targetAgent": "S2_DATA_EXTRACTION",
+      "requiredQuestionFields": ["metricText", "context"],
+      "requiredAnswerFields": ["metricDefinition", "source", "confidence"],
+      "blockingDefault": false
+    }
+  ]
+}
