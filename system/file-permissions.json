@@ -1,0 +1,135 @@
+{
+  "version": "1.0",
+  "stages": {
+    "S0": {
+      "canRead": ["campaign-brief.json"],
+      "canWrite": [],
+      "canDelete": [],
+      "cannotRead": [],
+      "restriction": "Clarification only, no file operations"
+    },
+    "S1": {
+      "canRead": ["pitch-jobs/{slug}/input/*"],
+      "canWrite": ["pitch-jobs/{slug}/outputs/01-campaign-intake.json"],
+      "canDelete": [],
+      "cannotRead": ["pitch-jobs/{slug}/outputs/*"]
+    },
+    "S2": {
+      "canRead": ["pitch-jobs/{slug}/outputs/01-campaign-intake.json"],
+      "canWrite": ["pitch-jobs/{slug}/outputs/02-raw-extracted-data.json"],
+      "canDelete": [],
+      "cannotRead": ["pitch-jobs/{slug}/outputs/10-*", "pitch-jobs/{slug}/outputs/11-*"]
+    },
+    "S3": {
+      "canRead": ["pitch-jobs/{slug}/outputs/02-raw-extracted-data.json"],
+      "canWrite": ["pitch-jobs/{slug}/outputs/03-research-enrichment.json"],
+      "canDelete": [],
+      "cannotRead": ["pitch-jobs/{slug}/outputs/10-*", "pitch-jobs/{slug}/outputs/11-*"]
+    },
+    "S4A": {
+      "canRead": [
+        "pitch-jobs/{slug}/outputs/03-research-enrichment.json",
+        "pitch-jobs/{slug}/source-files/*"
+      ],
+      "canWrite": ["pitch-jobs/{slug}/outputs/verified-findings.json"],
+      "canDelete": [],
+      "cannotRead": ["pitch-jobs/{slug}/outputs/08-*", "pitch-jobs/{slug}/outputs/09-*"]
+    },
+    "S4B": {
+      "canRead": [
+        "pitch-jobs/{slug}/outputs/03-research-enrichment.json",
+        "pitch-jobs/{slug}/outputs/verified-findings.json"
+      ],
+      "canWrite": ["pitch-jobs/{slug}/outputs/InsightAnalysisMap.json"],
+      "canDelete": [],
+      "cannotRead": ["pitch-jobs/{slug}/outputs/08-*", "pitch-jobs/{slug}/outputs/09-*", "pitch-jobs/{slug}/source-files/*"],
+      "authorityRestriction": "MUST NOT read source-files for verification. Verification is S4A's responsibility."
+    },
+    "S5": {
+      "canRead": ["pitch-jobs/{slug}/outputs/InsightAnalysisMap.json"],
+      "canWrite": ["pitch-jobs/{slug}/outputs/05-angles.json"],
+      "canDelete": [],
+      "cannotRead": ["pitch-jobs/{slug}/outputs/08-*"]
+    },
+    "S6": {
+      "canRead": ["pitch-jobs/{slug}/outputs/05-angles.json"],
+      "canWrite": ["pitch-jobs/{slug}/outputs/06-beat-match.json"],
+      "canDelete": [],
+      "cannotRead": ["pitch-jobs/{slug}/outputs/10-*"]
+    },
+    "S7": {
+      "canRead": ["pitch-jobs/{slug}/outputs/06-beat-match.json"],
+      "canWrite": ["pitch-jobs/{slug}/outputs/human-approval.json"],
+      "canDelete": [],
+      "cannotRead": ["pitch-jobs/{slug}/outputs/10-*"]
+    },
+    "S8": {
+      "canRead": ["pitch-jobs/{slug}/outputs/06-beat-match.json"],
+      "canWrite": ["pitch-jobs/{slug}/outputs/08-journalist-list.json"],
+      "canDelete": [],
+      "cannotRead": ["pitch-jobs/{slug}/outputs/10-*", "pitch-jobs/{slug}/outputs/11-*"]
+    },
+    "S9": {
+      "canRead": ["pitch-jobs/{slug}/outputs/08-journalist-list.json"],
+      "canWrite": ["pitch-jobs/{slug}/outputs/09-journalist-intelligence.json"],
+      "canDelete": [],
+      "cannotRead": ["pitch-jobs/{slug}/outputs/11-*"]
+    },
+    "S10": {
+      "canRead": [
+        "pitch-jobs/{slug}/outputs/09-journalist-intelligence.json",
+        "pitch-jobs/{slug}/outputs/verified-findings.json",
+        "pitch-jobs/{slug}/outputs/InsightAnalysisMap.json"
+      ],
+      "canWrite": ["pitch-jobs/{slug}/outputs/10-pitch-draft.json"],
+      "canDelete": [],
+      "cannotRead": ["pitch-jobs/{slug}/source-files/*"],
+      "authorityRestriction": "MUST NOT read raw source files. Must use verified content from S4A."
+    },
+    "S11": {
+      "canRead": ["pitch-jobs/{slug}/outputs/10-pitch-draft.json"],
+      "canWrite": ["pitch-jobs/{slug}/11-optimized-pitch.md"],
+      "canDelete": [],
+      "cannotRead": ["pitch-jobs/{slug}/source-files/*"],
+      "authorityRestriction": "MUST NOT re-verify facts. Must use content already verified by S4A."
+    },
+    "S12": {
+      "canRead": ["pitch-jobs/{slug}/11-optimized-pitch.md"],
+      "canWrite": ["pitch-jobs/{slug}/outputs/12-outreach-package.json"],
+      "canDelete": [],
+      "cannotRead": []
+    },
+    "S13": {
+      "canRead": ["pitch-jobs/{slug}/outputs/12-outreach-package.json"],
+      "canWrite": ["pitch-jobs/{slug}/outputs/13-validation-report.json"],
+      "canDelete": [],
+      "cannotRead": [],
+      "authorityRestriction": "MUST NOT approve send. Validation != approval."
+    }
+  },
+  "globalPermissions": {
+    "read": [
+      "brain/*.md",
+      "system/*.json",
+      "schemas/*.json"
+    ],
+    "write": [
+      "pitch-jobs/{slug}/logs/*",
+      "pitch-jobs/{slug}/qc/*"
+    ],
+    "cannotWrite": [
+      "pitch-jobs/{slug}/input/*",
+      "schemas/*",
+      "system/*",
+      "brain/*"
+    ]
+  },
+  "rules": [
+    "Campaign files must be accessed through CampaignPathResolver, never hardcoded.",
+    "Legacy markdown files (00-brief.md, etc.) are reference-only, not authoritative.",
+    "Source-files/ should only be accessed by S4A for verification.",
+    "No stage should write to input/ folder.",
+    "No stage should modify schemas/ or system/ files.",
+    "qc/ and logs/ folders are writable by all stages."
+  ]
+}

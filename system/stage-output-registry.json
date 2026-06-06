@@ -1,0 +1,142 @@
+{
+  "version": "1.0",
+  "stages": {
+    "S0": {
+      "name": "Campaign Clarification",
+      "inputs": [],
+      "outputs": [],
+      "requiredFiles": [],
+      "validates": [],
+      "authority": "none"
+    },
+    "S1": {
+      "name": "Campaign Intake",
+      "inputs": ["campaign-brief.json"],
+      "outputs": ["01-campaign-intake.json"],
+      "requiredFiles": ["pitch-jobs/{slug}/input/campaign-brief.json"],
+      "validates": ["brief-structure"],
+      "authority": "intake"
+    },
+    "S2": {
+      "name": "Data Extraction",
+      "inputs": ["01-campaign-intake.json"],
+      "outputs": ["02-raw-extracted-data.json"],
+      "requiredFiles": [],
+      "validates": ["data-structure"],
+      "authority": "extraction"
+    },
+    "S3": {
+      "name": "Research Enrichment",
+      "inputs": ["02-raw-extracted-data.json"],
+      "outputs": ["03-research-enrichment.json"],
+      "requiredFiles": [],
+      "validates": ["enrichment-completeness"],
+      "authority": "research"
+    },
+    "S4A": {
+      "name": "Data Research Analyst",
+      "inputs": ["03-research-enrichment.json"],
+      "outputs": ["verified-findings.json"],
+      "requiredFiles": [],
+      "validates": ["claim-verification"],
+      "authority": "verification"
+    },
+    "S4B": {
+      "name": "Insight Analyst",
+      "inputs": ["03-research-enrichment.json", "verified-findings.json"],
+      "outputs": ["InsightAnalysisMap.json"],
+      "requiredFiles": [],
+      "validates": ["insight-interpretation"],
+      "authority": "interpretation",
+      "authorityRestriction": "MUST NOT verify facts. S4A owns verification. S4B interprets and contextualizes verified findings."
+    },
+    "S5": {
+      "name": "Angle Generation",
+      "inputs": ["InsightAnalysisMap.json"],
+      "outputs": ["05-angles.json"],
+      "requiredFiles": [],
+      "validates": ["angle-quality"],
+      "authority": "generation"
+    },
+    "S6": {
+      "name": "Beat Matching",
+      "inputs": ["05-angles.json"],
+      "outputs": ["06-beat-match.json"],
+      "requiredFiles": [],
+      "validates": ["beat-fit"],
+      "authority": "matching"
+    },
+    "S7": {
+      "name": "Human Gate",
+      "inputs": ["06-beat-match.json"],
+      "outputs": ["human-approval.json"],
+      "requiredFiles": [],
+      "validates": ["human-decision"],
+      "authority": "approval"
+    },
+    "S8": {
+      "name": "Journalist Collection",
+      "inputs": ["06-beat-match.json"],
+      "outputs": ["08-journalist-list.json"],
+      "requiredFiles": [],
+      "validates": ["journalist-list-quality"],
+      "authority": "collection"
+    },
+    "S9": {
+      "name": "Journalist Intelligence",
+      "inputs": ["08-journalist-list.json"],
+      "outputs": ["09-journalist-intelligence.json"],
+      "requiredFiles": [],
+      "validates": ["intel-quality"],
+      "authority": "intelligence"
+    },
+    "S10": {
+      "name": "Pitch Drafting",
+      "inputs": ["09-journalist-intelligence.json", "12-outreach-package.json"],
+      "outputs": ["10-pitch-draft.json"],
+      "requiredFiles": [],
+      "validates": ["pitch-content"],
+      "authority": "drafting",
+      "authorityRestriction": "MUST NOT verify facts. S4A owns verification. S10 drafts pitch using verified content."
+    },
+    "S11": {
+      "name": "Pitch Optimization",
+      "inputs": ["10-pitch-draft.json"],
+      "outputs": ["11-optimized-pitch.md"],
+      "requiredFiles": [],
+      "validates": ["optimization-quality"],
+      "authority": "optimization",
+      "authorityRestriction": "MUST NOT verify facts. S4A owns verification. S11 optimizes pitch without re-verifying."
+    },
+    "S12": {
+      "name": "Package Assembly",
+      "inputs": ["11-optimized-pitch.md"],
+      "outputs": ["12-outreach-package.json"],
+      "requiredFiles": [],
+      "validates": ["package-completeness"],
+      "authority": "assembly"
+    },
+    "S13": {
+      "name": "Validation",
+      "inputs": ["12-outreach-package.json"],
+      "outputs": ["13-validation-report.json"],
+      "requiredFiles": [],
+      "validates": ["final-validation"],
+      "authority": "validation",
+      "authorityRestriction": "MUST NOT approve final send. Validation != approval. Human approval required before send."
+    }
+  },
+  "validationRules": [
+    "Stage output file must exist in outputs/ subfolder for stage to be marked complete.",
+    "Legacy markdown files in pitch-jobs/{slug} are reference only, not stage completion markers.",
+    "JSON output in outputs/ is authoritative for stage completion.",
+    "S4A is the ONLY stage with authority to verify factual claims.",
+    "S4B, S10, S11 must use verified content but MUST NOT re-verify facts.",
+    "S13 validates quality but does NOT approve final send decision."
+  ],
+  "completionCriteria": {
+    "stageComplete": "Output JSON exists in outputs/ folder AND passes schema validation",
+    "stageIncomplete": "Output JSON missing OR fails schema validation",
+    "humanApprovalRequired": ["S7", "S13"]
+  }
+}

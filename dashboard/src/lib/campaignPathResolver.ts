@@ -124,7 +124,7 @@ export async function getStructuredOutputPath(campaignSlug: string, stageId: str
     'S8': '08-journalist-list.json',
     'S9': '09-journalist-intelligence.json',
     'S10': '10-pitch-draft.json',
-    'S11': '11-optimized-pitch.json',
+    'S11': '11-optimized-pitch.md',
     'S12': '12-outreach-package.json',
     'S13': '13-validation-report.json'
   };

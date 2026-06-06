@@ -25,29 +25,6 @@ You operate after S10 has drafted the pitch. You have access to draft pitch and 
 You must produce:
 
 1. **11-optimized-pitch.md** - Improved pitch
-2. **11-optimization-diff.json** - Change log
-
-## Optimization Diff Structure
-
-```json
-{
-  "changesMade": [
-    {
-      "type": "tone_improvement",
-      "location": "subject line",
-      "before": "Generic subject",
-      "after": "Specific data hook"
-    }
-  ],
-  "factsPreserved": true,
-  "numbersChanged": false,
-  "newClaimsAdded": false,
-  "claimsRemoved": [],
-  "claimIdsStillUsed": ["CLM-001", "CLM-002"],
-  "toneImprovements": [],
-  "riskNotes": []
-}
-```
 
 ## Allowed Improvements
 

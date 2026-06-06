@@ -1,0 +1,265 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Replay Stage Dependencies",
+  "version": "1.0.0",
+  "lastUpdated": "2026-05-09",
+  "description": "Maps which stages are affected when a specific stage is replayed",
+  "dependencies": {
+    "S1_CAMPAIGN_INTAKE": {
+      "affects": [
+        "S2_DATA_EXTRACTION",
+        "S3_RESEARCH_ENRICHMENT",
+        "S4A_DATA_RESEARCH_ANALYST",
+        "S4B_INSIGHT_ANALYST",
+        "S5_ANGLE_GENERATION",
+        "S6_BEAT_MATCHING",
+        "S7_PITCH_SELECTION_HUMAN_GATE",
+        "S8_JOURNALIST_COLLECTION",
+        "S9_JOURNALIST_INTELLIGENCE",
+        "S10_PITCH_DRAFTING",
+        "S11_PITCH_OPTIMIZATION",
+        "S12_PACKAGE_ASSEMBLY",
+        "S13_VALIDATION"
+      ],
+      "reason": "S1 is the foundation - all downstream stages depend on campaign intake data"
+    },
+    "S2_DATA_EXTRACTION": {
+      "affects": [
+        "S3_RESEARCH_ENRICHMENT",
+        "S4A_DATA_RESEARCH_ANALYST",
+        "S4B_INSIGHT_ANALYST",
+        "S5_ANGLE_GENERATION",
+        "S6_BEAT_MATCHING",
+        "S7_PITCH_SELECTION_HUMAN_GATE",
+        "S10_PITCH_DRAFTING",
+        "S11_PITCH_OPTIMIZATION",
+        "S12_PACKAGE_ASSEMBLY",
+        "S13_VALIDATION"
+      ],
+      "reason": "S2 provides core data that downstream angles and pitches depend on",
+      "invalidatesClaimLedger": true
+    },
+    "S3_RESEARCH_ENRICHMENT": {
+      "affects": [
+        "S4A_DATA_RESEARCH_ANALYST",
+        "S4B_INSIGHT_ANALYST",
+        "S5_ANGLE_GENERATION",
+        "S6_BEAT_MATCHING",
+        "S7_PITCH_SELECTION_HUMAN_GATE",
+        "S10_PITCH_DRAFTING",
+        "S11_PITCH_OPTIMIZATION",
+        "S12_PACKAGE_ASSEMBLY",
+        "S13_VALIDATION"
+      ],
+      "reason": "S3 provides enriched research that informs all later stages",
+      "invalidatesClaimLedger": true
+    },
+    "S4A_DATA_RESEARCH_ANALYST": {
+      "affects": [
+        "S4B_INSIGHT_ANALYST",
+        "S5_ANGLE_GENERATION",
+        "S6_BEAT_MATCHING",
+        "S7_PITCH_SELECTION_HUMAN_GATE",
+        "S10_PITCH_DRAFTING",
+        "S11_PITCH_OPTIMIZATION",
+        "S12_PACKAGE_ASSEMBLY",
+        "S13_VALIDATION"
+      ],
+      "reason": "S4A provides verified findings that angle generation depends on",
+      "invalidatesClaimLedger": true
+    },
+    "S4B_INSIGHT_ANALYST": {
+      "affects": [
+        "S5_ANGLE_GENERATION",
+        "S6_BEAT_MATCHING",
+        "S7_PITCH_SELECTION_HUMAN_GATE"
+      ],
+      "reason": "S4B provides story logic and insights for angle generation"
+    },
+    "S5_ANGLE_GENERATION": {
+      "affects": [
+        "S6_BEAT_MATCHING",
+        "S7_PITCH_SELECTION_HUMAN_GATE",
+        "S8_JOURNALIST_COLLECTION",
+        "S9_JOURNALIST_INTELLIGENCE",
+        "S10_PITCH_DRAFTING",
+        "S11_PITCH_OPTIMIZATION",
+        "S12_PACKAGE_ASSEMBLY",
+        "S13_VALIDATION"
+      ],
+      "reason": "S5 creates the angles that drive all downstream selection and pitch creation",
+      "invalidatesHumanApproval": true
+    },
+    "S6_BEAT_MATCHING": {
+      "affects": [
+        "S7_PITCH_SELECTION_HUMAN_GATE",
+        "S8_JOURNALIST_COLLECTION",
+        "S9_JOURNALIST_INTELLIGENCE",
+        "S10_PITCH_DRAFTING",
+        "S11_PITCH_OPTIMIZATION",
+        "S12_PACKAGE_ASSEMBLY",
+        "S13_VALIDATION"
+      ],
+      "reason": "S6 maps angles to journalist beats - changes affect journalist selection",
+      "invalidatesHumanApproval": true
+    },
+    "S7_PITCH_SELECTION_HUMAN_GATE": {
+      "affects": [
+        "S8_JOURNALIST_COLLECTION",
+        "S9_JOURNALIST_INTELLIGENCE",
+        "S10_PITCH_DRAFTING",
+        "S11_PITCH_OPTIMIZATION",
+        "S12_PACKAGE_ASSEMBLY",
+        "S13_VALIDATION"
+      ],
+      "reason": "S7 selects the approved angle - replay requires new human approval"
+    },
+    "S8_JOURNALIST_COLLECTION": {
+      "affects": [
+        "S9_JOURNALIST_INTELLIGENCE",
+        "S10_PITCH_DRAFTING",
+        "S11_PITCH_OPTIMIZATION",
+        "S12_PACKAGE_ASSEMBLY",
+        "S13_VALIDATION"
+      ],
+      "reason": "S8 provides journalist list that S9 intelligence and S10 pitch personalization depend on"
+    },
+    "S9_JOURNALIST_INTELLIGENCE": {
+      "affects": [
+        "S10_PITCH_DRAFTING",
+        "S11_PITCH_OPTIMIZATION",
+        "S12_PACKAGE_ASSEMBLY",
+        "S13_VALIDATION"
+      ],
+      "reason": "S9 provides journalist intelligence for pitch personalization"
+    },
+    "S10_PITCH_DRAFTING": {
+      "affects": [
+        "S11_PITCH_OPTIMIZATION",
+        "S12_PACKAGE_ASSEMBLY",
+        "S13_VALIDATION"
+      ],
+      "reason": "S10 creates the base pitch that optimization and package assembly depend on"
+    },
+    "S11_PITCH_OPTIMIZATION": {
+      "affects": [
+        "S12_PACKAGE_ASSEMBLY",
+        "S13_VALIDATION"
+      ],
+      "reason": "S11 optimizes the pitch - changes affect final package"
+    },
+    "S12_PACKAGE_ASSEMBLY": {
+      "affects": [
+        "S13_VALIDATION"
+      ],
+      "reason": "S12 creates the final package that S13 validates"
+    },
+    "S13_VALIDATION": {
+      "affects": [
+        "final-readiness.json"
+      ],
+      "reason": "S13 determines final readiness - its result updates final-readiness.json"
+    }
+  },
+  "staleArtifactTriggers": {
+    "S10_PITCH_DRAFTING": {
+      "staleFiles": [
+        "11-optimized-pitch.md",
+        "12-outreach-package.md",
+        "12-outreach-package.json",
+        "13-validation-report.json",
+        "final-readiness.json"
+      ],
+      "reason": "S10 output is used as input for S11, S12, and S13"
+    },
+    "S11_PITCH_OPTIMIZATION": {
+      "staleFiles": [
+        "12-outreach-package.md",
+        "12-outreach-package.json",
+        "13-validation-report.json",
+        "final-readiness.json"
+      ],
+      "reason": "S11 output is used as input for S12 and S13"
+    },
+    "S12_PACKAGE_ASSEMBLY": {
+      "staleFiles": [
+        "13-validation-report.json",
+        "final-readiness.json"
+      ],
+      "reason": "S12 output is used as input for S13"
+    },
+    "S13_VALIDATION": {
+      "staleFiles": [
+        "final-readiness.json"
+      ],
+      "reason": "S13 updates final readiness status"
+    },
+    "S2_DATA_EXTRACTION": {
+      "staleFiles": [
+        "03-research.md",
+        "03-research-enrichment.json",
+        "evidence-pack.md",
+        "claim-ledger.json",
+        "verified-findings.json",
+        "verified-claim-map.json",
+        "InsightAnalysisMap.json",
+        "AngleGenerationHandoff.json",
+        "05-angles.md",
+        "05-angles.json",
+        "06-beat-match.md",
+        "06-beat-match.json",
+        "10-pitch-draft.md",
+        "10-pitch-draft.json",
+        "11-optimized-pitch.md",
+        "12-outreach-package.md",
+        "12-outreach-package.json"
+      ],
+      "reason": "Claim ledger may change when data is re-extracted"
+    },
+    "S3_RESEARCH_ENRICHMENT": {
+      "staleFiles": [
+        "verified-findings.json",
+        "verified-claim-map.json",
+        "InsightAnalysisMap.json",
+        "AngleGenerationHandoff.json",
+        "05-angles.md",
+        "05-angles.json",
+        "06-beat-match.md",
+        "06-beat-match.json",
+        "10-pitch-draft.md",
+        "10-pitch-draft.json"
+      ],
+      "reason": "Research enrichment affects claims in the ledger"
+    },
+    "S5_ANGLE_GENERATION": {
+      "staleFiles": [
+        "06-beat-match.md",
+        "06-beat-match.json",
+        "07-selected-angle.md",
+        "07-selected-angle.json",
+        "human-approval.json",
+        "08-journalist-list.csv",
+        "08-journalist-list.json",
+        "09-journalist-intelligence.json",
+        "10-pitch-draft.md",
+        "10-pitch-draft.json"
+      ],
+      "reason": "New angles require new beat matching and potentially new journalist selection"
+    }
+  },
+  "humanApprovalInvalidation": {
+    "stagesThatInvalidateApproval": [
+      "S5_ANGLE_GENERATION",
+      "S6_BEAT_MATCHING"
+    ],
+    "reason": "Changes to angles or beat matching invalidate previous human selection"
+  },
+  "validationTriggers": {
+    "stagesThatRequireValidationRerun": [
+      "S10_PITCH_DRAFTING",
+      "S11_PITCH_OPTIMIZATION",
+      "S12_PACKAGE_ASSEMBLY"
+    ],
+    "reason": "Pitch content changes require validation to be rerun"
+  }
+}

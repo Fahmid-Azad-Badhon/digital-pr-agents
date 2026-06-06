@@ -1,0 +1,476 @@
+{
+  "version": "1.0",
+  "updatedAt": "2026-05-09T00:00:00Z",
+  "globalRules": {
+    "noAgentMayRunIf": [
+      "requiredInputs missing",
+      "previous blocking gate failed",
+      "active circuit breaker exists",
+      "unresolved blocking question exists for this stage",
+      "model route missing",
+      "stage contract missing"
+    ],
+    "noWritingAgentMayUse": [
+      "unsupported claims",
+      "rejected claims",
+      "needs_source claims",
+      "claims not in claim-ledger.json"
+    ],
+    "humanApprovalRequiredBefore": [
+      "S8_JOURNALIST_COLLECTION",
+      "final ready_to_send"
+    ]
+  },
+  "stageLogic": [
+    {
+      "stageId": "S0_CAMPAIGN_CLARIFICATION",
+      "canRunIf": [
+        "campaign brief exists OR user input exists"
+      ],
+      "mustStopIf": [],
+      "mustAskHumanIf": [
+        "campaign topic missing",
+        "target geography missing",
+        "primary source missing",
+        "campaign goal unclear"
+      ],
+      "mustWarnIf": [],
+      "mustRerunIf": [],
+      "mustEscalateIf": [],
+      "canContinueIf": [
+        "campaign topic exists",
+        "target geography exists",
+        "source status known",
+        "campaign goal known"
+      ],
+      "handoffIf": [
+        "S1_CAMPAIGN_INTAKE can proceed"
+      ]
+    },
+    {
+      "stageId": "S1_CAMPAIGN_INTAKE",
+      "canRunIf": [
+        "S0 clarification complete OR enough initial input exists"
+      ],
+      "mustStopIf": [
+        "campaign topic missing"
+      ],
+      "mustAskHumanIf": [],
+      "mustWarnIf": [
+        "client name missing",
+        "journalist beats unclear",
+        "deliverable scope unclear"
+      ],
+      "mustRerunIf": [],
+      "mustEscalateIf": [],
+      "canContinueIf": [
+        "01-campaign-intake.json exists",
+        "topic-expansion-map.json exists",
+        "research-query-map.json exists"
+      ],
+      "handoffIf": [
+        "S2_DATA_EXTRACTION can proceed"
+      ]
+    },
+    {
+      "stageId": "S2_DATA_EXTRACTION",
+      "canRunIf": [
+        "primary source material exists",
+        "topic-expansion-map.json exists"
+      ],
+      "mustStopIf": [
+        "source material missing",
+        "source unreadable",
+        "source scope unclear"
+      ],
+      "mustAskHumanIf": [
+        "source file missing",
+        "source unreadable"
+      ],
+      "mustWarnIf": [],
+      "mustRerunIf": [],
+      "mustEscalateIf": [],
+      "canContinueIf": [
+        "02-raw-extracted-data.json exists",
+        "data-inventory.json exists",
+        "source-registry.json exists",
+        "at least one usable data point exists"
+      ],
+      "handoffIf": [
+        "S3_RESEARCH_ENRICHMENT can proceed"
+      ]
+    },
+    {
+      "stageId": "S3_RESEARCH_ENRICHMENT",
+      "canRunIf": [
+        "data-inventory.json exists",
+        "source-registry.json exists",
+        "research-query-map.json exists"
+      ],
+      "mustStopIf": [
+        "external research tool required but unavailable",
+        "source-registry.json missing"
+      ],
+      "mustAskHumanIf": [],
+      "mustWarnIf": [
+        "only weak sources found",
+        "no local context found",
+        "no policy context found",
+        "no recent hook found"
+      ],
+      "mustRerunIf": [],
+      "mustEscalateIf": [],
+      "canContinueIf": [
+        "03-research-enrichment.json exists",
+        "source-quality-report.json exists",
+        "research-gaps.json exists",
+        "safe and risky context separated"
+      ],
+      "handoffIf": [
+        "S4A_DATA_RESEARCH_ANALYST can proceed"
+      ]
+    },
+    {
+      "stageId": "S4A_DATA_RESEARCH_ANALYST",
+      "canRunIf": [
+        "02-raw-extracted-data.json exists",
+        "03-research-enrichment.json exists",
+        "source-registry.json exists",
+        "claim-ledger.json exists"
+      ],
+      "mustStopIf": [
+        "no extracted data",
+        "source registry missing",
+        "claim ledger missing"
+      ],
+      "mustAskHumanIf": [],
+      "mustWarnIf": [],
+      "mustRerunIf": [],
+      "mustEscalateIf": [],
+      "mustAskS2If": [
+        "statistic unclear",
+        "metric definition missing"
+      ],
+      "mustAskS3If": [
+        "source credibility unclear",
+        "sources conflict"
+      ],
+      "canContinueIf": [
+        "verified-findings.json exists",
+        "verified-claim-map.json exists",
+        "claim-ledger.json updated",
+        "unsupported claims flagged"
+      ],
+      "handoffIf": [
+        "S4B_INSIGHT_ANALYST can proceed"
+      ]
+    },
+    {
+      "stageId": "S4B_INSIGHT_ANALYST",
+      "canRunIf": [
+        "verified-findings.json exists",
+        "AngleGenerationHandoff.json exists"
+      ],
+      "mustStopIf": [
+        "no verified findings"
+      ],
+      "mustAskHumanIf": [],
+      "mustWarnIf": [
+        "story logic unclear",
+        "no strong finding identified"
+      ],
+      "mustRerunIf": [],
+      "mustEscalateIf": [],
+      "mustAskS4AIf": [
+        "finding strength unclear"
+      ],
+      "canContinueIf": [
+        "InsightAnalysisMap.json exists",
+        "AngleGenerationHandoff.json exists"
+      ],
+      "handoffIf": [
+        "S5_ANGLE_GENERATION can proceed"
+      ]
+    },
+    {
+      "stageId": "S5_ANGLE_GENERATION",
+      "canRunIf": [
+        "verified-findings.json exists",
+        "AngleGenerationHandoff.json exists",
+        "claim-ledger.json exists"
+      ],
+      "mustStopIf": [
+        "no verified findings",
+        "no usable claims",
+        "all findings are high risk"
+      ],
+      "mustAskHumanIf": [],
+      "mustWarnIf": [
+        "angle lacks local relevance",
+        "angle lacks timely hook",
+        "angle has high exploitation risk"
+      ],
+      "mustRerunIf": [],
+      "mustEscalateIf": [],
+      "mustAskS4AIf": [
+        "claim safety unclear",
+        "soft wording missing"
+      ],
+      "canContinueIf": [
+        "05-angles.md exists",
+        "05-angles.json exists",
+        "at least one angle scores 80+",
+        "no angle uses unsupported claims"
+      ],
+      "handoffIf": [
+        "S6_BEAT_MATCHING can proceed"
+      ]
+    },
+    {
+      "stageId": "S6_BEAT_MATCHING",
+      "canRunIf": [
+        "05-angles.json exists"
+      ],
+      "mustStopIf": [
+        "no usable angles"
+      ],
+      "mustAskHumanIf": [],
+      "mustWarnIf": [],
+      "mustRerunIf": [],
+      "mustEscalateIf": [],
+      "mustAskS5If": [
+        "angle frame unclear",
+        "story promise unclear"
+      ],
+      "canContinueIf": [
+        "06-beat-match.md exists",
+        "06-beat-match.json exists",
+        "primary beat exists for each recommended angle"
+      ],
+      "handoffIf": [
+        "S7_PITCH_SELECTION_HUMAN_GATE can proceed"
+      ]
+    },
+    {
+      "stageId": "S7_HUMAN_GATE",
+      "canRunIf": [
+        "05-angles.json exists",
+        "06-beat-match.json exists"
+      ],
+      "mustStopIf": [
+        "no angle scores 80+",
+        "top angle uses unsupported claim"
+      ],
+      "mustAskHumanIf": [
+        "angle approval required",
+        "selected angle needs revision"
+      ],
+      "mustWarnIf": [],
+      "mustRerunIf": [],
+      "mustEscalateIf": [],
+      "canContinueIf": [
+        "human-approval.json status = approved",
+        "selectedAngleId exists",
+        "selectedAngleTitle exists"
+      ],
+      "handoffIf": [
+        "S8_JOURNALIST_COLLECTION can proceed"
+      ]
+    },
+    {
+      "stageId": "S8_JOURNALIST_COLLECTION",
+      "canRunIf": [
+        "human-approval.json status = approved",
+        "selectedAngleId exists",
+        "06-beat-match.json exists"
+      ],
+      "mustStopIf": [
+        "S7_PITCH_SELECTION_HUMAN_GATE not approved",
+        "selected angle missing",
+        "primary beat missing"
+      ],
+      "mustAskHumanIf": [],
+      "mustWarnIf": [],
+      "mustRerunIf": [],
+      "mustEscalateIf": [],
+      "mustAskS6If": [
+        "beat guidance unclear"
+      ],
+      "mustAskS7If": [
+        "collection scope unclear"
+      ],
+      "canContinueIf": [
+        "08-journalist-list.csv exists",
+        "08-journalist-list.json exists",
+        "journalist names not fabricated",
+        "relevance reasons exist"
+      ],
+      "handoffIf": [
+        "S9_JOURNALIST_INTELLIGENCE can proceed"
+      ]
+    },
+    {
+      "stageId": "S9_JOURNALIST_INTELLIGENCE",
+      "canRunIf": [
+        "08-journalist-list.json exists",
+        "selected angle exists"
+      ],
+      "mustStopIf": [
+        "journalist list missing",
+        "selected angle missing"
+      ],
+      "mustAskHumanIf": [],
+      "mustWarnIf": [
+        "too many weak-fit journalists",
+        "recent article evidence missing",
+        "personalization confidence low"
+      ],
+      "mustRerunIf": [],
+      "mustEscalateIf": [],
+      "canContinueIf": [
+        "09-journalist-intelligence.json exists",
+        "weak fits flagged",
+        "safe personalization notes included"
+      ],
+      "handoffIf": [
+        "S10_PITCH_DRAFTING can proceed"
+      ]
+    },
+    {
+      "stageId": "S10_PITCH_DRAFTING",
+      "canRunIf": [
+        "human-approval.json status = approved",
+        "beat-fit-check.json beatFit != weak",
+        "claim-ledger.json exists",
+        "verified-findings.json exists",
+        "09-journalist-intelligence.json exists"
+      ],
+      "mustStopIf": [
+        "beatFit = weak",
+        "claim ledger missing",
+        "approved claim IDs missing",
+        "selected angle missing"
+      ],
+      "mustAskHumanIf": [],
+      "mustWarnIf": [],
+      "mustRerunIf": [],
+      "mustEscalateIf": [],
+      "mustAskS4AIf": [
+        "claim not in ledger",
+        "approved wording missing",
+        "claim safety unclear"
+      ],
+      "mustAskS9If": [
+        "journalist personalization unclear"
+      ],
+      "canContinueIf": [
+        "10-pitch-draft.md exists",
+        "10-pitch-draft.json exists",
+        "all claimIdsUsed exist in claim-ledger.json",
+        "no unsupported claims used",
+        "pitch is data-led",
+        "CTA pressure != high"
+      ],
+      "handoffIf": [
+        "S11_PITCH_OPTIMIZATION can proceed"
+      ]
+    },
+    {
+      "stageId": "S11_PITCH_OPTIMIZATION",
+      "canRunIf": [
+        "10-pitch-draft.md exists",
+        "10-pitch-draft.json exists",
+        "claim-ledger.json exists"
+      ],
+      "mustStopIf": [
+        "S10_PITCH_DRAFTING contains unsupported claim",
+        "claim IDs missing"
+      ],
+      "mustAskHumanIf": [],
+      "mustWarnIf": [],
+      "mustRerunIf": [
+        "facts changed",
+        "numbers changed",
+        "new claims added"
+      ],
+      "mustEscalateIf": [],
+      "canContinueIf": [
+        "11-optimized-pitch.md exists",
+        "factsPreserved = true",
+        "numbersChanged = false",
+        "newClaimsAdded = false"
+      ],
+      "handoffIf": [
+        "S12_PACKAGE_ASSEMBLY can proceed"
+      ]
+    },
+    {
+      "stageId": "S12_PACKAGE_ASSEMBLY",
+      "canRunIf": [
+        "11-optimized-pitch.md exists",
+        "journalist-asset-readiness.json exists",
+        "claim-ledger.json exists"
+      ],
+      "mustStopIf": [
+        "G6_PITCH_SAFETY_GATE blocked",
+        "optimized pitch contains unsupported claim"
+      ],
+      "mustAskHumanIf": [],
+      "mustWarnIf": [
+        "asset readiness is weak",
+        "methodology note missing",
+        "source links missing"
+      ],
+      "mustRerunIf": [],
+      "mustEscalateIf": [],
+      "canContinueIf": [
+        "12-outreach-package.md exists",
+        "12-outreach-package.json exists",
+        "no new claims added",
+        "source notes included",
+        "follow-up email not salesy"
+      ],
+      "handoffIf": [
+        "S13_VALIDATION can proceed"
+      ]
+    },
+    {
+      "stageId": "S13_VALIDATION",
+      "canRunIf": [
+        "12-outreach-package.md exists",
+        "claim-ledger.json exists",
+        "source-confidence.json exists",
+        "beat-fit-check.json exists"
+      ],
+      "mustStopIf": [
+        "claim ledger missing",
+        "final package missing"
+      ],
+      "mustAskHumanIf": [],
+      "mustWarnIf": [],
+      "mustRerunIf": [],
+      "mustEscalateIf": [
+        "critical validation failure"
+      ],
+      "canContinueIf": [
+        "13-validation-report.json passed = true",
+        "final-readiness.json readyForFinalHumanReview = true"
+      ],
+      "mustFailIf": [
+        "unsupported claim appears",
+        "rejected claim appears",
+        "needs_source claim appears",
+        "source confidence = low",
+        "beat fit = weak",
+        "manufactured urgency detected",
+        "fake exclusivity detected",
+        "CTA pressure = high",
+        "client is main story",
+        "S7_PITCH_SELECTION_HUMAN_GATE approval missing"
+      ],
+      "handoffIf": [
+        "Human final send approval"
+      ]
+    }
+  ]
+}

@@ -95,6 +95,13 @@ pitch-jobs/
 data/
 *.csv
 *.json
+# Source-of-truth system configs used by tracked TypeScript/runtime code.
+# Keep these visible despite the broad generated JSON ignore rule.
+!system/stage-contracts.json
+!system/stage-output-registry.json
+!system/agent-logic-conditions.json
+!system/replay-stage-dependencies.json
+!system/file-permissions.json
 !data/.gitkeep
 output/
 *.output
