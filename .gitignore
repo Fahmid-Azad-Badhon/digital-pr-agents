@@ -122,6 +122,9 @@ data/
 !system/input-locks.json
 !system/anti-sales-language-rules.json
 !system/cta-softness-rules.json
+!system/source-of-truth-map.json
+!system/schema-ownership.json
+!system/module-flags.json
 
 # Source-of-truth JSON schemas used by tracked runtime validation.
 !schemas/campaign-brief.schema.json

@@ -1,0 +1,157 @@
+{
+  "version": "1.0",
+  "authoritativeSchemaRoot": "schemas/",
+  "dashboardSchemaPaths": [
+    "dashboard/src/schemas/",
+    "src/schemas/"
+  ],
+  "schemas": {
+    "campaign-brief.schema.json": {
+      "authority": "root",
+      "owner": "S1",
+      "location": "schemas/campaign-brief.schema.json",
+      "importedBy": ["dashboard/src/schemas/campaign-brief.schema.json"],
+      "status": "authoritative"
+    },
+    "campaign-intake.schema.json": {
+      "authority": "root",
+      "owner": "S1",
+      "location": "schemas/campaign-intake.schema.json",
+      "importedBy": [],
+      "status": "authoritative"
+    },
+    "extracted-data.schema.json": {
+      "authority": "root",
+      "owner": "S2",
+      "location": "schemas/extracted-data.schema.json",
+      "importedBy": [],
+      "status": "authoritative"
+    },
+    "research-enrichment.schema.json": {
+      "authority": "root",
+      "owner": "S3",
+      "location": "schemas/research-enrichment.schema.json",
+      "importedBy": [],
+      "status": "authoritative"
+    },
+    "verified-findings.schema.json": {
+      "authority": "root",
+      "owner": "S4A",
+      "location": "schemas/verified-findings.schema.json",
+      "importedBy": [],
+      "status": "authoritative"
+    },
+    "insight-analysis.schema.json": {
+      "authority": "root",
+      "owner": "S4B",
+      "location": "schemas/insight-analysis.schema.json",
+      "importedBy": [],
+      "status": "authoritative"
+    },
+    "angles.schema.json": {
+      "authority": "root",
+      "owner": "S5",
+      "location": "schemas/angles.schema.json",
+      "importedBy": [],
+      "status": "authoritative"
+    },
+    "beat-match.schema.json": {
+      "authority": "root",
+      "owner": "S6",
+      "location": "schemas/beat-match.schema.json",
+      "importedBy": [],
+      "status": "authoritative"
+    },
+    "journalist-list.schema.json": {
+      "authority": "root",
+      "owner": "S8",
+      "location": "schemas/journalist-list.schema.json",
+      "importedBy": [],
+      "status": "authoritative"
+    },
+    "journalist-intelligence.schema.json": {
+      "authority": "root",
+      "owner": "S9",
+      "location": "schemas/journalist-intelligence.schema.json",
+      "importedBy": [],
+      "status": "authoritative"
+    },
+    "pitch-draft.schema.json": {
+      "authority": "root",
+      "owner": "S10",
+      "location": "schemas/pitch-draft.schema.json",
+      "importedBy": [],
+      "status": "authoritative"
+    },
+    "outreach-package.schema.json": {
+      "authority": "root",
+      "owner": "S12",
+      "location": "schemas/outreach-package.schema.json",
+      "importedBy": [],
+      "status": "authoritative"
+    },
+    "validation-report.schema.json": {
+      "authority": "root",
+      "owner": "S13",
+      "location": "schemas/validation-report.schema.json",
+      "importedBy": [],
+      "status": "authoritative"
+    },
+    "qc-rules.schema.json": {
+      "authority": "root",
+      "owner": "system",
+      "location": "schemas/qc-rules.schema.json",
+      "importedBy": [],
+      "status": "authoritative"
+    },
+    "source-confidence.schema.json": {
+      "authority": "root",
+      "owner": "system",
+      "location": "schemas/qc-rules/source-confidence.schema.json",
+      "importedBy": [],
+      "status": "authoritative"
+    },
+    "beat-fit.schema.json": {
+      "authority": "root",
+      "owner": "system",
+      "location": "schemas/qc-rules/beat-fit.schema.json",
+      "importedBy": [],
+      "status": "authoritative"
+    },
+    "urgency.schema.json": {
+      "authority": "root",
+      "owner": "system",
+      "location": "schemas/qc-rules/urgency.schema.json",
+      "importedBy": [],
+      "status": "authoritative"
+    },
+    "asset-readiness.schema.json": {
+      "authority": "root",
+      "owner": "system",
+      "location": "schemas/qc-rules/asset-readiness.schema.json",
+      "importedBy": [],
+      "status": "authoritative"
+    },
+    "exclusivity.schema.json": {
+      "authority": "root",
+      "owner": "system",
+      "location": "schemas/qc-rules/exclusivity.schema.json",
+      "importedBy": [],
+      "status": "authoritative"
+    },
+    "gut-check.schema.json": {
+      "authority": "root",
+      "owner": "system",
+      "location": "schemas/qc-rules/gut-check.schema.json",
+      "importedBy": [],
+      "status": "authoritative"
+    }
+  },
+  "rules": [
+    "schemas/ at root is authoritative.",
+    "Dashboard src/schemas may import from root but must NOT override.",
+    "If duplicate schema exists in dashboard/src/schemas/, root schema takes precedence.",
+    "Schema owner stage is responsible for validating output against schema.",
+    "All stage outputs must validate against their schema before stage completion."
+  ]
+}

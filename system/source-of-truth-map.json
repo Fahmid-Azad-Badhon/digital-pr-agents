@@ -1,0 +1,35 @@
+{
+  "version": "1.0",
+  "activeSourceOfTruth": {
+    "brains": "brain/",
+    "systemRules": "system/",
+    "schemas": "schemas/",
+    "campaignJobs": "pitch-jobs/",
+    "dashboardApp": "dashboard/src/",
+    "dashboardApi": "dashboard/src/app/api/"
+  },
+  "legacyOrReferencePaths": [
+    "dashboard/src/brain/",
+    "dashboard/skills/agent-brains/",
+    "pages/api/",
+    "lib/",
+    "dashboard/src.backup/"
+  ],
+  "rules": [
+    "Root brain/ is authoritative for agent brains.",
+    "Root system/ is authoritative for workflow rules.",
+    "Root schemas/ is authoritative for JSON schemas.",
+    "pitch-jobs/{campaignSlug}/ is authoritative campaign workspace.",
+    "dashboard must not maintain duplicate source-of-truth brain files.",
+    "legacy paths may be read only through adapters, never as primary truth.",
+    "Schemas at root schemas/ are authoritative. Dashboard src/schemas may import but not override.",
+    "Campaign path must use pitch-jobs/ prefix, not campaigns/ prefix.",
+    "API routes in dashboard/src/app/api/ are authoritative. Legacy pages/api/ are deprecated.",
+    "Core libraries in dashboard/src/lib/ are authoritative. Root lib/ is legacy/reference."
+  ],
+  "migrationNotes": [
+    "Old markdown files in pitch-jobs/{slug} are reference only, not stage completion markers.",
+    "JSON output files in outputs/ subfolder are required for stage completion.",
+    "Legacy brain files in dashboard/src/brain/ should not be loaded by resolver."
+  ]
+}

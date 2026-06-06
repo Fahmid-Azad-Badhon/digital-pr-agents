@@ -1,0 +1,84 @@
+{
+  "version": "1.0",
+  "coreWorkflow": {
+    "v1": {
+      "status": "active",
+      "description": "Core workflow with human gates at S7 and S13",
+      "modules": [
+        "brainResolver",
+        "campaignPathResolver",
+        "stageOutputRegistry",
+        "filePermissions",
+        "schemaOwnership",
+        "runtimeHealthCheck",
+        "agentLogicConditionEngine"
+      ],
+      "stages": ["S0", "S1", "S2", "S3", "S4A", "S4B", "S5", "S6", "S7", "S8", "S9", "S10", "S11", "S12", "S13"]
+    },
+    "v2": {
+      "status": "experimental",
+      "description": "Advanced modules - not yet stable",
+      "modules": [],
+      "stages": [],
+      "activationCriteria": [
+        "All V1 modules must pass health check",
+        "At least 10 campaigns completed through S13",
+        "Zero critical bugs in V1 for 30 days"
+      ]
+    }
+  },
+  "featureFlags": {
+    "enableAutoAdvance": {
+      "v1": false,
+      "v2": "future",
+      "description": "Auto-advance through stages without human gates"
+    },
+    "enableParallelStages": {
+      "v1": false,
+      "v2": "future",
+      "description": "Run multiple stages in parallel"
+    },
+    "enableSmartCaching": {
+      "v1": false,
+      "v2": "future",
+      "description": "Cache brain content between stages"
+    },
+    "enableDriftDetection": {
+      "v1": true,
+      "v2": true,
+      "description": "Detect duplicate brain files in legacy paths"
+    },
+    "enableStrictPermissions": {
+      "v1": true,
+      "v2": true,
+      "description": "Enforce file permissions per stage"
+    },
+    "enableSchemaValidation": {
+      "v1": true,
+      "v2": true,
+      "description": "Validate stage outputs against schemas"
+    },
+    "enableLegacyAdapter": {
+      "v1": true,
+      "v2": true,
+      "description": "Allow importing legacy files as reference"
+    }
+  },
+  "moduleStatus": {
+    "brainResolver": "active",
+    "campaignPathResolver": "active",
+    "stageOutputRegistry": "active",
+    "filePermissions": "active",
+    "schemaOwnership": "active",
+    "runtimeHealthCheck": "active",
+    "legacyCampaignAdapter": "active",
+    "driftDetector": "active",
+    "agentLogicConditionEngine": "active"
+  },
+  "activationRules": [
+    "V2 modules cannot activate until all V1 modules are stable.",
+    "Experimental features default to off.",
+    "Feature flags can only be changed by explicit config update, not runtime.",
+    "Legacy adapter must be explicitly enabled for backward compatibility."
+  ]
+}
