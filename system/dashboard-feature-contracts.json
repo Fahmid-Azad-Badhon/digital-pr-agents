@@ -1,0 +1,234 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dashboard Feature Contracts - Single Source of Truth",
+  "description": "Input/output contracts for all dashboard AI features",
+  "version": "1.0.0",
+  "lastUpdated": "2026-05-09",
+  "features": {
+    "workflow_status_summary": {
+      "description": "Generate a human-readable summary of campaign workflow status",
+      "input": {
+        "type": "object",
+        "required": ["campaignId", "stages"],
+        "properties": {
+          "campaignId": { "type": "string" },
+          "stages": { "type": "array" },
+          "includeMetrics": { "type": "boolean" }
+        }
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "summary": { "type": "string" },
+          "currentStage": { "type": "string" },
+          "progressPercentage": { "type": "number" }
+        }
+      }
+    },
+    "stage_failure_explanation": {
+      "description": "Explain why a specific stage failed and what actions can be taken",
+      "input": {
+        "type": "object",
+        "required": ["campaignId", "failedStage", "errorDetails"],
+        "properties": {
+          "campaignId": { "type": "string" },
+          "failedStage": { "type": "string" },
+          "errorDetails": { "type": "object" }
+        }
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "explanation": { "type": "string" },
+          "likelyCause": { "type": "string" },
+          "recommendedActions": { "type": "array" }
+        }
+      }
+    },
+    "fallback_event_analysis": {
+      "description": "Analyze fallback events and their impact on campaign",
+      "input": {
+        "type": "object",
+        "required": ["campaignId", "fallbackEvents"],
+        "properties": {
+          "campaignId": { "type": "string" },
+          "fallbackEvents": { "type": "array" }
+        }
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "analysis": { "type": "string" },
+          "fallbackCount": { "type": "number" },
+          "impactAssessment": { "type": "string" }
+        }
+      }
+    },
+    "campaign_progress_overview": {
+      "description": "Provide a high-level overview of campaign progress",
+      "input": {
+        "type": "object",
+        "required": ["campaignId"],
+        "properties": {
+          "campaignId": { "type": "string" }
+        }
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "overview": { "type": "string" },
+          "milestones": { "type": "array" },
+          "upcomingDeadlines": { "type": "array" }
+        }
+      }
+    },
+    "recommended_next_action": {
+      "description": "Recommend the next best action for a campaign",
+      "input": {
+        "type": "object",
+        "required": ["campaignId", "currentStage", "context"],
+        "properties": {
+          "campaignId": { "type": "string" },
+          "currentStage": { "type": "string" },
+          "context": { "type": "object" }
+        }
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "recommendation": { "type": "string" },
+          "reasoning": { "type": "string" },
+          "priority": { "type": "string", "enum": ["high", "medium", "low"] }
+        }
+      }
+    },
+    "audit_log_analysis": {
+      "description": "Analyze audit logs for patterns and anomalies",
+      "input": {
+        "type": "object",
+        "required": ["campaignId", "auditLogs"],
+        "properties": {
+          "campaignId": { "type": "string" },
+          "auditLogs": { "type": "array" }
+        }
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "patterns": { "type": "array" },
+          "anomalies": { "type": "array" },
+          "summary": { "type": "string" }
+        }
+      }
+    },
+    "output_quality_score": {
+      "description": "Score the quality of stage outputs",
+      "input": {
+        "type": "object",
+        "required": ["stageOutput", "stageType"],
+        "properties": {
+          "stageOutput": { "type": "object" },
+          "stageType": { "type": "string" }
+        }
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "score": { "type": "number", "minimum": 0, "maximum": 100 },
+          "dimensions": { "type": "object" },
+          "issues": { "type": "array" }
+        }
+      }
+    },
+    "pitch_readability_preview": {
+      "description": "Preview pitch readability and provide optimization suggestions",
+      "input": {
+        "type": "object",
+        "required": ["pitchContent"],
+        "properties": {
+          "pitchContent": { "type": "string" },
+          "targetAudience": { "type": "string" }
+        }
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "readabilityScore": { "type": "number" },
+          "suggestions": { "type": "array" },
+          "improvedVersion": { "type": "string" }
+        }
+      }
+    },
+    "dashboard_copy_labels": {
+      "description": "Generate localized or user-friendly labels for dashboard elements",
+      "input": {
+        "type": "object",
+        "required": ["elementKeys"],
+        "properties": {
+          "elementKeys": { "type": "array" },
+          "locale": { "type": "string" }
+        }
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "labels": { "type": "object" }
+        }
+      }
+    },
+    "search_across_campaign_files": {
+      "description": "Search across all campaign files and documents",
+      "input": {
+        "type": "object",
+        "required": ["campaignId", "query"],
+        "properties": {
+          "campaignId": { "type": "string" },
+          "query": { "type": "string" }
+        }
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "results": { "type": "array" },
+          "highlightedMatches": { "type": "array" }
+        }
+      }
+    },
+    "chart_image_interpretation": {
+      "description": "Interpret charts and visual data from campaign assets",
+      "input": {
+        "type": "object",
+        "required": ["imageData", "context"],
+        "properties": {
+          "imageData": { "type": "string" },
+          "context": { "type": "string" }
+        }
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "interpretation": { "type": "string" },
+          "dataPoints": { "type": "array" }
+        }
+      }
+    },
+    "dashboard_visual_asset_generation": {
+      "description": "Generate visual assets for dashboard use (charts, graphics)",
+      "input": {
+        "type": "object",
+        "required": ["assetType", "data"],
+        "properties": {
+          "assetType": { "type": "string", "enum": ["chart", "graphic", "social_card", "cover_image"] },
+          "data": { "type": "object" }
+        }
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "assetUrl": { "type": "string" },
+          "assetMetadata": { "type": "object" }
+        }
+      }
+    }
+  }
+}

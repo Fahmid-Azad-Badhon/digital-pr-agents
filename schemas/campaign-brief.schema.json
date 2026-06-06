@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Campaign Brief Schema",
+  "description": "Schema for campaign brief input",
+  "type": "object",
+  "required": ["campaignName", "clientName", "topic"],
+  "properties": {
+    "campaignName": {
+      "type": "string",
+      "description": "Name of the campaign"
+    },
+    "clientName": {
+      "type": "string",
+      "description": "Client name"
+    },
+    "topic": {
+      "type": "string",
+      "description": "Main topic or subject"
+    },
+    "targetRegion": {
+      "type": "string",
+      "description": "Geographic target region"
+    },
+    "targetBeats": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Target journalist beats"
+    },
+    "goal": {
+      "type": "string",
+      "description": "Campaign goal"
+    },
+    "tone": {
+      "type": "string",
+      "enum": ["Professional", "Casual", "Urgent", "Educational"],
+      "description": "Desired tone"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  }
+}

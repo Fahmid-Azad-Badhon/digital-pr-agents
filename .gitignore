@@ -96,12 +96,23 @@ data/
 *.csv
 *.json
 # Source-of-truth system configs used by tracked TypeScript/runtime code.
-# Keep these visible despite the broad generated JSON ignore rule.
+# Keep these exact files visible despite the broad generated JSON ignore rule.
 !system/stage-contracts.json
 !system/stage-output-registry.json
 !system/agent-logic-conditions.json
 !system/replay-stage-dependencies.json
 !system/file-permissions.json
+!system/model-routing.config.json
+!system/dashboard-feature-contracts.json
+!system/model-restrictions.json
+!system/validation-rules.json
+!system/prompt-version-log.json
+!system/gate-rules.json
+!system/workflow-state-machine.json
+
+# Source-of-truth JSON schemas used by tracked runtime validation.
+!schemas/campaign-brief.schema.json
+!schemas/pitch-draft.schema.json
 !data/.gitkeep
 output/
 *.output

@@ -1,0 +1,161 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Validation Rules - Single Source of Truth",
+  "description": "All validation rules for outputs across campaign stages and dashboard features",
+  "version": "1.0.0",
+  "lastUpdated": "2026-05-09",
+  "stageValidation": {
+    "S1_CAMPAIGN_INTAKE": {
+      "requiredFields": ["campaignName", "clientName", "brief", "targetPublicationTypes", "deadline"],
+      "fieldRules": {
+        "campaignName": { "minLength": 3, "maxLength": 100, "pattern": "^[a-zA-Z0-9\\s\\-_]+$" },
+        "clientName": { "minLength": 1, "maxLength": 100 },
+        "brief": { "minLength": 50, "maxLength": 10000 },
+        "targetPublicationTypes": { "minItems": 1, "maxItems": 10 },
+        "deadline": { "format": "date-time", "futureDate": true }
+      }
+    },
+    "S2_DATA_EXTRACTION": {
+      "requiredFields": ["extractedData", "extractionSummary"],
+      "fieldRules": {
+        "extractedData": { "minProperties": 1 },
+        "extractionSummary": { "minLength": 10, "maxLength": 2000 },
+        "dataQualityScore": { "min": 0, "max": 100 }
+      }
+    },
+    "S3_RESEARCH_ENRICHMENT": {
+      "requiredFields": ["enrichedData", "researchSources"],
+      "fieldRules": {
+        "enrichedData": { "minProperties": 1 },
+        "researchSources": { "minItems": 1 }
+      }
+    },
+    "S4A_DATA_RESEARCH_ANALYST": {
+      "requiredFields": ["dataInsights", "statisticalFindings"],
+      "fieldRules": {
+        "dataInsights": { "minItems": 1 },
+        "statisticalFindings": { "minProperties": 1 }
+      }
+    },
+    "S4B_INSIGHT_ANALYST": {
+      "requiredFields": ["keyInsights", "insightPriorities"],
+      "fieldRules": {
+        "keyInsights": { "minItems": 1, "maxItems": 20 },
+        "insightPriorities": { "minItems": 1 }
+      }
+    },
+    "S5_ANGLE_GENERATION": {
+      "requiredFields": ["angles"],
+      "fieldRules": {
+        "angles": { "minItems": 3, "maxItems": 10 },
+        "angle.*.headline": { "minLength": 10, "maxLength": 200 },
+        "angle.*.description": { "minLength": 50, "maxLength": 1000 }
+      }
+    },
+    "S6_BEAT_MATCHING": {
+      "requiredFields": ["angleBeatMatches"],
+      "fieldRules": {
+        "angleBeatMatches": { "minItems": 1 }
+      }
+    },
+    "S7_PITCH_SELECTION_HUMAN_GATE": {
+      "requiredFields": ["selectedAngles", "humanDecision"],
+      "fieldRules": {
+        "selectedAngles": { "minItems": 1 },
+        "humanDecision.approverId": { "minLength": 1 },
+        "humanDecision.approvedAt": { "format": "date-time" }
+      },
+      "requiresHumanApproval": true
+    },
+    "S8_JOURNALIST_COLLECTION": {
+      "requiredFields": ["journalistCandidates"],
+      "fieldRules": {
+        "journalistCandidates": { "minItems": 1 },
+        "journalistCandidates.*.name": { "minLength": 1 },
+        "journalistCandidates.*.outlets": { "minItems": 1 }
+      }
+    },
+    "S9_JOURNALIST_INTELLIGENCE": {
+      "requiredFields": ["journalistProfiles"],
+      "fieldRules": {
+        "journalistProfiles": { "minItems": 1 }
+      }
+    },
+    "S10_PITCH_DRAFTING": {
+      "requiredFields": ["draftPitches"],
+      "fieldRules": {
+        "draftPitches": { "minItems": 1 },
+        "draftPitches.*.subjectLine": { "minLength": 10, "maxLength": 200 },
+        "draftPitches.*.body": { "minLength": 100, "maxLength": 5000 }
+      }
+    },
+    "S11_PITCH_OPTIMIZATION": {
+      "requiredFields": ["optimizedPitches"],
+      "fieldRules": {
+        "optimizedPitches": { "minItems": 1 }
+      }
+    },
+    "S12_PACKAGE_ASSEMBLY": {
+      "requiredFields": ["pitchPackages"],
+      "fieldRules": {
+        "pitchPackages": { "minItems": 1 },
+        "pitchPackages.*.pitch": { "minLength": 100 },
+        "pitchPackages.*.assets": { "type": "array" }
+      }
+    },
+    "S13_VALIDATION": {
+      "requiredFields": ["validationResults"],
+      "fieldRules": {
+        "validationResults.passed": { "type": "boolean" },
+        "validationResults.issues": { "type": "array" },
+        "validationResults.score": { "min": 0, "max": 100 }
+      }
+    },
+    "S14_FINAL_FORMATTING": {
+      "requiredFields": ["finalPackages", "qualityScore"],
+      "fieldRules": {
+        "finalPackages": { "minItems": 1 },
+        "qualityScore": { "min": 0, "max": 100 }
+      }
+    },
+    "S15_OUTREACH_ASSET_CREATION": {
+      "requiredFields": ["outreachAssets"],
+      "fieldRules": {
+        "outreachAssets": { "type": "array" }
+      }
+    },
+    "S16_CAMPAIGN_LOG_LEARNING_LOOP": {
+      "requiredFields": ["campaignLog", "learningInsights"],
+      "fieldRules": {
+        "campaignLog": { "minProperties": 1 },
+        "learningInsights": { "type": "array" }
+      }
+    }
+  },
+  "modelSelectionValidation": {
+    "enforceRoleRestrictions": true,
+    "enforceFallbackChain": true,
+    "enforceProductionBlacklist": ["big_pickle"],
+    "validationRules": [
+      "Primary model MUST have the role that matches the stage/feature",
+      "Fallback models MUST exist and be different from primary",
+      "All campaign stages MUST have at least one fallback model",
+      "big_pickle MUST NOT be used in production workflow",
+      "lfm_25_12b MUST NOT be used for reasoning/judgment tasks",
+      "riverflow_v2 MUST NOT be used for any text tasks",
+      "nemotron_3_nano_omni MUST ONLY be used for multimodal extraction"
+    ]
+  },
+  "outputQualityRules": {
+    "minAcceptableQualityScore": 60,
+    "requireValidationBeforeProceeding": true,
+    "allowFallbackOnLowQuality": true,
+    "escalateOnRepeatedFailures": true,
+    "thresholds": {
+      "critical": 40,
+      "warning": 60,
+      "acceptable": 80,
+      "excellent": 95
+    }
+  }
+}

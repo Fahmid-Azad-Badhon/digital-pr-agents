@@ -1,0 +1,348 @@
+{
+  "version": "1.0",
+  "updatedAt": "2026-05-09",
+  "gates": [
+    {
+      "gateId": "G0_PREFLIGHT_GATE",
+      "gateName": "Preflight Check Gate",
+      "gateVersion": "1.0",
+      "runsAfterStage": null,
+      "requiredFiles": [],
+      "checks": [
+        "campaign_folder_exists",
+        "brief_file_exists",
+        "model_routing_config_exists",
+        "stage_contracts_exist",
+        "audit_logging_available"
+      ],
+      "passConditions": [
+        "All preflight checks pass",
+        "Required configuration files exist",
+        "Audit logging is available"
+      ],
+      "warningConditions": [],
+      "blockConditions": [
+        "campaign folder missing",
+        "brief file missing",
+        "model routing config missing"
+      ],
+      "requiredHumanApproval": false,
+      "canContinueOnWarning": false,
+      "blocksStages": ["S1", "S2", "S3", "S4A", "S4B", "S5", "S6", "S7", "S8", "S9", "S10", "S11", "S12", "S13", "S14", "S15", "S16"],
+      "writesTo": "gate-results.json"
+    },
+    {
+      "gateId": "G0A_TOPIC_EXPANSION_GATE",
+      "gateName": "Topic Expansion Gate",
+      "gateVersion": "1.0",
+      "runsAfterStage": "S1_CAMPAIGN_INTAKE",
+      "requiredFiles": ["topic-expansion-map.json", "research-query-map.json"],
+      "checks": [
+        "topic_expansion_map_exists",
+        "research_query_map_exists",
+        "related_terms_exist",
+        "possible_metrics_exist",
+        "risk_warnings_exist"
+      ],
+      "passConditions": [
+        "topic-expansion-map.json exists with required fields",
+        "research-query-map.json exists",
+        "Related terms are populated",
+        "Possible metrics are defined"
+      ],
+      "warningConditions": [
+        "Possible metrics count is low",
+        "Related terms count is low"
+      ],
+      "blockConditions": [
+        "topic-expansion-map.json missing",
+        "No related terms defined",
+        "No possible metrics defined"
+      ],
+      "requiredHumanApproval": false,
+      "canContinueOnWarning": true,
+      "blocksStages": ["S2_DATA_EXTRACTION"],
+      "writesTo": "gate-results.json"
+    },
+    {
+      "gateId": "G1_DATA_RELIABILITY_GATE",
+      "gateName": "Data Reliability Gate",
+      "gateVersion": "1.0",
+      "runsAfterStage": "S2_DATA_EXTRACTION",
+      "requiredFiles": ["02-raw-extracted-data.json", "data-inventory.json", "source-registry.json"],
+      "checks": [
+        "raw_data_exists",
+        "data_inventory_exists",
+        "source_registry_exists",
+        "usable_data_points_exist",
+        "unclear_values_flagged"
+      ],
+      "passConditions": [
+        "02-raw-extracted-data.json exists and is not empty",
+        "Data inventory shows at least 3 key data points",
+        "Source registry contains sources",
+        "No critical data quality issues"
+      ],
+      "warningConditions": [
+        "Some data points have unclear values",
+        "Source quality could be improved"
+      ],
+      "blockConditions": [
+        "02-raw-extracted-data.json missing",
+        "No usable data points extracted",
+        "Data inventory shows quality score below 30"
+      ],
+      "requiredHumanApproval": false,
+      "canContinueOnWarning": true,
+      "blocksStages": ["S3_RESEARCH_ENRICHMENT"],
+      "writesTo": "gate-results.json"
+    },
+    {
+      "gateId": "G1B_RESEARCH_ENRICHMENT_GATE",
+      "gateName": "Research Enrichment Gate",
+      "gateVersion": "1.0",
+      "runsAfterStage": "S3_RESEARCH_ENRICHMENT",
+      "requiredFiles": ["03-research-enrichment.json", "evidence-pack.md"],
+      "checks": [
+        "research_enrichment_exists",
+        "evidence_pack_exists",
+        "source_quality_report_exists",
+        "safe_and_risky_context_separated"
+      ],
+      "passConditions": [
+        "03-research-enrichment.json exists",
+        "Evidence pack contains supporting materials",
+        "Weak sources are not marked as verified"
+      ],
+      "warningConditions": [
+        "Some weak sources included",
+        "Research gaps identified"
+      ],
+      "blockConditions": [
+        "Research enrichment file missing",
+        "No evidence pack created"
+      ],
+      "requiredHumanApproval": false,
+      "canContinueOnWarning": true,
+      "blocksStages": ["S4A_DATA_RESEARCH_ANALYST"],
+      "writesTo": "gate-results.json"
+    },
+    {
+      "gateId": "G2_VERIFIED_FINDINGS_GATE",
+      "gateName": "Verified Findings Gate",
+      "gateVersion": "1.0",
+      "runsAfterStage": "S4A_DATA_RESEARCH_ANALYST",
+      "requiredFiles": ["verified-findings.json", "claim-ledger.json"],
+      "checks": [
+        "verified_findings_exist",
+        "claim_ledger_updated",
+        "strongest_findings_exist",
+        "unsupported_claims_identified"
+      ],
+      "passConditions": [
+        "verified-findings.json exists with strongest findings",
+        "claim-ledger.json has been updated with verified claims",
+        "Unsupported claims are identified and flagged"
+      ],
+      "warningConditions": [
+        "Only weak findings identified",
+        "Claim ledger could be more complete"
+      ],
+      "blockConditions": [
+        "verified-findings.json missing",
+        "Zero strongest findings identified"
+      ],
+      "requiredHumanApproval": false,
+      "canContinueOnWarning": false,
+      "blocksStages": ["S4B_INSIGHT_ANALYST", "S5_ANGLE_GENERATION"],
+      "writesTo": "gate-results.json"
+    },
+    {
+      "gateId": "G3_ANGLE_QUALITY_GATE",
+      "gateName": "Angle Quality Gate",
+      "gateVersion": "1.0",
+      "runsAfterStage": "S5_ANGLE_GENERATION",
+      "requiredFiles": ["05-angles.json", "06-beat-match.json"],
+      "checks": [
+        "angles_exist",
+        "high_scoring_angles_exist",
+        "beat_matching_exists",
+        "risky_angles_flagged"
+      ],
+      "passConditions": [
+        "05-angles.json exists with angles",
+        "At least one angle scores 80 or higher",
+        "06-beat-match.json shows beat matching"
+      ],
+      "warningConditions": [
+        "No angles scored above 80",
+        "Beat matching could be stronger"
+      ],
+      "blockConditions": [
+        "No angles generated",
+        "All angles scored below 50"
+      ],
+      "requiredHumanApproval": false,
+      "canContinueOnWarning": true,
+      "blocksStages": ["S6_BEAT_MATCHING", "S7_PITCH_SELECTION_HUMAN_GATE"],
+      "writesTo": "gate-results.json"
+    },
+    {
+      "gateId": "G4_HUMAN_SELECTION_GATE",
+      "gateName": "Human Selection Gate",
+      "gateVersion": "1.0",
+      "runsAfterStage": "S7_PITCH_SELECTION_HUMAN_GATE",
+      "requiredFiles": ["human-approval.json"],
+      "checks": [
+        "human_approval_exists",
+        "approval_status_is_approved",
+        "selected_angle_id_exists",
+        "selected_angle_title_exists"
+      ],
+      "passConditions": [
+        "human-approval.json exists",
+        "status equals 'approved'",
+        "selectedAngleId is defined",
+        "selectedAngleTitle is defined"
+      ],
+      "warningConditions": [],
+      "blockConditions": [
+        "human-approval.json missing",
+        "status is not 'approved'",
+        "No angle selected"
+      ],
+      "requiredHumanApproval": true,
+      "canContinueOnWarning": false,
+      "blocksStages": ["S8_JOURNALIST_COLLECTION", "S9_JOURNALIST_INTELLIGENCE", "S10_PITCH_DRAFTING"],
+      "writesTo": "gate-results.json"
+    },
+    {
+      "gateId": "G5_JOURNALIST_FIT_GATE",
+      "gateName": "Journalist Fit Gate",
+      "gateVersion": "1.0",
+      "runsAfterStage": "S9_JOURNALIST_INTELLIGENCE",
+      "requiredFiles": ["08-journalist-list.csv", "09-journalist-intelligence.json"],
+      "checks": [
+        "journalist_list_exists",
+        "journalist_intelligence_exists",
+        "relevant_journalists_exist",
+        "weak_fits_flagged"
+      ],
+      "passConditions": [
+        "08-journalist-list.csv exists with journalists",
+        "09-journalist-intelligence.json shows intelligence",
+        "At least 5 relevant journalists identified"
+      ],
+      "warningConditions": [
+        "Weak fits identified and flagged",
+        "Some journalists may not be ideal fit"
+      ],
+      "blockConditions": [
+        "No journalists collected",
+        "Journalist list is empty"
+      ],
+      "requiredHumanApproval": false,
+      "canContinueOnWarning": true,
+      "blocksStages": ["S10_PITCH_DRAFTING"],
+      "writesTo": "gate-results.json"
+    },
+    {
+      "gateId": "G6_PITCH_SAFETY_GATE",
+      "gateName": "Pitch Safety Gate",
+      "gateVersion": "1.0",
+      "runsAfterStage": "S11_PITCH_OPTIMIZATION",
+      "requiredFiles": ["11-optimized-pitch.md", "10-pitch-draft.json", "claim-ledger.json", "verified-findings.json"],
+      "checks": [
+        "all_pitch_claims_exist_in_claim_ledger",
+        "no_unsupported_claims_used",
+        "no_rejected_claims_used",
+        "no_needs_source_claims_used",
+        "soft_language_claims_respected",
+        "numbers_not_changed",
+        "cta_not_aggressive",
+        "pitch_not_promotional"
+      ],
+      "passConditions": [
+        "All claims in pitch exist in claim-ledger.json",
+        "No unsupported claims used",
+        "No rejected claims used",
+        "Soft-language claims use approved wording",
+        "CTA is soft",
+        "Client mention is natural"
+      ],
+      "warningConditions": [
+        "CTA could be softer",
+        "Source attribution could be clearer"
+      ],
+      "blockConditions": [
+        "Unsupported claim appears in pitch",
+        "Rejected claim appears in pitch",
+        "Needs_source claim appears in pitch",
+        "Number changed from claim ledger",
+        "Causal claim strengthened beyond approved wording"
+      ],
+      "requiredHumanApproval": false,
+      "canContinueOnWarning": false,
+      "blocksStages": ["S12_PACKAGE_ASSEMBLY", "S13_VALIDATION"],
+      "writesTo": "gate-results.json"
+    },
+    {
+      "gateId": "G7_FINAL_VALIDATION_GATE",
+      "gateName": "Final Validation Gate",
+      "gateVersion": "1.0",
+      "runsAfterStage": "S13_VALIDATION",
+      "requiredFiles": ["13-validation-report.json", "final-readiness.json"],
+      "checks": [
+        "validation_report_exists",
+        "validation_passed",
+        "no_blocking_issues",
+        "final_readiness_exists"
+      ],
+      "passConditions": [
+        "13-validation-report.json exists",
+        "passed equals true",
+        "blockingIssues is empty array",
+        "final-readiness.json shows ready"
+      ],
+      "warningConditions": [
+        "Warnings present but no blocking issues"
+      ],
+      "blockConditions": [
+        "Validation report shows passed = false",
+        "Blocking issues present",
+        "Unsupported claims remaining"
+      ],
+      "requiredHumanApproval": false,
+      "canContinueOnWarning": false,
+      "blocksStages": ["S14_FINAL_FORMATTING", "S15_OUTREACH_ASSET_CREATION", "ready_for_final_review", "ready_to_send"],
+      "writesTo": "gate-results.json"
+    },
+    {
+      "gateId": "G8_HUMAN_SEND_GATE",
+      "gateName": "Human Send Gate",
+      "gateVersion": "1.0",
+      "runsAfterStage": "S14_FINAL_FORMATTING",
+      "requiredFiles": ["10-google-doc.md", "human-approval.json"],
+      "checks": [
+        "s13_passed",
+        "final_package_exists",
+        "human_send_approval_exists"
+      ],
+      "passConditions": [
+        "S13 validation passed",
+        "Final package exists",
+        "Human send approval is granted"
+      ],
+      "warningConditions": [],
+      "blockConditions": [
+        "S13 validation not passed",
+        "Final package not ready",
+        "Human send approval not granted"
+      ],
+      "requiredHumanApproval": true,
+      "canContinueOnWarning": false,
+      "blocksStages": ["S15_OUTREACH_ASSET_CREATION", "ready_to_send", "completed"],
+      "writesTo": "gate-results.json"
+    }
+  ]
+}

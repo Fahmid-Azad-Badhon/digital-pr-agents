@@ -1,0 +1,101 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-05-09",
+  "states": {
+    "not_started": {
+      "description": "Campaign created but not started",
+      "allowedTransitions": ["preflight_checking"]
+    },
+    "preflight_checking": {
+      "description": "Running preflight checks",
+      "allowedTransitions": ["running", "blocked"]
+    },
+    "running": {
+      "description": "Workflow actively executing stages",
+      "allowedTransitions": ["stage_completed", "gate_checking", "waiting_for_human_approval", "blocked", "validation_failed"]
+    },
+    "stage_completed": {
+      "description": "Stage finished, checking gates",
+      "allowedTransitions": ["running", "gate_checking", "waiting_for_human_approval", "needs_revision", "blocked"]
+    },
+    "gate_checking": {
+      "description": "Evaluating gate conditions",
+      "allowedTransitions": ["running", "waiting_for_human_approval", "needs_revision", "blocked"]
+    },
+    "waiting_for_human_approval": {
+      "description": "Waiting for human input (S7, S13, or final send)",
+      "allowedTransitions": ["running", "needs_revision", "blocked"]
+    },
+    "needs_revision": {
+      "description": "Stage failed, needs rerun",
+      "allowedTransitions": ["running", "blocked"]
+    },
+    "blocked": {
+      "description": "Workflow blocked due to gate failure",
+      "allowedTransitions": ["running"]
+    },
+    "validation_failed": {
+      "description": "S13 validation failed",
+      "allowedTransitions": ["running", "needs_revision"]
+    },
+    "ready_for_final_review": {
+      "description": "All stages passed, ready for final human review",
+      "allowedTransitions": ["ready_to_send", "waiting_for_human_approval"]
+    },
+    "ready_to_send": {
+      "description": "Final send approval obtained",
+      "allowedTransitions": ["completed"]
+    },
+    "completed": {
+      "description": "Campaign complete",
+      "allowedTransitions": []
+    }
+  },
+  "unsafeTransitions": [
+    {
+      "from": "waiting_for_human_approval",
+      "to": "running",
+      "condition": "requires human-approval.json status is approved",
+      "blockMessage": "Cannot proceed without human approval"
+    },
+    {
+      "from": "validation_failed",
+      "to": "ready_for_final_review",
+      "condition": "requires S13 validation passed",
+      "blockMessage": "Cannot proceed without passing S13"
+    },
+    {
+      "from": "blocked",
+      "to": "ready_to_send",
+      "condition": "never allowed",
+      "blockMessage": "Cannot send from blocked state"
+    },
+    {
+      "from": "not_started",
+      "to": "running",
+      "condition": "requires G0 and G1 to pass",
+      "blockMessage": "Preflight and data gates must pass first"
+    }
+  ],
+  "stageGateRequirements": {
+    "S1_CAMPAIGN_INTAKE": ["G0_PREFLIGHT_GATE"],
+    "S2_DATA_EXTRACTION": ["G0_PREFLIGHT_GATE", "G1_DATA_RELIABILITY_GATE"],
+    "S3_RESEARCH_ENRICHMENT": ["G0_PREFLIGHT_GATE", "G1_DATA_RELIABILITY_GATE"],
+    "S4A_DATA_RESEARCH_ANALYST": ["G0_PREFLIGHT_GATE", "G1_DATA_RELIABILITY_GATE"],
+    "S4B_INSIGHT_ANALYST": ["G0_PREFLIGHT_GATE", "G2_VERIFIED_FINDINGS_GATE"],
+    "S5_ANGLE_GENERATION": ["G0_PREFLIGHT_GATE", "G2_VERIFIED_FINDINGS_GATE"],
+    "S6_BEAT_MATCHING": ["G0_PREFLIGHT_GATE", "G3_ANGLE_QUALITY_GATE"],
+    "S7_PITCH_SELECTION_HUMAN_GATE": ["G0_PREFLIGHT_GATE", "G3_ANGLE_QUALITY_GATE"],
+    "S8_JOURNALIST_COLLECTION": ["G0_PREFLIGHT_GATE", "G4_HUMAN_SELECTION_GATE"],
+    "S9_JOURNALIST_INTELLIGENCE": ["G0_PREFLIGHT_GATE", "G4_HUMAN_SELECTION_GATE", "G5_JOURNALIST_FIT_GATE"],
+    "S10_PITCH_DRAFTING": ["G0_PREFLIGHT_GATE", "G4_HUMAN_SELECTION_GATE", "G5_JOURNALIST_FIT_GATE", "G6_PITCH_SAFETY_GATE"],
+    "S11_PITCH_OPTIMIZATION": ["G0_PREFLIGHT_GATE", "G6_PITCH_SAFETY_GATE"],
+    "S12_PACKAGE_ASSEMBLY": ["G0_PREFLIGHT_GATE", "G6_PITCH_SAFETY_GATE"],
+    "S13_VALIDATION": ["G0_PREFLIGHT_GATE", "G6_PITCH_SAFETY_GATE"],
+    "S14_FINAL_FORMATTING": ["G0_PREFLIGHT_GATE", "G7_FINAL_VALIDATION_GATE"],
+    "S15_OUTREACH_ASSET_CREATION": ["G0_PREFLIGHT_GATE", "G7_FINAL_VALIDATION_GATE"],
+    "S16_CAMPAIGN_LOG_LEARNING_LOOP": ["G0_PREFLIGHT_GATE", "G7_FINAL_VALIDATION_GATE"]
+  },
+  "humanApprovalRequiredStates": ["S7_PITCH_SELECTION_HUMAN_GATE", "final_send"],
+  "validationRequiredStates": ["S13_VALIDATION"]
+}

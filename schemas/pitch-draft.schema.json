@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Pitch Draft Schema",
+  "description": "Schema for pitch draft output",
+  "type": "object",
+  "required": ["campaignId", "pitchContent", "angle"],
+  "properties": {
+    "campaignId": {
+      "type": "string",
+      "description": "Campaign identifier"
+    },
+    "angle": {
+      "type": "string",
+      "description": "Selected angle"
+    },
+    "headline": {
+      "type": "string",
+      "description": "Email headline"
+    },
+    "pitchContent": {
+      "type": "string",
+      "description": "Main pitch content"
+    },
+    "boilerplate": {
+      "type": "string",
+      "description": "Client boilerplate"
+    },
+    "statistics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": { "type": "string" },
+          "context": { "type": "string" }
+        }
+      }
+    },
+    "personalization": {
+      "type": "string",
+      "description": "Journalist personalization"
+    },
+    "cta": {
+      "type": "string",
+      "description": "Call to action"
+    },
+    "tone": {
+      "type": "string",
+      "enum": ["Professional", "Casual", "Urgent", "Storytelling"]
+    },
+    "wordCount": {
+      "type": "number",
+      "description": "Word count of pitch"
+    }
+  }
+}

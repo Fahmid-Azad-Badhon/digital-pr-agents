@@ -1,0 +1,114 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Model Restrictions - Single Source of Truth",
+  "description": "Role-based restrictions and constraints for each model",
+  "version": "1.0.0",
+  "lastUpdated": "2026-05-09",
+  "modelRestrictions": {
+    "lfm_25_12b": {
+      "displayName": "LFM 2.5-1.2B",
+      "role": "fast_utility",
+      "restrictedUseCases": ["fast_cleanup", "simple_classification", "deduplication", "formatting", "short_summary", "tagging"],
+      "blockedUseCases": [
+        "orchestration",
+        "strategy",
+        "research",
+        "data_extraction",
+        "pitch_drafting",
+        "validation",
+        "reasoning_judge",
+        "tone_optimization",
+        "editorial_improvement"
+      ],
+      "maxOutputTokens": 2048,
+      "maxInputTokens": 8192,
+      "restrictions": [
+        "MUST NOT be used for any reasoning or judgment tasks",
+        "MUST NOT be used for complex multi-step reasoning",
+        "MUST NOT be used for strategy or planning tasks",
+        "MUST NOT be used for writing full pitch content",
+        "MUST NOT be used for validation or QA tasks"
+      ]
+    },
+    "nemotron_3_nano_omni": {
+      "displayName": "Nemotron 3 Nano Omni",
+      "role": "multimodal_input",
+      "restrictedUseCases": ["multimodal_input_extraction", "image_extraction", "screenshot_extraction", "chart_extraction", "video_extraction", "audio_extraction"],
+      "blockedUseCases": [
+        "orchestration",
+        "strategy",
+        "research",
+        "pitch_drafting",
+        "validation",
+        "reasoning_judge",
+        "tone_optimization"
+      ],
+      "maxOutputTokens": 4096,
+      "maxInputTokens": 32768,
+      "restrictions": [
+        "MUST ONLY be used for multimodal input extraction tasks",
+        "MUST NOT be used for text generation or writing tasks",
+        "MUST NOT be used for any reasoning or judgment tasks"
+      ]
+    },
+    "riverflow_v2": {
+      "displayName": "Riverflow V2",
+      "role": "visual_generation",
+      "restrictedUseCases": ["visual_generation", "image_editing", "campaign_visual", "report_graphic", "social_card", "cover_image"],
+      "blockedUseCases": [
+        "orchestration",
+        "strategy",
+        "research",
+        "data_extraction",
+        "pitch_drafting",
+        "validation",
+        "reasoning_judge",
+        "tone_optimization",
+        "any_text_generation"
+      ],
+      "maxOutputTokens": null,
+      "maxInputTokens": 8192,
+      "restrictions": [
+        "MUST ONLY be used for visual/image generation tasks",
+        "MUST NOT be used for any text-based tasks",
+        "MUST NOT be used for reasoning or planning",
+        "MUST NOT be used for validation or QA"
+      ]
+    },
+    "big_pickle": {
+      "displayName": "Big Pickle",
+      "role": "experimental_debugging",
+      "restrictedUseCases": ["experimental_debugging"],
+      "blockedUseCases": [
+        "orchestration",
+        "strategy",
+        "research",
+        "data_extraction",
+        "pitch_drafting",
+        "validation",
+        "tone_optimization",
+        "production_workflow"
+      ],
+      "enabledInProductionWorkflow": false,
+      "restrictions": [
+        "MUST ONLY be used for experimental debugging tasks",
+        "MUST NOT be used in production workflow",
+        "MUST NOT be used for any campaign stages",
+        "MUST NOT be used for any dashboard features"
+      ]
+    }
+  },
+  "globalRestrictions": {
+    "maxConcurrentCallsPerModel": 5,
+    "maxRetriesPerModel": 3,
+    "timeoutEnforcement": "strict",
+    "fallbackEnforcement": "required",
+    "enforcedRules": [
+      "All campaign stages MUST have a primary model and at least one fallback",
+      "All model selections MUST respect role restrictions",
+      "Restricted models (lfm, nano_omni, riverflow) MUST only be used for their designated tasks",
+      "Production workflow MUST NOT include big_pickle",
+      "All model calls MUST log the model used and any fallback events"
+    ]
+  }
+}
