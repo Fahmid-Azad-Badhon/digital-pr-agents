@@ -15,6 +15,7 @@ import { getApprovalProgressionDecision, type ProvenanceStatus } from '@/lib/pro
 import { looksLikeFallback, FALLBACK_MARKERS } from '@/lib/fallbackMarkers';
 import { STAGES } from '@/types';
 import { validateS10OutputContract } from '@/lib/stageOutputContractValidator';
+import { getGatesForStage, runGate } from '@/lib/gateEngine';
 
 // Strict mode - when enabled, stages block instead of falling back to synthetic outputs
 // Default: ENABLED (true) for production safety. Set STRICT_REAL_ONLY=false to disable.
@@ -1636,6 +1637,26 @@ export async function GET(
   }
 }
 
+async function runCanonicalGatePrecheck(campaignId: string, stageNumber: number): Promise<Response | null> {
+  const stageId = `S${stageNumber}`;
+  const gates = await getGatesForStage(stageId);
+  if (!gates || gates.length === 0) return null;
+  for (const gate of gates) {
+    const gateId = typeof gate === 'string' ? gate : gate?.gateId;
+    if (!gateId) continue;
+    const result = await runGate(campaignId, gateId);
+    if (!result.canContinue) {
+      return fail('GATE_BLOCKED', `Canonical gate ${gateId} blocked execution`, { status: 409 }, {
+        gateId,
+        requiredAction: result.requiredAction,
+        blockingIssues: result.blockingIssues,
+        riskLevel: result.riskLevel,
+      });
+    }
+  }
+  return null;
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -1759,6 +1780,8 @@ export async function POST(
     } else if (stage === 7) {
       result = await executeStage7(campaignPath, runMode);
     } else if (stage === 8) {
+      const gateBlock = await runCanonicalGatePrecheck(campaignId, 8);
+      if (gateBlock) return gateBlock;
       result = await executeStage8(campaignId, campaignPath);
     } else if (stage === 9) {
       result = await executeStage9(campaignId, campaignPath);
@@ -1771,6 +1794,8 @@ export async function POST(
     } else if (stage === 13) {
       result = await executeStage13(campaignPath);
     } else if (stage === 14) {
+      const gateBlock = await runCanonicalGatePrecheck(campaignId, 14);
+      if (gateBlock) return gateBlock;
       result = await executeStage14(campaignPath);
     } else if (stage === 15) {
       result = await executeStage15(campaignPath);
