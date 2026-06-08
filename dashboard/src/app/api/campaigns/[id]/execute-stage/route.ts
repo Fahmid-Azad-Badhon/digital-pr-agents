@@ -1637,8 +1637,32 @@ export async function GET(
   }
 }
 
+const STAGE_CONTRACT_NAME: Record<number, string> = {
+  1: 'S1_CAMPAIGN_INTAKE',
+  2: 'S2_DATA_EXTRACTION',
+  3: 'S3_RESEARCH_ENRICHMENT',
+  4: 'S4A_DATA_RESEARCH_ANALYST',
+  5: 'S5_ANGLE_GENERATION',
+  6: 'S6_BEAT_MATCHING',
+  7: 'S7_PITCH_SELECTION_HUMAN_GATE',
+  8: 'S8_JOURNALIST_COLLECTION',
+  9: 'S9_JOURNALIST_INTELLIGENCE',
+  10: 'S10_PITCH_DRAFTING',
+  11: 'S11_PITCH_OPTIMIZATION',
+  12: 'S12_PACKAGE_ASSEMBLY',
+  13: 'S13_VALIDATION',
+  14: 'S14_FINAL_FORMATTING',
+  15: 'S15_OUTREACH_ASSET_CREATION',
+  16: 'S16_CAMPAIGN_LOG_LEARNING_LOOP',
+};
+
+function getCanonicalGateLookupStage(stageNumber: number): string {
+  const prevStage = stageNumber - 1;
+  return STAGE_CONTRACT_NAME[prevStage] ?? `S${stageNumber}`;
+}
+
 async function runCanonicalGatePrecheck(campaignId: string, stageNumber: number): Promise<Response | null> {
-  const stageId = `S${stageNumber}`;
+  const stageId = getCanonicalGateLookupStage(stageNumber);
   const gates = await getGatesForStage(stageId);
   if (!gates || gates.length === 0) return null;
   for (const gate of gates) {
