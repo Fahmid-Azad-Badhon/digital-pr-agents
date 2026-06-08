@@ -10,6 +10,7 @@ import { validateStageHandoff } from '@/lib/stageHandoffValidator';
 import { createQuestion, escalateToHuman } from '@/lib/agentQuestioningSystem';
 import { getRuntimeBinding, verifyRuntimeBinding } from '@/lib/stageRuntimeRegistry';
 import { getApprovalProgressionDecision, type ProvenanceStatus } from '@/lib/provenance';
+import { getGatesForStage, runGate } from '@/lib/gateEngine';
 
 const AutoProgressInputSchema = z.object({
   mode: z.enum(['pre_pitch', 'post_pitch', 'full']).optional().default('pre_pitch'),
@@ -125,6 +126,25 @@ const STAGE_SKILL_HINT: Record<number, string> = {
   10: 'pitch-writer',
   11: 'email-optimizer',
   12: 'final-doc-packager',
+};
+
+const STAGE_CONTRACT_NAME: Record<number, string> = {
+  1: 'S1_CAMPAIGN_INTAKE',
+  2: 'S2_DATA_EXTRACTION',
+  3: 'S3_RESEARCH_ENRICHMENT',
+  4: 'S4A_DATA_RESEARCH_ANALYST',
+  5: 'S5_ANGLE_GENERATION',
+  6: 'S6_BEAT_MATCHING',
+  7: 'S7_PITCH_SELECTION_HUMAN_GATE',
+  8: 'S8_JOURNALIST_COLLECTION',
+  9: 'S9_JOURNALIST_INTELLIGENCE',
+  10: 'S10_PITCH_DRAFTING',
+  11: 'S11_PITCH_OPTIMIZATION',
+  12: 'S12_PACKAGE_ASSEMBLY',
+  13: 'S13_VALIDATION',
+  14: 'S14_FINAL_FORMATTING',
+  15: 'S15_OUTREACH_ASSET_CREATION',
+  16: 'S16_CAMPAIGN_LOG_LEARNING_LOOP',
 };
 
 function stageLabel(stage: number) {
@@ -324,6 +344,66 @@ function buildPitchWaitDecision(campaignId: string): StageGateDecision {
   };
 }
 
+function resolveCanonicalGateId(gate: unknown): string | null {
+  if (typeof gate === 'string') return gate;
+  if (typeof gate === 'object' && gate !== null) {
+    const g = gate as Record<string, unknown>;
+    if (typeof g.gateId === 'string') return g.gateId;
+    if (typeof g.id === 'string') return g.id;
+  }
+  return null;
+}
+
+async function runCanonicalGatePrecheck(
+  campaignId: string,
+  currentStage: number
+): Promise<Response | null> {
+  const contractName = STAGE_CONTRACT_NAME[currentStage];
+  if (!contractName) return null;
+
+  const targetStage = currentStage + 1;
+  const gates: unknown = await getGatesForStage(contractName);
+
+  if (!Array.isArray(gates)) return null;
+  if (gates.length === 0) return null;
+
+  for (const gate of gates) {
+    const gateId = resolveCanonicalGateId(gate);
+    if (!gateId) continue;
+
+    const result = await runGate(campaignId, gateId);
+
+    if (typeof result === 'object' && result !== null && 'canContinue' in result) {
+      const r = result as { canContinue?: boolean };
+      if (r.canContinue === false) {
+        const gateResult = result as {
+          status?: string;
+          blockingIssues?: unknown;
+          warnings?: unknown;
+          blockedStages?: unknown;
+        };
+        return fail(
+          'GATE_BLOCKED',
+          `Canonical gate "${gateId}" blocked advancement to S${targetStage}.`,
+          { status: 409 },
+          {
+            stage: contractName,
+            targetStage,
+            finalStage: currentStage,
+            gateId,
+            status: gateResult.status,
+            blockingIssues: gateResult.blockingIssues,
+            warnings: gateResult.warnings,
+            blockedStages: gateResult.blockedStages,
+          }
+        );
+      }
+    }
+  }
+
+  return null;
+}
+
 async function createApprovalQueueBlocker(
   campaignId: string,
   stage: number,
@@ -442,6 +522,9 @@ export async function POST(
             'utf-8'
           );
         }
+
+        const s8GateCheck = await runCanonicalGatePrecheck(campaignId, 7);
+        if (s8GateCheck) return s8GateCheck;
 
         const pitchDecision: StageGateDecision = {
           ...buildPassDecision(campaignId, 7),
@@ -747,6 +830,9 @@ export async function POST(
           break;
         }
       }
+
+      const advanceGateCheck = await runCanonicalGatePrecheck(campaignId, stage);
+      if (advanceGateCheck) return advanceGateCheck;
 
       const passDecision = buildPassDecision(campaignId, stage);
       passDecision.instruction_compliance = await evaluateInstructionCompliance(stage);
