@@ -78,8 +78,9 @@ describe('S10 Output Contract', () => {
     });
 
     it('no longer uses 08-pitch-draft.md as the primary/sole output', () => {
-      const sole08Write = source.match(/fs\.writeFile\(\s*stage08Path\s*,/g);
-      expect(sole08Write).not.toBeNull();
+      const canonWrites = source.match(/fs\.writeFile\(\s*stage10Path\s*,/g);
+      expect(canonWrites).not.toBeNull();
+      expect(canonWrites!.length).toBeGreaterThanOrEqual(1);
     });
 
     it('defines buildPitchDraftJson helper for JSON output', () => {
@@ -132,15 +133,19 @@ describe('S10 Output Contract', () => {
     });
 
     it('requires 10-pitch-draft.md to have >= 400 characters', () => {
-      const has10pitch = source.includes('10-pitch-draft.md');
-      const has400Check = source.includes('< 400') || source.includes('>= 400') || source.includes('.length < 400');
-      expect(has10pitch).toBe(true);
-      expect(has400Check).toBe(true);
+      const stage10Section = source.match(/async function executeStage10[\s\S]*?(?=async function executeStage11)/);
+      expect(stage10Section).not.toBeNull();
+      const body = stage10Section![0];
+      const scopedCheck = body.match(/10-pitch-draft\.md[\s\S]{0,200}\.length\s*<\s*400/);
+      expect(scopedCheck).not.toBeNull();
     });
 
     it('strict mode in S12 requires 10-pitch-draft.md as mandatory', () => {
-      const strictMandatory = source.match(/mandatory.*10-pitch-draft\.md|10-pitch-draft\.md.*mandatory/);
-      expect(strictMandatory).not.toBeNull();
+      const stage12Section = source.match(/async function executeStage12[\s\S]*?(?=async function executeStage13)/);
+      expect(stage12Section).not.toBeNull();
+      const body = stage12Section![0];
+      const mandatoryMatch = body.match(/mandatory[\s\S]{0,300}10-pitch-draft\.md/);
+      expect(mandatoryMatch).not.toBeNull();
     });
 
     it('STAGE_OUTPUT_FILES[10] includes 10-pitch-draft.json for Phase 3', () => {
@@ -236,16 +241,21 @@ describe('S10 Output Contract', () => {
     });
 
     it('all three sources agree the canonical S10 output is 10-pitch-draft.md', () => {
-      const scriptOk = scriptSource.includes('stage10Path');
-      const routeOk = routeSource.includes('10-pitch-draft.md');
-      const registryOk = registrySource.includes(CANONICAL) && registrySource.includes('S10_PITCH_DRAFTING');
-      expect(scriptOk && routeOk && registryOk).toBe(true);
+      const scriptOk = scriptSource.match(/stage10Path\s*=/) !== null;
+      const routeSection = routeSource.match(/async function executeStage10[\s\S]*?(?=async function executeStage11)/);
+      const routeOk = routeSection !== null && routeSection[0].includes('10-pitch-draft.md');
+      const registryOk = registrySource.match(/S10_PITCH_DRAFTING[\s\S]{0,300}10-pitch-draft\.md/) !== null;
+      expect(scriptOk).toBe(true);
+      expect(routeOk).toBe(true);
+      expect(registryOk).toBe(true);
     });
 
     it('route STAGE_OUTPUT_FILES[10] and registry agree on 10-pitch-draft.json', () => {
-      const routeOk = routeSource.includes('10-pitch-draft.json');
-      const registryOk = registrySource.includes(JSON_OUTPUT) && registrySource.includes('S10_PITCH_DRAFTING');
-      expect(routeOk && registryOk).toBe(true);
+      const routeSection = routeSource.match(/10:\s*\[[^\]]*10-pitch-draft\.json[^\]]*\]/);
+      const routeOk = routeSection !== null;
+      const registryOk = registrySource.match(/S10_PITCH_DRAFTING[\s\S]{0,300}10-pitch-draft\.json/) !== null;
+      expect(routeOk).toBe(true);
+      expect(registryOk).toBe(true);
     });
 
     it('route calls validateS10OutputContract after JSON artifact assertion', () => {
@@ -295,6 +305,30 @@ describe('S10 Output Contract', () => {
       expect(statsProp.items.properties).toBeDefined();
       expect(statsProp.items.properties.value).toBeDefined();
       expect(statsProp.items.properties.context).toBeDefined();
+    });
+
+    it('schema defines campaignId as string type', () => {
+      const schema = JSON.parse(schemaSource);
+      expect(schema.properties.campaignId).toBeDefined();
+      expect(schema.properties.campaignId.type).toBe('string');
+    });
+
+    it('schema defines pitchContent as string type', () => {
+      const schema = JSON.parse(schemaSource);
+      expect(schema.properties.pitchContent).toBeDefined();
+      expect(schema.properties.pitchContent.type).toBe('string');
+    });
+
+    it('schema defines angle as string type', () => {
+      const schema = JSON.parse(schemaSource);
+      expect(schema.properties.angle).toBeDefined();
+      expect(schema.properties.angle.type).toBe('string');
+    });
+
+    it('schema defines wordCount as optional number property', () => {
+      const schema = JSON.parse(schemaSource);
+      expect(schema.properties.wordCount).toBeDefined();
+      expect(schema.properties.wordCount.type).toBe('number');
     });
   });
 
@@ -397,6 +431,90 @@ describe('S10 Output Contract', () => {
       await validateS10OutputContract(dir);
       const after = await fs.readdir(dir);
       expect(after).toEqual(before);
+    });
+
+    it('empty object {} fails', async () => {
+      const dir = await makeDir();
+      await fs.writeFile(path.join(dir, '10-pitch-draft.json'), JSON.stringify({}));
+      await expect(validateS10OutputContract(dir)).rejects.toBeInstanceOf(JsonSchemaValidationError);
+    });
+
+    it('missing campaignId fails', async () => {
+      const dir = await makeDir();
+      await fs.writeFile(
+        path.join(dir, '10-pitch-draft.json'),
+        JSON.stringify({ pitchContent: 'test pitch content for validation', angle: 'test angle' }),
+      );
+      await expect(validateS10OutputContract(dir)).rejects.toBeInstanceOf(JsonSchemaValidationError);
+    });
+
+    it('missing pitchContent fails', async () => {
+      const dir = await makeDir();
+      await fs.writeFile(
+        path.join(dir, '10-pitch-draft.json'),
+        JSON.stringify({ campaignId: 'test-campaign', angle: 'test angle' }),
+      );
+      await expect(validateS10OutputContract(dir)).rejects.toBeInstanceOf(JsonSchemaValidationError);
+    });
+
+    it('missing angle fails', async () => {
+      const dir = await makeDir();
+      await fs.writeFile(
+        path.join(dir, '10-pitch-draft.json'),
+        JSON.stringify({ campaignId: 'test-campaign', pitchContent: 'test pitch content for validation' }),
+      );
+      await expect(validateS10OutputContract(dir)).rejects.toBeInstanceOf(JsonSchemaValidationError);
+    });
+
+    it('wrong type for campaignId (number) fails', async () => {
+      const dir = await makeDir();
+      await fs.writeFile(
+        path.join(dir, '10-pitch-draft.json'),
+        JSON.stringify({ campaignId: 123, pitchContent: 'test pitch', angle: 'test angle' }),
+      );
+      await expect(validateS10OutputContract(dir)).rejects.toBeInstanceOf(JsonSchemaValidationError);
+    });
+
+    it('wrong type for campaignId (boolean) fails', async () => {
+      const dir = await makeDir();
+      await fs.writeFile(
+        path.join(dir, '10-pitch-draft.json'),
+        JSON.stringify({ campaignId: true, pitchContent: 'test pitch', angle: 'test angle' }),
+      );
+      await expect(validateS10OutputContract(dir)).rejects.toBeInstanceOf(JsonSchemaValidationError);
+    });
+
+    it('wrong type for pitchContent (number) fails', async () => {
+      const dir = await makeDir();
+      await fs.writeFile(
+        path.join(dir, '10-pitch-draft.json'),
+        JSON.stringify({ campaignId: 'test-campaign', pitchContent: 456, angle: 'test angle' }),
+      );
+      await expect(validateS10OutputContract(dir)).rejects.toBeInstanceOf(JsonSchemaValidationError);
+    });
+
+    it('wrong type for angle (number) fails', async () => {
+      const dir = await makeDir();
+      await fs.writeFile(
+        path.join(dir, '10-pitch-draft.json'),
+        JSON.stringify({ campaignId: 'test-campaign', pitchContent: 'test pitch', angle: 789 }),
+      );
+      await expect(validateS10OutputContract(dir)).rejects.toBeInstanceOf(JsonSchemaValidationError);
+    });
+
+    it('CHARACTERIZATION: extra unknown fields in JSON pass validation (current behavior)', async () => {
+      const dir = await makeDir();
+      await fs.writeFile(
+        path.join(dir, '10-pitch-draft.json'),
+        JSON.stringify({
+          campaignId: 'test-campaign',
+          pitchContent: 'test pitch content for validation',
+          angle: 'test angle',
+          unknownExtraField: 'accepted by current schema (no additionalProperties: false)',
+          anotherUnknownNumeric: 42,
+        }),
+      );
+      await expect(validateS10OutputContract(dir)).resolves.toBeUndefined();
     });
   });
 });
