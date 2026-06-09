@@ -51,5 +51,6 @@
       "type": "number",
       "description": "Word count of pitch"
     }
-  }
+  },
+  "additionalProperties": false
 }

@@ -502,19 +502,19 @@ describe('S10 Output Contract', () => {
       await expect(validateS10OutputContract(dir)).rejects.toBeInstanceOf(JsonSchemaValidationError);
     });
 
-    it('CHARACTERIZATION: extra unknown fields in JSON pass validation (current behavior)', async () => {
+    it('RED: extra unknown fields in JSON MUST fail validation', async () => {
       const dir = await makeDir();
       await fs.writeFile(
         path.join(dir, '10-pitch-draft.json'),
         JSON.stringify({
-          campaignId: 'test-campaign',
+          campaignId: 'test-campaign-red',
           pitchContent: 'test pitch content for validation',
           angle: 'test angle',
-          unknownExtraField: 'accepted by current schema (no additionalProperties: false)',
+          unknownExtraField: 'should be rejected by the closed S10 schema',
           anotherUnknownNumeric: 42,
         }),
       );
-      await expect(validateS10OutputContract(dir)).resolves.toBeUndefined();
+      await expect(validateS10OutputContract(dir)).rejects.toBeInstanceOf(JsonSchemaValidationError);
     });
   });
 });
