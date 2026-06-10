@@ -130,6 +130,7 @@ function makeApproval(overrides: Record<string, unknown> = {}) {
 }
 
 type FsFilePath = Parameters<typeof fs.readFile>[0];
+type FsStatPath = Parameters<typeof fs.stat>[0];
 
 describe('execute-stage canonical gate enforcement', () => {
   beforeEach(() => {
@@ -328,6 +329,177 @@ describe('execute-stage canonical gate enforcement', () => {
       mockRequest({ stage: 14 }),
       { params: Promise.resolve({ id: 'test-campaign' }) },
     );
+
+    expect(getGatesForStage).toHaveBeenCalled();
+  });
+
+  it('calls getGatesForStage before executing S12', async () => {
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike: FsFilePath) => {
+      const pStr = String(pathLike);
+      if (pStr.includes('stage-state.json')) return makeStageState(12);
+      if (pStr.includes('human-approval.json')) return makeApproval();
+      if (pStr.includes('08-pitch-draft.md')) return '# Pitch Draft\n\nPitch content for S12 testing.';
+      if (pStr.includes('09-optimized-email.md')) return '# Optimized Email\n\nEmail content for S12 testing.';
+      if (pStr.includes('10-pitch-draft.md')) return '# Pitch Draft 10\n\n' + 'Substantive pitch draft content for S12 testing with enough characters to clear the assertion threshold. '.repeat(15);
+      if (pStr.includes('11-optimized-pitch.md')) return '# Optimized Pitch 11\n\n' + 'Optimized pitch content for S12 testing with enough characters to clear the assertion threshold. '.repeat(15);
+      if (pStr.includes('12-outreach-package.md')) return '# Outreach Package\n\n' + 'x'.repeat(750);
+      return '';
+    });
+
+    vi.mocked(getGatesForStage).mockResolvedValue([]);
+    vi.mocked(runGate).mockResolvedValue({
+      gateId: '',
+      gateName: '',
+      stageAfter: null,
+      status: 'pass',
+      canContinue: true,
+      riskLevel: 'low',
+      checkedAt: new Date().toISOString(),
+      passedChecks: [],
+      warnings: [],
+      blockingIssues: [],
+      requiredAction: '',
+      blockedStages: [],
+    });
+
+    const response = await POST(
+      mockRequest({ stage: 12 }),
+      { params: Promise.resolve({ id: 'test-campaign' }) },
+    );
+
+    expect(response.status).toBe(200);
+
+    expect(getGatesForStage).toHaveBeenCalled();
+  });
+
+  it('calls runGate for G6_PITCH_SAFETY_GATE when executing S12', async () => {
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike: FsFilePath) => {
+      const pStr = String(pathLike);
+      if (pStr.includes('stage-state.json')) return makeStageState(12);
+      if (pStr.includes('human-approval.json')) return makeApproval();
+      if (pStr.includes('08-pitch-draft.md')) return '# Pitch Draft\n\nPitch content for S12 testing.';
+      if (pStr.includes('09-optimized-email.md')) return '# Optimized Email\n\nEmail content for S12 testing.';
+      if (pStr.includes('10-pitch-draft.md')) return '# Pitch Draft 10\n\n' + 'Substantive pitch draft content for S12 testing with enough characters to clear the assertion threshold. '.repeat(15);
+      if (pStr.includes('11-optimized-pitch.md')) return '# Optimized Pitch 11\n\n' + 'Optimized pitch content for S12 testing with enough characters to clear the assertion threshold. '.repeat(15);
+      if (pStr.includes('12-outreach-package.md')) return '# Outreach Package\n\n' + 'x'.repeat(750);
+      return '';
+    });
+
+    vi.mocked(getGatesForStage).mockResolvedValue(['G6_PITCH_SAFETY_GATE']);
+    vi.mocked(runGate).mockResolvedValue({
+      gateId: 'G6_PITCH_SAFETY_GATE',
+      gateName: 'Pitch Safety Gate',
+      stageAfter: 'S12',
+      status: 'pass',
+      canContinue: true,
+      riskLevel: 'low',
+      checkedAt: new Date().toISOString(),
+      passedChecks: [],
+      warnings: [],
+      blockingIssues: [],
+      requiredAction: '',
+      blockedStages: [],
+    });
+
+    const response = await POST(
+      mockRequest({ stage: 12 }),
+      { params: Promise.resolve({ id: 'test-campaign' }) },
+    );
+
+    expect(response.status).toBe(200);
+
+    expect(runGate).toHaveBeenCalledWith(expect.any(String), 'G6_PITCH_SAFETY_GATE');
+  });
+
+  it('blocks S12 when G6_PITCH_SAFETY_GATE returns canContinue=false', async () => {
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike: FsFilePath) => {
+      const pStr = String(pathLike);
+      if (pStr.includes('stage-state.json')) return makeStageState(12);
+      if (pStr.includes('human-approval.json')) return makeApproval();
+      if (pStr.includes('08-pitch-draft.md')) return '# Pitch Draft\n\nPitch content for S12 testing.';
+      if (pStr.includes('09-optimized-email.md')) return '# Optimized Email\n\nEmail content for S12 testing.';
+      if (pStr.includes('10-pitch-draft.md')) return '# Pitch Draft 10\n\n' + 'Substantive pitch draft content for S12 testing with enough characters to clear the assertion threshold. '.repeat(15);
+      if (pStr.includes('11-optimized-pitch.md')) return '# Optimized Pitch 11\n\n' + 'Optimized pitch content for S12 testing with enough characters to clear the assertion threshold. '.repeat(15);
+      if (pStr.includes('12-outreach-package.md')) return '# Outreach Package\n\n' + 'x'.repeat(750);
+      return '';
+    });
+
+    vi.mocked(getGatesForStage).mockResolvedValue(['G6_PITCH_SAFETY_GATE']);
+    vi.mocked(runGate).mockResolvedValue({
+      gateId: 'G6_PITCH_SAFETY_GATE',
+      gateName: 'Pitch Safety Gate',
+      stageAfter: 'S12',
+      status: 'blocked',
+      canContinue: false,
+      riskLevel: 'high',
+      checkedAt: new Date().toISOString(),
+      passedChecks: [],
+      warnings: [],
+      blockingIssues: [{
+        issueId: 'G6_BLOCKED',
+        issue: 'Pitch safety gate blocked: unsupported claims found',
+        affectedFile: null,
+        affectedText: null,
+        requiredAction: 'Remove unsupported claims from pitch before packaging.',
+      }],
+      requiredAction: 'Remove unsupported claims from pitch before packaging.',
+      blockedStages: ['S12'],
+    });
+
+    const response = await POST(
+      mockRequest({ stage: 12 }),
+      { params: Promise.resolve({ id: 'test-campaign' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(body.error).toMatch(/GATE_BLOCKED|CANONICAL_GATE/i);
+
+    expect(runScriptAction).not.toHaveBeenCalled();
+  });
+
+  it('calls getGatesForStage before executing S13', async () => {
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike: FsFilePath) => {
+      const pStr = String(pathLike);
+      if (pStr.includes('stage-state.json')) return makeStageState(13);
+      if (pStr.includes('human-approval.json')) return makeApproval();
+      if (pStr.includes('12-outreach-package.md')) return '# Outreach Package\n\n' + 'x'.repeat(250);
+      if (pStr.includes('08-journalist-list.csv')) return 'name,outlet,beat,email\nTest1,Outlet1,beat1,test1@test.com\nTest2,Outlet2,beat2,test2@test.com\nTest3,Outlet3,beat3,test3@test.com\nTest4,Outlet4,beat4,test4@test.com';
+      if (pStr.includes('09-journalist-intelligence.json')) return JSON.stringify({ journalist: 'Test', outlet: 'Outlet' });
+      if (pStr.includes('13-validation-report.json')) return JSON.stringify({ passed: true, checks: [{ file: '12-outreach-package.md', exists: true }], qualityIssues: [], summary: 'Validated' });
+      return '';
+    });
+
+    vi.mocked(fs.stat).mockImplementation(async (path: FsStatPath) => {
+      const p = path.toString();
+      if (p.includes('12-outreach-package.md') || p.includes('08-journalist-list.csv') || p.includes('09-journalist-intelligence.json')) {
+        return { isFile: () => true, isDirectory: () => false, size: 1000 } as import('fs').Stats;
+      }
+      return { isDirectory: () => true } as import('fs').Stats;
+    });
+
+    vi.mocked(getGatesForStage).mockResolvedValue([]);
+    vi.mocked(runGate).mockResolvedValue({
+      gateId: '',
+      gateName: '',
+      stageAfter: null,
+      status: 'pass',
+      canContinue: true,
+      riskLevel: 'low',
+      checkedAt: new Date().toISOString(),
+      passedChecks: [],
+      warnings: [],
+      blockingIssues: [],
+      requiredAction: '',
+      blockedStages: [],
+    });
+
+    const response = await POST(
+      mockRequest({ stage: 13 }),
+      { params: Promise.resolve({ id: 'test-campaign' }) },
+    );
+
+    expect(response.status).toBe(200);
 
     expect(getGatesForStage).toHaveBeenCalled();
   });
