@@ -516,5 +516,25 @@ describe('S10 Output Contract', () => {
       );
       await expect(validateS10OutputContract(dir)).rejects.toBeInstanceOf(JsonSchemaValidationError);
     });
+
+    it('RED: extra unknown fields inside statistics.items MUST fail validation', async () => {
+      const dir = await makeDir();
+      await fs.writeFile(
+        path.join(dir, '10-pitch-draft.json'),
+        JSON.stringify({
+          campaignId: 'campaign-red-stats',
+          pitchContent: 'valid pitch content for statistics items closed schema test',
+          angle: 'test angle',
+          statistics: [
+            {
+              value: '42%',
+              context: 'Test statistic context',
+              extraField: 'must be rejected by closed statistics.items schema',
+            },
+          ],
+        }),
+      );
+      await expect(validateS10OutputContract(dir)).rejects.toBeInstanceOf(JsonSchemaValidationError);
+    });
   });
 });
