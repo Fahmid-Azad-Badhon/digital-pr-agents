@@ -180,7 +180,7 @@ function stageDependencies(stage: number): string[] {
     8: ['07-selected-angle.md'],
     9: ['08-journalist-list.csv'],
     10: ['09-journalist-intelligence.json'],
-    11: ['10-pitch-draft.md'],
+    11: ['10-pitch-draft.md', 'claim-ledger.json'],
     12: ['08-pitch-draft.md', '09-optimized-email.md', '10-pitch-draft.md', '11-optimized-pitch.md'],
     13: ['12-outreach-package.md'],
     14: ['12-outreach-package.md', '13-validation-report.json'],
@@ -931,6 +931,16 @@ async function executeStage10(campaignId: string, campaignPath: string) {
 }
 
 async function executeStage11(campaignPath: string) {
+  if (!(await exists(stageFile(campaignPath, 'claim-ledger.json')))) {
+    const dependencyError: DependencyFailure = {
+      stage: 11,
+      missing: ['claim-ledger.json'],
+      message: 'S11 blocked: missing claim-ledger.json. Run S4A to generate the claim ledger before optimizing pitches.',
+      requiredAction: 'Run S4A to generate the claim ledger before optimizing pitches.',
+    };
+    throw Object.assign(new Error(dependencyError.message), { dependencyError });
+  }
+
   const draft = await assertRealArtifact(
     campaignPath,
     11,

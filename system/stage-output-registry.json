@@ -101,7 +101,7 @@
     },
     "S11": {
       "name": "Pitch Optimization",
-      "inputs": ["10-pitch-draft.json"],
+      "inputs": ["10-pitch-draft.md", "claim-ledger.json"],
       "outputs": ["11-optimized-pitch.md"],
       "requiredFiles": [],
       "validates": ["optimization-quality"],

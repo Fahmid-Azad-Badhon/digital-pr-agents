@@ -134,7 +134,7 @@
     },
     "S11_PITCH_OPTIMIZATION": {
       "description": "Improve pitch without changing facts",
-      "requires": ["10-pitch-draft.json", "claim-ledger.json"],
+      "requires": ["10-pitch-draft.md", "claim-ledger.json"],
       "produces": ["11-optimized-pitch.md"],
       "allowedModelRoles": ["natural_writing_polish", "production_writer"],
       "modelRouting": { "primary": "Hermes 3 405B", "fallback1": "MiniMax M2.5", "fallback2": "GPT-OSS-120B" },

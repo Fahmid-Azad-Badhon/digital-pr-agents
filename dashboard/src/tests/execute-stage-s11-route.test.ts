@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import fs from 'fs/promises';
+import type { PathLike } from 'node:fs';
 
 vi.mock('fs/promises', () => ({
   default: {
@@ -222,6 +223,50 @@ describe('S11 route-level integration behavior', () => {
     expect(response.status).toBe(409);
     expect(body.error).toBe('STAGE_DEPENDENCY_BLOCKED');
     expect(body.message).toMatch(/too thin/i);
+  });
+
+  it('RED: S11 blocks when claim-ledger.json is missing', async () => {
+    const writtenFiles: Record<string, string> = {};
+
+    vi.mocked(fs.writeFile).mockImplementation(async (pathLike: FsFilePath, data: FsFileData) => {
+      writtenFiles[String(pathLike)] = String(data);
+    });
+
+    vi.mocked(fs.rename).mockImplementation(async (from: FsFilePath, to: FsFilePath) => {
+      const fromStr = String(from);
+      if (writtenFiles[fromStr]) {
+        writtenFiles[String(to)] = writtenFiles[fromStr];
+      }
+    });
+
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike: FsFilePath) => {
+      const pStr = String(pathLike);
+      if (writtenFiles[pStr]) return writtenFiles[pStr];
+      if (pStr.includes('stage-state.json')) return makeStageState(11);
+      if (pStr.includes('circuit-state.json')) throw new Error('ENOENT');
+      if (pStr.includes('.stage-lock')) throw new Error('ENOENT');
+      if (pStr.includes('human-approval.json')) return makeApproval();
+      if (pStr.includes('10-pitch-draft.md')) return VALID_DRAFT;
+      if (pStr.includes('11-optimized-pitch.md')) return '# Stage 11 Optimized Pitch\n\nValid output.\n' + 'x'.repeat(500);
+      throw new Error('ENOENT');
+    });
+
+    vi.mocked(fs.access).mockImplementation(async (pathLike: PathLike) => {
+      const pStr = String(pathLike);
+      if (pStr.includes('claim-ledger.json')) throw new Error('ENOENT');
+    });
+
+    const response = await POST(
+      mockRequest({ stage: 11 }),
+      { params: Promise.resolve({ id: 'test-campaign' }) },
+    );
+
+    expect(response.status).toBe(409);
+    const body = await response.json().catch(() => ({}));
+    const message = typeof body === 'object' && body !== null && 'message' in body
+      ? String((body as { message?: unknown }).message)
+      : '';
+    expect(message).toMatch(/claim-ledger\.json/);
   });
 
   it('S11 governance validation failure blocks execution', async () => {
