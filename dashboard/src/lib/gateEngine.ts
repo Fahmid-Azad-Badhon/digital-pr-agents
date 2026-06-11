@@ -113,6 +113,9 @@ export async function runGate(campaignSlug: string, gateId: string): Promise<Gat
     case 'G7_FINAL_VALIDATION_GATE':
       await runValidationGate(campaignPath, result);
       break;
+    case 'G8_HUMAN_SEND_GATE':
+      await runHumanSendGate(campaignPath, result);
+      break;
   }
   
   // Determine final status
@@ -301,6 +304,59 @@ async function runValidationGate(campaignPath: string, result: GateResult): Prom
       affectedText: null,
       requiredAction: 'Run S13 validation'
     });
+  }
+}
+
+async function runHumanSendGate(campaignPath: string, result: GateResult): Promise<void> {
+  const approvalPath = path.join(campaignPath, 'human-approval.json');
+  const validationPath = path.join(campaignPath, '13-validation-report.json');
+
+  try {
+    const approval = JSON.parse(await fs.readFile(approvalPath, 'utf-8'));
+    if (approval.status !== 'approved') {
+      result.blockingIssues.push({
+        issueId: 'GI-G8-NOT-APPROVED',
+        issue: 'Human send approval status is not approved',
+        affectedFile: 'human-approval.json',
+        affectedText: null,
+        requiredAction: 'Obtain human send approval before outreach.',
+      });
+      return;
+    }
+    result.passedChecks.push('Human send approval is granted');
+  } catch {
+    result.blockingIssues.push({
+      issueId: 'GI-G8-HUMAN-APPROVAL-MISSING',
+      issue: 'human-approval.json is missing or invalid',
+      affectedFile: 'human-approval.json',
+      affectedText: null,
+      requiredAction: 'Complete human approval before final send.',
+    });
+    return;
+  }
+
+  try {
+    const validation = JSON.parse(await fs.readFile(validationPath, 'utf-8'));
+    if (validation.passed !== true) {
+      result.blockingIssues.push({
+        issueId: 'GI-G8-VALIDATION-FAILED',
+        issue: 'S13 validation has not passed',
+        affectedFile: '13-validation-report.json',
+        affectedText: null,
+        requiredAction: 'Pass S13 validation before final send.',
+      });
+      return;
+    }
+    result.passedChecks.push('S13 validation passed');
+  } catch {
+    result.blockingIssues.push({
+      issueId: 'GI-G8-VALIDATION-MISSING',
+      issue: '13-validation-report.json is missing or invalid',
+      affectedFile: '13-validation-report.json',
+      affectedText: null,
+      requiredAction: 'Run S13 validation before final send.',
+    });
+    return;
   }
 }
 

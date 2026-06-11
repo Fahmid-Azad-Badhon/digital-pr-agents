@@ -609,7 +609,130 @@ describe('runGate — G7 Final Validation Gate', () => {
 });
 
 // ---------------------------------------------------------------------------
-// E. Status helpers
+// E. G8 Human Send Gate
+// ---------------------------------------------------------------------------
+const G8_GATE_RULES = [
+  {
+    gateId: 'G8_HUMAN_SEND_GATE',
+    gateName: 'Human Send Gate',
+    gateVersion: '1.0',
+    runsAfterStage: 'S14_FINAL_FORMATTING',
+    requiredFiles: ['10-google-doc.md', 'human-approval.json'],
+    canContinueOnWarning: false,
+    blocksStages: ['S15_OUTREACH_ASSET_CREATION', 'ready_to_send', 'completed'],
+  },
+];
+
+const G8_APPROVED = JSON.stringify({
+  status: 'approved',
+  selectedAngleId: 'angle-1',
+});
+
+const G8_PENDING = JSON.stringify({ status: 'pending' });
+
+const G8_VALIDATION_PASSED = JSON.stringify({
+  passed: true,
+  blockingIssues: [],
+});
+
+const G8_VALIDATION_FAILED = JSON.stringify({
+  passed: false,
+  blockingIssues: [
+    { issueId: 'VR-001', issue: 'Claims missing source verification', requiredAction: 'Verify all claims' },
+  ],
+});
+
+function addAllG8CampaignFiles(humanApproval: string, validationReport: string) {
+  addCampaignFile('human-approval.json', humanApproval);
+  addCampaignFile('13-validation-report.json', validationReport);
+}
+
+describe('runGate — G8 Human Send Gate', () => {
+  it('passes when human approval is approved and validation passed', async () => {
+    addGateRules(G8_GATE_RULES);
+    addAllG8CampaignFiles(G8_APPROVED, G8_VALIDATION_PASSED);
+    addCampaignFile('10-google-doc.md', '# Google Doc Export');
+    const { runGate } = await import('@/lib/gateEngine');
+    const result = await runGate(TEST_CAMPAIGN, 'G8_HUMAN_SEND_GATE');
+
+    expect(result.status).toBe('pass');
+    expect(result.canContinue).toBe(true);
+    expect(result.passedChecks).toContain('Human send approval is granted');
+  });
+
+  it('blocks when human-approval.json is missing', async () => {
+    addGateRules(G8_GATE_RULES);
+    addCampaignFile('13-validation-report.json', G8_VALIDATION_PASSED);
+    addCampaignFile('10-google-doc.md', '# Google Doc Export');
+
+    const { runGate } = await import('@/lib/gateEngine');
+    const result = await runGate(TEST_CAMPAIGN, 'G8_HUMAN_SEND_GATE');
+
+    expect(result.status).toBe('blocked');
+    expect(result.canContinue).toBe(false);
+    const issues = result.blockingIssues.map((i: { issueId: string }) => i.issueId);
+    expect(issues).toEqual(
+      expect.arrayContaining(['GI-G8_HUMAN_SEND_GATE-FILE', 'GI-G8-HUMAN-APPROVAL-MISSING']),
+    );
+  });
+
+  it('blocks when human-approval.json status is not approved', async () => {
+    addGateRules(G8_GATE_RULES);
+    addAllG8CampaignFiles(G8_PENDING, G8_VALIDATION_PASSED);
+    addCampaignFile('10-google-doc.md', '# Google Doc Export');
+    const { runGate } = await import('@/lib/gateEngine');
+    const result = await runGate(TEST_CAMPAIGN, 'G8_HUMAN_SEND_GATE');
+
+    expect(result.status).toBe('blocked');
+    expect(result.canContinue).toBe(false);
+    expect(result.blockingIssues[0].issueId).toBe('GI-G8-NOT-APPROVED');
+  });
+
+  it('blocks when 13-validation-report.json is missing', async () => {
+    addGateRules(G8_GATE_RULES);
+    addCampaignFile('human-approval.json', G8_APPROVED);
+    addCampaignFile('10-google-doc.md', '# Google Doc Export');
+
+    const { runGate } = await import('@/lib/gateEngine');
+    const result = await runGate(TEST_CAMPAIGN, 'G8_HUMAN_SEND_GATE');
+
+    expect(result.status).toBe('blocked');
+    expect(result.canContinue).toBe(false);
+    const issues = result.blockingIssues.map((i: { issueId: string }) => i.issueId);
+    expect(issues).toEqual(
+      expect.arrayContaining(['GI-G8-VALIDATION-MISSING']),
+    );
+  });
+
+  it('blocks when validation report passed is not true', async () => {
+    addGateRules(G8_GATE_RULES);
+    addAllG8CampaignFiles(G8_APPROVED, G8_VALIDATION_FAILED);
+    addCampaignFile('10-google-doc.md', '# Google Doc Export');
+    const { runGate } = await import('@/lib/gateEngine');
+    const result = await runGate(TEST_CAMPAIGN, 'G8_HUMAN_SEND_GATE');
+
+    expect(result.status).toBe('blocked');
+    expect(result.canContinue).toBe(false);
+    expect(result.blockingIssues.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('handles malformed human-approval JSON', async () => {
+    addGateRules(G8_GATE_RULES);
+    addCampaignFile('human-approval.json', '{bad');
+    addCampaignFile('13-validation-report.json', G8_VALIDATION_PASSED);
+    addCampaignFile('10-google-doc.md', '# Google Doc Export');
+
+    const { runGate } = await import('@/lib/gateEngine');
+    const result = await runGate(TEST_CAMPAIGN, 'G8_HUMAN_SEND_GATE');
+
+    expect(result.status).toBe('blocked');
+    expect(result.canContinue).toBe(false);
+    expect(result.blockingIssues[0].issueId).toBe('GI-G8-HUMAN-APPROVAL-MISSING');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// F. Status helpers
 // ---------------------------------------------------------------------------
 describe('canWorkflowContinue', () => {
   it('returns true when no gate-results.json exists', async () => {

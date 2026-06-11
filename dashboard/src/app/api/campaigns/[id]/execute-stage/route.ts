@@ -1836,7 +1836,9 @@ export async function POST(
       if (gateBlock) return gateBlock;
       result = await executeStage14(campaignPath);
     } else if (stage === 15) {
-      result = await executeStage15(campaignPath);
+        const gateBlock = await runCanonicalGatePrecheck(campaignId, 15);
+        if (gateBlock) return gateBlock;
+        result = await executeStage15(campaignPath);
     } else {
       result = await executeStage16(campaignPath);
     }

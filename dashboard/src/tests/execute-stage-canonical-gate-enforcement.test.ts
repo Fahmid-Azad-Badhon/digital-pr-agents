@@ -503,4 +503,158 @@ describe('execute-stage canonical gate enforcement', () => {
 
     expect(getGatesForStage).toHaveBeenCalled();
   });
+
+  it('calls getGatesForStage before executing S15', async () => {
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike: FsFilePath) => {
+      const pStr = String(pathLike);
+      if (pStr.includes('stage-state.json')) return makeStageState(15);
+      if (pStr.includes('human-approval.json')) return makeApproval();
+      if (pStr.includes('14-final-formatted-package.md')) return '# Final Package\n\n' + 'x'.repeat(900);
+      if (pStr.includes('15-outreach-assets.md')) return '# Stage 15 Outreach Assets\n\n' + 'x'.repeat(500);
+      return '';
+    });
+
+    vi.mocked(getGatesForStage).mockResolvedValue([]);
+    vi.mocked(runGate).mockResolvedValue({
+      gateId: '',
+      gateName: '',
+      stageAfter: null,
+      status: 'pass',
+      canContinue: true,
+      riskLevel: 'low',
+      checkedAt: new Date().toISOString(),
+      passedChecks: [],
+      warnings: [],
+      blockingIssues: [],
+      requiredAction: '',
+      blockedStages: [],
+    });
+
+    const response = await POST(
+      mockRequest({ stage: 15 }),
+      { params: Promise.resolve({ id: 'test-campaign' }) },
+    );
+
+    expect(response.status).toBe(200);
+
+    expect(getGatesForStage).toHaveBeenCalled();
+  });
+
+  it('calls runGate for G8_HUMAN_SEND_GATE when executing S15', async () => {
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike: FsFilePath) => {
+      const pStr = String(pathLike);
+      if (pStr.includes('stage-state.json')) return makeStageState(15);
+      if (pStr.includes('human-approval.json')) return makeApproval();
+      if (pStr.includes('14-final-formatted-package.md')) return '# Final Package\n\n' + 'x'.repeat(900);
+      if (pStr.includes('15-outreach-assets.md')) return '# Stage 15 Outreach Assets\n\n' + 'x'.repeat(500);
+      return '';
+    });
+
+    vi.mocked(getGatesForStage).mockResolvedValue(['G8_HUMAN_SEND_GATE']);
+    vi.mocked(runGate).mockResolvedValue({
+      gateId: 'G8_HUMAN_SEND_GATE',
+      gateName: 'Human Send Gate',
+      stageAfter: 'S15',
+      status: 'pass',
+      canContinue: true,
+      riskLevel: 'low',
+      checkedAt: new Date().toISOString(),
+      passedChecks: [],
+      warnings: [],
+      blockingIssues: [],
+      requiredAction: '',
+      blockedStages: [],
+    });
+
+    const response = await POST(
+      mockRequest({ stage: 15 }),
+      { params: Promise.resolve({ id: 'test-campaign' }) },
+    );
+
+    expect(response.status).toBe(200);
+
+    expect(runGate).toHaveBeenCalledWith(expect.any(String), 'G8_HUMAN_SEND_GATE');
+  });
+
+  it('blocks S15 when G8_HUMAN_SEND_GATE returns canContinue=false', async () => {
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike: FsFilePath) => {
+      const pStr = String(pathLike);
+      if (pStr.includes('stage-state.json')) return makeStageState(15);
+      if (pStr.includes('human-approval.json')) return makeApproval();
+      if (pStr.includes('14-final-formatted-package.md')) return '# Final Package\n\n' + 'x'.repeat(900);
+      return '';
+    });
+
+    vi.mocked(getGatesForStage).mockResolvedValue(['G8_HUMAN_SEND_GATE']);
+    vi.mocked(runGate).mockResolvedValue({
+      gateId: 'G8_HUMAN_SEND_GATE',
+      gateName: 'Human Send Gate',
+      stageAfter: 'S15',
+      status: 'blocked',
+      canContinue: false,
+      riskLevel: 'high',
+      checkedAt: new Date().toISOString(),
+      passedChecks: [],
+      warnings: [],
+      blockingIssues: [{
+        issueId: 'G8_BLOCKED',
+        issue: 'Human send gate blocked: human approval not granted',
+        affectedFile: null,
+        affectedText: null,
+        requiredAction: 'Obtain human send approval before outreach.',
+      }],
+      requiredAction: 'Obtain human send approval before outreach.',
+      blockedStages: ['S15'],
+    });
+
+    const response = await POST(
+      mockRequest({ stage: 15 }),
+      { params: Promise.resolve({ id: 'test-campaign' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(body.error).toMatch(/GATE_BLOCKED|CANONICAL_GATE/i);
+  });
+
+  it('does not call script runner when canonical gate blocks S15', async () => {
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike: FsFilePath) => {
+      const pStr = String(pathLike);
+      if (pStr.includes('stage-state.json')) return makeStageState(15);
+      if (pStr.includes('human-approval.json')) return makeApproval();
+      if (pStr.includes('14-final-formatted-package.md')) return '# Final Package\n\n' + 'x'.repeat(900);
+      return '';
+    });
+
+    vi.mocked(getGatesForStage).mockResolvedValue(['G8_HUMAN_SEND_GATE']);
+    vi.mocked(runGate).mockResolvedValue({
+      gateId: 'G8_HUMAN_SEND_GATE',
+      gateName: 'Human Send Gate',
+      stageAfter: 'S15',
+      status: 'blocked',
+      canContinue: false,
+      riskLevel: 'high',
+      checkedAt: new Date().toISOString(),
+      passedChecks: [],
+      warnings: [],
+      blockingIssues: [{
+        issueId: 'G8_BLOCKED',
+        issue: 'Human send gate blocked: human approval not granted',
+        affectedFile: null,
+        affectedText: null,
+        requiredAction: 'Obtain human send approval before outreach.',
+      }],
+      requiredAction: 'Obtain human send approval before outreach.',
+      blockedStages: ['S15'],
+    });
+
+    const response = await POST(
+      mockRequest({ stage: 15 }),
+      { params: Promise.resolve({ id: 'test-campaign' }) },
+    );
+
+    expect(response.status).toBe(409);
+
+    expect(runScriptAction).not.toHaveBeenCalled();
+  });
 });
