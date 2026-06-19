@@ -11,6 +11,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { getApprovalProgressionDecision, type ProvenanceStatus } from '@/lib/provenance';
+import { validateJsonFileAgainstSchema, JsonSchemaValidationError } from '@/lib/jsonSchemaValidator';
 
 const CAMPAIGNS_DIR = 'D:\\Codex Folder\\digital-pr-agents\\pitch-jobs';
 const SYSTEM_DIR = 'D:\\Codex Folder\\digital-pr-agents\\system';
@@ -274,36 +275,65 @@ async function runHumanSelectionGate(campaignPath: string, result: GateResult): 
 
 async function runValidationGate(campaignPath: string, result: GateResult): Promise<void> {
   const validationPath = path.join(campaignPath, '13-validation-report.json');
+  const schemaPath = path.resolve(process.cwd(), '..', 'schemas', 'validation-report.schema.json');
   
+  let validation: unknown;
   try {
-    const validation = JSON.parse(await fs.readFile(validationPath, 'utf-8'));
-    
-    if (validation.passed === true) {
-      result.passedChecks.push('S13 validation passed');
-    } else {
-      const issues = validation.blockingIssues || [];
-      result.status = 'blocked';
-      result.canContinue = false;
-      result.riskLevel = 'critical';
-      
-      for (const issue of issues) {
-        result.blockingIssues.push({
-          issueId: `GI-G7-${issue.issueId || 'BLOCKING'}`,
-          issue: issue.issue || 'Validation failed',
-          affectedFile: '13-validation-report.json',
-          affectedText: null,
-          requiredAction: issue.requiredAction || 'Fix validation issues'
-        });
-      }
-    }
+    const validationText = await fs.readFile(validationPath, 'utf-8');
+    validation = JSON.parse(validationText);
   } catch {
     result.blockingIssues.push({
       issueId: 'GI-G7-MISSING',
-      issue: '13-validation-report.json is missing',
+      issue: '13-validation-report.json is missing or invalid',
       affectedFile: '13-validation-report.json',
       affectedText: null,
       requiredAction: 'Run S13 validation'
     });
+    return;
+  }
+  
+  try {
+    await validateJsonFileAgainstSchema({
+      dataFilePath: validationPath,
+      schemaFilePath: schemaPath,
+      artifactName: '13-validation-report.json',
+    });
+  } catch (error) {
+    if (error instanceof JsonSchemaValidationError) {
+      result.blockingIssues.push({
+        issueId: 'GI-G7-SCHEMA-INVALID',
+        issue: `13-validation-report.json failed schema validation: ${error.message}`,
+        affectedFile: '13-validation-report.json',
+        affectedText: null,
+        requiredAction: 'Fix validation report structure to match schema',
+      });
+      return;
+    }
+    throw error;
+  }
+  
+  if (validation && typeof validation === 'object' && 'passed' in validation && (validation as { passed: unknown }).passed === true) {
+    result.passedChecks.push('S13 validation passed');
+  } else {
+    const issues = validation && typeof validation === 'object' && 'blockingIssues' in validation
+      ? (validation as { blockingIssues: unknown[] }).blockingIssues || []
+      : [];
+    result.status = 'blocked';
+    result.canContinue = false;
+    result.riskLevel = 'critical';
+    
+    for (const issue of issues) {
+      if (issue && typeof issue === 'object') {
+        const issueObj = issue as { issueId?: string; issue?: string; requiredAction?: string };
+        result.blockingIssues.push({
+          issueId: `GI-G7-${issueObj.issueId || 'BLOCKING'}`,
+          issue: issueObj.issue || 'Validation failed',
+          affectedFile: '13-validation-report.json',
+          affectedText: null,
+          requiredAction: issueObj.requiredAction || 'Fix validation issues'
+        });
+      }
+    }
   }
 }
 

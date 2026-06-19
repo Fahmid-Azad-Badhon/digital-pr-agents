@@ -129,6 +129,7 @@ data/
 # Source-of-truth JSON schemas used by tracked runtime validation.
 !schemas/campaign-brief.schema.json
 !schemas/pitch-draft.schema.json
+!schemas/validation-report.schema.json
 !data/.gitkeep
 output/
 *.output

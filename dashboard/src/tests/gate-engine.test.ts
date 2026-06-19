@@ -57,9 +57,60 @@ function getWrittenGateResults(): Record<string, unknown> | null {
   return raw ? (JSON.parse(raw) as Record<string, unknown>) : null;
 }
 
+const VALIDATION_REPORT_SCHEMA_CONTENT = JSON.stringify({
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Validation Report Schema",
+  "description": "Schema for S13 validation report output",
+  "type": "object",
+  "required": ["passed", "checks", "qualityIssues", "summary"],
+  "properties": {
+    "passed": { "type": "boolean", "description": "Whether validation passed" },
+    "stage": { "type": "integer", "description": "Stage number that generated this report", "const": 13 },
+    "generatedAt": { "type": "string", "description": "ISO 8601 timestamp when report was generated", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$" },
+    "checks": {
+      "type": "array",
+      "description": "File existence checks performed during validation",
+      "items": {
+        "type": "object",
+        "required": ["exists", "file"],
+        "properties": {
+          "exists": { "type": "boolean", "description": "Whether the file exists" },
+          "file": { "type": "string", "description": "Path to the checked file" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "missing": { "type": "array", "description": "Files that were expected but missing", "items": { "type": "string" } },
+    "summary": { "type": "string", "description": "Human-readable summary of validation outcome" },
+    "qualityIssues": { "type": "array", "description": "Quality issues found during validation", "items": { "type": "string" } },
+    "blockingIssues": {
+      "type": "array",
+      "description": "Blocking issues from validation (when passed is false)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "issueId": { "type": "string" },
+          "issue": { "type": "string" },
+          "requiredAction": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+});
+
 function resetMockFs() {
   fileContents.clear();
   writtenFiles.clear();
+  const schemaPath = path.resolve(process.cwd(), '..', 'schemas', 'validation-report.schema.json');
+  fileContents.set(schemaPath, VALIDATION_REPORT_SCHEMA_CONTENT);
+  // Also add with forward slashes for cross-platform compatibility
+  fileContents.set(schemaPath.replace(/\\/g, '/'), VALIDATION_REPORT_SCHEMA_CONTENT);
+  // Also add the absolute path as used in gateEngine.ts (from dashboard directory)
+  const altSchemaPath = path.resolve('D:\\Codex Folder\\digital-pr-agents', 'schemas', 'validation-report.schema.json');
+  fileContents.set(altSchemaPath, VALIDATION_REPORT_SCHEMA_CONTENT);
+  fileContents.set(altSchemaPath.replace(/\\/g, '/'), VALIDATION_REPORT_SCHEMA_CONTENT);
 }
 
 function addGateRules(gates: unknown[]) {
@@ -164,11 +215,30 @@ const G4_APPROVED_LEGACY = JSON.stringify({
 
 const G7_PASSED = JSON.stringify({
   passed: true,
-  blockingIssues: [],
+  stage: 13,
+  generatedAt: '2026-05-21T23:53:13.9679445+06:00',
+  checks: [
+    { exists: true, file: '08-pitch-draft.md' },
+    { exists: true, file: '10-pitch-draft.md' },
+    { exists: true, file: '11-optimized-pitch.md' },
+    { exists: true, file: '09-journalist-intelligence.json' },
+  ],
+  missing: [],
+  summary: 'Validation checks passed.',
+  qualityIssues: [],
 });
 
 const G7_FAILED = JSON.stringify({
   passed: false,
+  stage: 13,
+  generatedAt: '2026-05-21T23:53:13.9679445+06:00',
+  checks: [
+    { exists: true, file: '08-pitch-draft.md' },
+    { exists: false, file: '10-pitch-draft.md' },
+  ],
+  missing: ['10-pitch-draft.md'],
+  summary: 'Validation failed: missing required files.',
+  qualityIssues: ['Missing pitch draft file'],
   blockingIssues: [
     {
       issueId: 'VR-001',
@@ -606,6 +676,23 @@ describe('runGate — G7 Final Validation Gate', () => {
     expect(result.canContinue).toBe(false);
     expect(result.blockingIssues[0].issueId).toBe('GI-G7-MISSING');
   });
+
+  it('blocks when validation report has passed: true but is missing required schema fields', async () => {
+    addGateRules(G7_GATE_RULES);
+    const malformedReport = JSON.stringify({ passed: true });
+    addAllG7CampaignFiles(malformedReport);
+    addCampaignFile('final-readiness.json', '{}');
+
+    const { runGate } = await import('@/lib/gateEngine');
+    const result = await runGate(TEST_CAMPAIGN, 'G7_FINAL_VALIDATION_GATE');
+
+    expect(result.status).toBe('blocked');
+    expect(result.canContinue).toBe(false);
+    const issues = result.blockingIssues.map((i: { issueId: string }) => i.issueId);
+    expect(issues).toEqual(
+      expect.arrayContaining(['GI-G7-SCHEMA-INVALID']),
+    );
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -632,11 +719,30 @@ const G8_PENDING = JSON.stringify({ status: 'pending' });
 
 const G8_VALIDATION_PASSED = JSON.stringify({
   passed: true,
-  blockingIssues: [],
+  stage: 13,
+  generatedAt: '2026-05-21T23:53:13.9679445+06:00',
+  checks: [
+    { exists: true, file: '08-pitch-draft.md' },
+    { exists: true, file: '10-pitch-draft.md' },
+    { exists: true, file: '11-optimized-pitch.md' },
+    { exists: true, file: '09-journalist-intelligence.json' },
+  ],
+  missing: [],
+  summary: 'Validation checks passed.',
+  qualityIssues: [],
 });
 
 const G8_VALIDATION_FAILED = JSON.stringify({
   passed: false,
+  stage: 13,
+  generatedAt: '2026-05-21T23:53:13.9679445+06:00',
+  checks: [
+    { exists: true, file: '08-pitch-draft.md' },
+    { exists: false, file: '10-pitch-draft.md' },
+  ],
+  missing: ['10-pitch-draft.md'],
+  summary: 'Validation failed: missing required files.',
+  qualityIssues: ['Missing pitch draft file'],
   blockingIssues: [
     { issueId: 'VR-001', issue: 'Claims missing source verification', requiredAction: 'Verify all claims' },
   ],
