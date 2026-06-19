@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Campaign Intake",
+  "description": "S1 output: campaign intake metadata produced after reading 00-brief.md. Describes generatedAt, briefLength, and status. additionalProperties:true allows persistence of existing dashboard-only fields.",
+  "type": "object",
+  "required": ["generatedAt", "briefLength", "status"],
+  "properties": {
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when intake was generated"
+    },
+    "briefLength": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Character length of the source 00-brief.md file"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["intake-complete"],
+      "description": "Intake processing status — always intake-complete on success"
+    }
+  },
+  "additionalProperties": true
+}

@@ -130,6 +130,7 @@ data/
 !schemas/campaign-brief.schema.json
 !schemas/pitch-draft.schema.json
 !schemas/validation-report.schema.json
+!schemas/campaign-intake.schema.json
 !data/.gitkeep
 output/
 *.output

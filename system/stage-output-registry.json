@@ -14,7 +14,7 @@
       "inputs": ["campaign-brief.json"],
       "outputs": ["01-campaign-intake.json"],
       "requiredFiles": ["pitch-jobs/{slug}/input/campaign-brief.json"],
-      "validates": ["brief-structure"],
+      "validates": ["intake-shape"],
       "authority": "intake"
     },
     "S2": {

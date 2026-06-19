@@ -69,6 +69,7 @@ vi.mock('@/lib/fallbackMarkers', () => ({
 
 vi.mock('@/lib/stageOutputContractValidator', () => ({
   validateS10OutputContract: vi.fn().mockResolvedValue(undefined),
+  validateS1OutputContract: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('@/types', () => ({
@@ -238,7 +239,34 @@ describe('execute-stage route coverage: S1', () => {
     expect(body.message).toMatch(/00-brief\.md/i);
   });
 
-  it('S1 succeeds when 00-brief.md exists', async () => {
+  it('S1 blocked when output fails schema validation (RED)', async () => {
+    const { validateS1OutputContract } = await import('@/lib/stageOutputContractValidator');
+    vi.mocked(validateS1OutputContract).mockRejectedValue(
+      new Error('01-campaign-intake.json failed schema validation: /generatedAt: must have required property generatedAt')
+    );
+
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike: FsFilePath) => {
+      const pStr = String(pathLike);
+      if (pStr.includes('stage-state.json')) return makeStageState(1);
+      if (pStr.includes('circuit-state.json')) throw new Error('ENOENT');
+      if (pStr.includes('.stage-lock')) throw new Error('ENOENT');
+      if (pStr.includes('00-brief.md')) return VALID_BRIEF;
+      throw new Error('ENOENT');
+    });
+
+    const response = await POST(
+      mockRequest({ stage: 1 }),
+      { params: Promise.resolve({ id: 'test-campaign' }) },
+    );
+    expect(response.status).toBe(500);
+    const body = await response.json();
+    expect(body.error).toBe('EXECUTE_STAGE_FAILED');
+  });
+
+  it('S1 succeeds when 00-brief.md exists and output passes schema validation (GREEN)', async () => {
+    const { validateS1OutputContract } = await import('@/lib/stageOutputContractValidator');
+    vi.mocked(validateS1OutputContract).mockResolvedValue(undefined);
+
     const writtenFiles: Record<string, string> = {};
 
     vi.mocked(fs.writeFile).mockImplementation(async (pathLike: FsFilePath, data: FsFileData) => {
@@ -272,6 +300,8 @@ describe('execute-stage route coverage: S1', () => {
     expect(body.data.outputFile).toBe('01-campaign-intake.json');
     expect(body.data.status).toBe('running');
     expect(body.data.currentStage).toBe(2);
+
+    expect(vi.mocked(validateS1OutputContract)).toHaveBeenCalled();
   });
 });
 

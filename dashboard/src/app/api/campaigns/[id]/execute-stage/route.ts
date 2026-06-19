@@ -14,7 +14,7 @@ import { getRunModeFromRequest, shouldBlockExternalAction, type RunMode } from '
 import { getApprovalProgressionDecision, type ProvenanceStatus } from '@/lib/provenance';
 import { looksLikeFallback, FALLBACK_MARKERS } from '@/lib/fallbackMarkers';
 import { STAGES } from '@/types';
-import { validateS10OutputContract } from '@/lib/stageOutputContractValidator';
+import { validateS10OutputContract, validateS1OutputContract } from '@/lib/stageOutputContractValidator';
 import { getGatesForStage, runGate } from '@/lib/gateEngine';
 
 // Strict mode - when enabled, stages block instead of falling back to synthetic outputs
@@ -248,6 +248,7 @@ async function executeStage1(campaignPath: string) {
     status: 'intake-complete',
   };
   await writeAtomic(stageFile(campaignPath, '01-campaign-intake.json'), JSON.stringify(intake, null, 2));
+  await validateS1OutputContract(campaignPath);
   return { outputFile: '01-campaign-intake.json' };
 }
 
