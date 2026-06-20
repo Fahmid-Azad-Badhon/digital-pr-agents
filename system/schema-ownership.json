@@ -10,8 +10,8 @@
       "authority": "root",
       "owner": "S1",
       "location": "schemas/campaign-brief.schema.json",
-      "importedBy": ["dashboard/src/schemas/campaign-brief.schema.json"],
-      "status": "authoritative"
+      "importedBy": [],
+      "status": "planned"
     },
     "campaign-intake.schema.json": {
       "authority": "root",

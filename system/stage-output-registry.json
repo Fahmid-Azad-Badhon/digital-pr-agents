@@ -11,9 +11,9 @@
     },
     "S1": {
       "name": "Campaign Intake",
-      "inputs": ["campaign-brief.json"],
+      "inputs": ["00-brief.md"],
       "outputs": ["01-campaign-intake.json"],
-      "requiredFiles": ["pitch-jobs/{slug}/input/campaign-brief.json"],
+      "requiredFiles": [],
       "validates": ["intake-shape"],
       "authority": "intake"
     },
