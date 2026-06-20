@@ -6,8 +6,8 @@
   "stages": {
     "S1_CAMPAIGN_INTAKE": {
       "description": "Initial campaign creation, brief capture, and topic expansion",
-      "requires": [],
-      "produces": ["00-brief.md", "01-campaign-intake.json", "topic-expansion-map.json", "research-query-map.json"],
+      "requires": ["00-brief.md"],
+      "produces": ["01-campaign-intake.json"],
       "allowedModelRoles": ["orchestrator_strategy"],
       "modelRouting": { "primary": "Hy3 Preview", "fallback1": "GPT-OSS-120B", "fallback2": "Nemotron 3 Super" },
       "canContinueAutomatically": true,
@@ -15,8 +15,8 @@
     },
     "S2_DATA_EXTRACTION": {
       "description": "Extract maximum useful data from provided source material",
-      "requires": ["00-brief.md", "01-campaign-intake.json"],
-      "produces": ["01-study-notes.md", "02-raw-extracted-data.json", "data-inventory.json", "source-registry.json"],
+      "requires": ["00-brief.md", "source-files/study-inputs/raw-study-copy.md"],
+      "produces": ["01-study-notes.md", "02-insights.md", "02-raw-extracted-data.json"],
       "allowedModelRoles": ["research_extraction"],
       "modelRouting": { "primary": "Nemotron 3 Super", "fallback1": "GPT-OSS-120B", "fallback2": "Hy3 Preview" },
       "canContinueAutomatically": true,

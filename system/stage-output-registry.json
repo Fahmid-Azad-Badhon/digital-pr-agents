@@ -19,8 +19,8 @@
     },
     "S2": {
       "name": "Data Extraction",
-      "inputs": ["01-campaign-intake.json"],
-      "outputs": ["02-raw-extracted-data.json"],
+      "inputs": ["00-brief.md", "source-files/study-inputs/raw-study-copy.md"],
+      "outputs": ["01-study-notes.md", "02-insights.md", "02-raw-extracted-data.json"],
       "requiredFiles": [],
       "validates": ["data-structure"],
       "authority": "extraction"

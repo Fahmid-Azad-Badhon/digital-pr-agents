@@ -17,7 +17,7 @@ export interface StageRuntimeBinding {
 // REPO_ROOT imported from requestGuard
 
 export const STAGE_RUNTIME_BINDINGS: StageRuntimeBinding[] = [
-  { stage: 1, stageKey: 'S1_CAMPAIGN_INTAKE', brainManifestKey: 'S1_CAMPAIGN_INTAKE', runtimeKind: 'internal_handler', executable: true, executionTarget: '/api/campaigns/[id]/execute-stage#S1', outputFiles: ['00-brief.md', '01-campaign-intake.json'] },
+  { stage: 1, stageKey: 'S1_CAMPAIGN_INTAKE', brainManifestKey: 'S1_CAMPAIGN_INTAKE', runtimeKind: 'internal_handler', executable: true, executionTarget: '/api/campaigns/[id]/execute-stage#S1', outputFiles: ['01-campaign-intake.json'] },
   { stage: 2, stageKey: 'S2_DATA_EXTRACTION', brainManifestKey: 'S2_DATA_EXTRACTION', runtimeKind: 'script_runner', executable: true, executionTarget: 'scripts/draft-study-input.cmd', outputFiles: ['01-study-notes.md', '02-insights.md', '02-raw-extracted-data.json'] },
   { stage: 3, stageKey: 'S3_RESEARCH_ENRICHMENT', brainManifestKey: 'S3_RESEARCH_ENRICHMENT', runtimeKind: 'internal_handler', executable: true, executionTarget: '/api/campaigns/[id]/execute-stage#S3', outputFiles: ['03-research.md', '03-research-enrichment.json', 'topic-expansion-map.json', 'data-inventory.json'] },
   { stage: 4, stageKey: 'S4A_DATA_RESEARCH_ANALYST', brainManifestKey: 'S4A_DATA_RESEARCH_ANALYST', runtimeKind: 'internal_handler', executable: true, executionTarget: '/api/campaigns/[id]/execute-stage#S4', outputFiles: ['verified-findings.json', 'InsightAnalysisMap.json', 'AngleGenerationHandoff.json'] },
