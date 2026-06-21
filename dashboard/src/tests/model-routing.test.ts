@@ -25,7 +25,8 @@ import {
   getAllAvailableModels,
   runStageWithFallback,
   getModelRunLogs,
-  runDashboardAI
+  runDashboardAI,
+  logModelRun
 } from '../lib/modelRouter';
 import {
   CAMPAIGN_STAGE_ROUTING,
@@ -535,5 +536,54 @@ describe('Stage Contract Cross-Validation', () => {
       expect(STAGE_CONTRACTS[key].allowedModelRoles.length).toBeGreaterThan(0);
       expect(STAGE_CONTRACTS[key].modelRouting).toBeDefined();
     }
+  });
+
+  describe('RouterLogEntry metadata — promptVersion', () => {
+    beforeEach(() => {
+      getModelRunLogs().length; // reset safety — does not clear, but we account for prior entries
+    });
+
+    it('logModelRun accepts and getModelRunLogs returns promptVersion metadata', () => {
+      const entry = {
+        timestamp: new Date().toISOString(),
+        contextType: 'campaign_stage' as const,
+        stageId: 'S1_CAMPAIGN_INTAKE',
+        primaryModel: 'nemotron_3_ultra',
+        modelUsed: 'nemotron_3_ultra',
+        provider: 'deepinfra',
+        fallbackUsed: false,
+        retryCount: 0,
+        status: 'success' as const,
+        durationMs: 100,
+        promptVersion: '1.0.0',
+      };
+
+      logModelRun(entry);
+      const logs = getModelRunLogs();
+      const match = logs.find(l => l.stageId === 'S1_CAMPAIGN_INTAKE' && l.promptVersion === '1.0.0');
+      expect(match).toBeDefined();
+      expect(match!.promptVersion).toBe('1.0.0');
+    });
+
+    it('logModelRun accepts entry without promptVersion', () => {
+      const entry = {
+        timestamp: new Date().toISOString(),
+        contextType: 'campaign_stage' as const,
+        stageId: 'S99_UNKNOWN',
+        primaryModel: 'nemotron_3_ultra',
+        modelUsed: 'nemotron_3_ultra',
+        provider: 'deepinfra',
+        fallbackUsed: false,
+        retryCount: 0,
+        status: 'success' as const,
+        durationMs: 100,
+      };
+
+      logModelRun(entry);
+      const logs = getModelRunLogs();
+      const match = logs.find(l => l.stageId === 'S99_UNKNOWN');
+      expect(match).toBeDefined();
+      expect(match!.promptVersion).toBeUndefined();
+    });
   });
 });

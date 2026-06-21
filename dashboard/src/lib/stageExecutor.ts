@@ -18,6 +18,7 @@ import {
   getStageRoutingInfo,
   stageRequiresHumanApproval,
   logModelRun,
+  getPromptVersionForStage,
   type ModelCallResult
 } from '../lib/modelRouter';
 import { addLog } from '../lib/db';
@@ -369,6 +370,7 @@ export async function executeStage(params: StageExecutionParams): Promise<StageE
   const isDryRun = isDryRunOutput(modelResult.output);
   
   // Log model usage
+  const promptVersion = getPromptVersionForStage(stageId) ?? undefined;
   logModelRun({
     timestamp: new Date().toISOString(),
     contextType: 'campaign_stage',
@@ -382,7 +384,8 @@ export async function executeStage(params: StageExecutionParams): Promise<StageE
     status: modelResult.success ? 'success' : 'failed',
     durationMs: modelResult.durationMs,
     validationStatus: validationResult?.valid ? 'passed' : validationResult ? 'failed' : 'skipped',
-    outputFile: outputFile || undefined
+    outputFile: outputFile || undefined,
+    promptVersion
   });
   
   // Handle S7 human gate pause

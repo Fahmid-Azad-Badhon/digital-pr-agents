@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import fs from 'fs/promises';
 import { getOutputType, saveStageOutput, executeStage, checkCanResumeFromS8 } from '@/lib/stageExecutor';
-import { getStageRoutingInfo, stageRequiresHumanApproval, runStageWithFallback, logModelRun } from '@/lib/modelRouter';
+import { getStageRoutingInfo, stageRequiresHumanApproval, runStageWithFallback, logModelRun, getPromptVersionForStage } from '@/lib/modelRouter';
 
 vi.mock('fs/promises', () => ({
   default: {
@@ -31,6 +31,13 @@ vi.mock('@/lib/modelRouter', () => ({
   getStageRoutingInfo: vi.fn(),
   stageRequiresHumanApproval: vi.fn(),
   logModelRun: vi.fn(),
+  getPromptVersionForStage: vi.fn((stageId: string) => {
+    const map: Record<string, string> = {
+      S1_CAMPAIGN_INTAKE: '1.0.0',
+      S10_PITCH_DRAFTING: '1.0.0',
+    };
+    return map[stageId] ?? null;
+  }),
 }));
 
 vi.mock('@/lib/db', () => ({
@@ -645,5 +652,72 @@ describe('checkCanResumeFromS8', () => {
     expect(result.canResume).toBe(true);
     expect(result.selectedAngle).toBe('Old Angle');
     expect(result.reason).toContain('Batch 5F');
+  });
+
+  describe('promptVersion metadata in stage execution', () => {
+    beforeEach(() => {
+      vi.mocked(getStageRoutingInfo).mockReturnValue({
+        primary: 'nemotron_3_ultra',
+        fallbacks: ['nemotron_3_super'],
+        requiresHumanApproval: false,
+      });
+      vi.mocked(stageRequiresHumanApproval).mockReturnValue(false);
+      vi.mocked(runStageWithFallback).mockResolvedValue({
+        success: true,
+        output: VALID_S1_JSON,
+        modelUsed: 'nemotron_3_ultra',
+        provider: 'openai',
+        fallbackUsed: false,
+        fallbackReason: undefined,
+        retryCount: 0,
+        durationMs: 100,
+      });
+      vi.mocked(logModelRun).mockReturnValue(undefined);
+      vi.mocked(fs.access).mockResolvedValue(undefined);
+      vi.mocked(fs.mkdir).mockResolvedValue(undefined);
+      vi.mocked(fs.writeFile).mockResolvedValue(undefined);
+    });
+
+    it('includes promptVersion from getPromptVersionForStage for a mapped stage', async () => {
+      await executeStage({
+        campaignId: 'test-campaign',
+        campaignSlug: 'test-campaign',
+        stageId: 'S1_CAMPAIGN_INTAKE',
+        input: {},
+        useCase: 'test',
+      });
+
+      expect(getPromptVersionForStage).toHaveBeenCalledWith('S1_CAMPAIGN_INTAKE');
+      expect(logModelRun).toHaveBeenCalledWith(
+        expect.objectContaining({
+          stageId: 'S1_CAMPAIGN_INTAKE',
+          promptVersion: '1.0.0',
+        })
+      );
+    });
+
+    it('does not throw for unmapped stage and omits promptVersion from log', async () => {
+      vi.mocked(getStageRoutingInfo).mockReturnValue({
+        primary: 'nemotron_3_ultra',
+        fallbacks: ['nemotron_3_super'],
+        requiresHumanApproval: false,
+      });
+
+      const result = await executeStage({
+        campaignId: 'test-campaign',
+        campaignSlug: 'test-campaign',
+        stageId: 'S99_UNKNOWN_STAGE',
+        input: {},
+        useCase: 'test',
+      });
+
+      expect(result.success).toBe(true);
+      expect(getPromptVersionForStage).toHaveBeenCalledWith('S99_UNKNOWN_STAGE');
+      expect(logModelRun).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          promptVersion: expect.any(String),
+        })
+      );
+    });
   });
 });

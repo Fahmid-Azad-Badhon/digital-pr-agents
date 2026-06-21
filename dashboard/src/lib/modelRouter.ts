@@ -84,6 +84,7 @@ export interface RouterLogEntry {
   outputTokens?: number;
   outputFile?: string;
   validationStatus?: 'passed' | 'failed' | 'skipped';
+  promptVersion?: string;
   errorMessage?: string;
 }
 
