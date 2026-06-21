@@ -193,6 +193,21 @@ Skills must not be used to perform external actions, scraping, browser automatio
 
 The active project priority remains S10 output-contract integration-test hardening before broad architecture or sub-agent work.
 
+## Relevant Files / Context Loading
+
+Before auditing, planning, patching, validating, or committing, identify and read only the files directly relevant to the current task.
+
+Rules:
+
+* Start from the files explicitly named in the user prompt.
+* If additional context is needed, inspect only directly related source files, tests, schemas, configs, prompts, docs, or governance files required to understand the task safely.
+* Do not perform broad repository-wide reading unless the task explicitly requires it.
+* Do not read unrelated architecture documents, generated artifacts, logs, campaign data, secrets, `.env` files, build outputs, dependency folders, cache folders, or large unrelated files.
+* Do not read or use tolerated untracked files unless the user explicitly authorizes it.
+* When recommending or applying a change, list the relevant files reviewed and explain why each file was necessary.
+* If a required file is missing or inaccessible, stop and report the blocker instead of guessing.
+* Keep context loading minimal, evidence-backed, and scoped to the active batch.
+
 ## Version Information
 
 | Version | Date | Author |
