@@ -613,7 +613,8 @@ export async function runDashboardAI(
           fallbackUsed: !isPrimary,
           retryCount: 0,
           status: !isPrimary ? 'fallback_used' : 'success',
-          durationMs: result.durationMs
+          durationMs: result.durationMs,
+          promptVersion: getPromptVersionForDashboardFeature(featureId) ?? undefined
         };
         modelRunLogs.push(logEntry);
         
