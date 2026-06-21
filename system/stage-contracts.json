@@ -50,6 +50,24 @@
       "canContinueAutomatically": true,
       "humanApprovalRequired": false
     },
+    "S5A_RAW_ANGLES": {
+      "description": "Generate raw angles from verified insights before journalist framing",
+      "requires": ["AngleGenerationHandoff.json", "InsightAnalysisMap.json", "claim-ledger.json"],
+      "produces": ["05a-raw-angles.json"],
+      "allowedModelRoles": ["flagship_orchestrator"],
+      "modelRouting": { "primary": "Nemotron 3 Ultra", "fallback1": "Hermes 3 405B", "fallback2": "GPT-OSS-120B" },
+      "canContinueAutomatically": true,
+      "humanApprovalRequired": false
+    },
+    "S5B_JOURNALIST_FRAMED_ANGLES": {
+      "description": "Reframe raw angles with journalist perspective and beat context",
+      "requires": ["05a-raw-angles.json", "AngleGenerationHandoff.json"],
+      "produces": ["05b-journalist-framed-angles.json"],
+      "allowedModelRoles": ["natural_writing_polish"],
+      "modelRouting": { "primary": "Hermes 3 405B", "fallback1": "MiniMax M2.5", "fallback2": "GPT-OSS-120B" },
+      "canContinueAutomatically": true,
+      "humanApprovalRequired": false
+    },
     "S5_ANGLE_GENERATION": {
       "description": "Create strong, data-led, journalist-friendly campaign angles",
       "requires": ["AngleGenerationHandoff.json", "InsightAnalysisMap.json", "claim-ledger.json"],
@@ -87,6 +105,24 @@
       "gateAfter": "G4_HUMAN_SELECTION_GATE",
       "canContinueAutomatically": false,
       "humanApprovalRequired": true
+    },
+    "S8A_JOURNALIST_COLLECTION": {
+      "description": "Perform bulk journalist collection for selected angle",
+      "requires": ["human-approval.json", "07-selected-angle.json", "06-beat-match.json"],
+      "produces": ["08a-journalist-collection.json"],
+      "allowedModelRoles": ["fast_prefilter"],
+      "modelRouting": { "primary": "Nemotron 3 Nano 30B", "fallback1": "Nemotron 3 Super", "fallback2": "Qwen3 Coder" },
+      "canContinueAutomatically": true,
+      "humanApprovalRequired": false
+    },
+    "S8B_JOURNALIST_RELEVANCE_FILTER": {
+      "description": "Filter collected journalists by relevance to selected angle",
+      "requires": ["08a-journalist-collection.json", "07-selected-angle.json"],
+      "produces": ["08b-relevant-journalists.json"],
+      "allowedModelRoles": ["fast_prefilter"],
+      "modelRouting": { "primary": "Nemotron 3 Nano 30B", "fallback1": "Nemotron 3 Super", "fallback2": "GPT-OSS-120B" },
+      "canContinueAutomatically": true,
+      "humanApprovalRequired": false
     },
     "S8_JOURNALIST_COLLECTION": {
       "description": "Collect relevant journalists for approved angle",

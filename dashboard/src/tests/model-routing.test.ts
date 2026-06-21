@@ -33,6 +33,7 @@ import {
   MODEL_CONFIG,
   ROUTER_SETTINGS
 } from '../config/model-routing.config';
+import stageContractsJson from '@system/stage-contracts.json';
 
 // =============================================================================
 // CAMPAIGN STAGE ROUTING TESTS
@@ -468,6 +469,71 @@ describe('Campaign Stage Route Key Existence', () => {
       expect(routing).toBeDefined();
       expect(routing.primary).toBeDefined();
       expect(MODEL_CONFIG[routing.primary]).toBeDefined();
+    }
+  });
+});
+
+// =============================================================================
+// STAGE CONTRACT CROSS-VALIDATION TESTS
+// =============================================================================
+
+describe('Stage Contract Cross-Validation', () => {
+  const STAGE_CONTRACTS = stageContractsJson.stages as Record<string, {
+    readonly description: string;
+    readonly requires: readonly string[];
+    readonly produces: readonly string[];
+    readonly allowedModelRoles: readonly string[];
+    readonly modelRouting: { readonly primary: string; readonly fallback1: string; readonly fallback2: string };
+    readonly canContinueAutomatically: boolean;
+    readonly humanApprovalRequired: boolean;
+  }>;
+
+  it('every campaignStageRouting key has a matching stage contract', () => {
+    const routeKeys = Object.keys(CAMPAIGN_STAGE_ROUTING).sort();
+    for (const key of routeKeys) {
+      expect(STAGE_CONTRACTS[key]).toBeDefined();
+      expect(STAGE_CONTRACTS[key].allowedModelRoles).toBeDefined();
+      expect(STAGE_CONTRACTS[key].allowedModelRoles.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('every contracted stage key has a matching campaignStageRouting entry', () => {
+    const contractKeys = Object.keys(STAGE_CONTRACTS).sort();
+    for (const key of contractKeys) {
+      expect(CAMPAIGN_STAGE_ROUTING[key]).toBeDefined();
+    }
+  });
+
+  it('each campaign route primary model exists in MODEL_CONFIG', () => {
+    const entries = Object.entries(CAMPAIGN_STAGE_ROUTING);
+    for (const [stageId, routing] of entries) {
+      expect(MODEL_CONFIG[routing.primary]).toBeDefined();
+    }
+  });
+
+  it('each campaign route primary model role is included in that stage contract allowedModelRoles', () => {
+    const entries = Object.entries(CAMPAIGN_STAGE_ROUTING);
+    for (const [stageId, routing] of entries) {
+      const contract = STAGE_CONTRACTS[stageId];
+      expect(contract).toBeDefined();
+      const primaryModelConfig = MODEL_CONFIG[routing.primary];
+      expect(primaryModelConfig).toBeDefined();
+      expect(contract.allowedModelRoles).toContain(primaryModelConfig.role);
+    }
+  });
+
+  it('repaired sub-stages S5A, S5B, S8A, S8B now have contracts', () => {
+    const repairedKeys = [
+      'S5A_RAW_ANGLES',
+      'S5B_JOURNALIST_FRAMED_ANGLES',
+      'S8A_JOURNALIST_COLLECTION',
+      'S8B_JOURNALIST_RELEVANCE_FILTER'
+    ];
+    for (const key of repairedKeys) {
+      expect(STAGE_CONTRACTS[key]).toBeDefined();
+      expect(STAGE_CONTRACTS[key].allowedModelRoles).toBeDefined();
+      expect(STAGE_CONTRACTS[key].allowedModelRoles.length).toBeGreaterThan(0);
+      expect(STAGE_CONTRACTS[key].modelRouting).toBeDefined();
     }
   });
 });
