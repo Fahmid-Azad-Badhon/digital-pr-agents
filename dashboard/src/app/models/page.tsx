@@ -49,15 +49,14 @@ type AuditResponse = {
 };
 
 const modelColors: Record<string, string> = {
-  hy3_preview: 'from-blue-600 to-blue-800',
+  nemotron_3_ultra: 'from-blue-600 to-blue-800',
   nemotron_3_super: 'from-cyan-600 to-cyan-800',
   minimax_m25: 'from-green-600 to-green-800',
   gpt_oss_120b: 'from-purple-600 to-purple-800',
   hermes_3_405b: 'from-pink-600 to-pink-800',
-  lfm_25_12b: 'from-yellow-600 to-yellow-800',
-  nemotron_3_nano_omni: 'from-indigo-600 to-indigo-800',
-  riverflow_v2: 'from-red-600 to-red-800',
-  big_pickle: 'from-slate-600 to-slate-800',
+  qwen3_coder: 'from-yellow-600 to-yellow-800',
+  gemma_4_31b: 'from-indigo-600 to-indigo-800',
+  nemotron_3_nano_30b: 'from-red-600 to-red-800',
 };
 
 const stageNames: Record<string, string> = {
@@ -146,7 +145,7 @@ export default function ModelsPage() {
         <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#1E293B] border border-[#334155]">
           <GitBranch size={16} className="text-primary" />
           <span className="text-sm text-[#94A3B8]">
-            9 Models • 16 Stages • Fallback Chains
+            8 Models • 16 Stages • Fallback Chains
           </span>
         </div>
       </div>
@@ -167,15 +166,14 @@ export default function ModelsPage() {
               'w-10 h-10 rounded-lg bg-gradient-to-br flex items-center justify-center mb-3',
               modelColors[model.key] || 'from-gray-600 to-gray-800'
             )}>
-              {model.role === 'orchestrator_strategy' && <Cpu size={20} className="text-white" />}
+              {model.role === 'flagship_orchestrator' && <Cpu size={20} className="text-white" />}
               {model.role === 'research_extraction' && <Search size={20} className="text-white" />}
               {model.role === 'production_writer' && <Zap size={20} className="text-white" />}
               {model.role === 'reasoning_judge' && <Shield size={20} className="text-white" />}
               {model.role === 'natural_writing_polish' && <Code size={20} className="text-white" />}
-              {model.role === 'fast_utility' && <Zap size={20} className="text-white" />}
-              {model.role === 'multimodal_input' && <Search size={20} className="text-white" />}
-              {model.role === 'visual_generation' && <Cpu size={20} className="text-white" />}
-              {model.role === 'experimental_debugging' && <Bug size={20} className="text-white" />}
+              {model.role === 'fast_prefilter' && <Zap size={20} className="text-white" />}
+              {model.role === 'multimodal_document_understanding' && <Search size={20} className="text-white" />}
+              {model.role === 'strict_formatting' && <Code size={20} className="text-white" />}
             </div>
             <h3 className="text-white font-semibold text-sm">{model.displayName}</h3>
             <p className="text-xs text-[#64748B] capitalize mt-1">{model.role.replace(/_/g, ' ')}</p>
@@ -465,22 +463,14 @@ export default function ModelsPage() {
             <Shield size={18} className="text-red-400" />
             Model Restrictions
           </h3>
-          <div className="space-y-2 text-sm">
+            <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-[#64748B]">Riverflow V2</span>
-              <span className="text-white">Visual only</span>
+              <span className="text-[#64748B]">Gemma 4 31B</span>
+              <span className="text-white">Multimodal only</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-[#64748B]">Nano Omni</span>
-              <span className="text-white">Multimodal input only</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[#64748B]">LFM 2.5-1.2B</span>
-              <span className="text-white">Fast utility only</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[#64748B]">Big Pickle</span>
-              <span className="text-error">Production disabled</span>
+              <span className="text-[#64748B]">Nemotron 3 Nano 30B</span>
+              <span className="text-white">Prefilter/utility only</span>
             </div>
           </div>
         </div>

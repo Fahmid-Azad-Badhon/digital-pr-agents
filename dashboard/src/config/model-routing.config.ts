@@ -93,22 +93,22 @@ export const DASHBOARD_ROUTING: Record<string, DashboardFeatureRouting> = {
   ...SYSTEM_DASHBOARD_ROUTING,
   dashboard_default_assistant: {
     primary: 'gpt_oss_120b',
-    fallback1: 'hy3_preview',
+    fallback1: 'nemotron_3_ultra',
     fallback2: 'nemotron_3_super'
   },
   dashboard_fast_mode: {
-    primary: 'lfm_25_12b',
+    primary: 'nemotron_3_nano_30b',
     fallback1: 'minimax_m25'
   },
   dashboard_strategy_mode: {
-    primary: 'hy3_preview',
+    primary: 'nemotron_3_ultra',
     fallback1: 'gpt_oss_120b',
     fallback2: 'nemotron_3_super'
   },
   dashboard_research_mode: {
     primary: 'nemotron_3_super',
     fallback1: 'gpt_oss_120b',
-    fallback2: 'hy3_preview'
+    fallback2: 'nemotron_3_ultra'
   },
   dashboard_writing_mode: {
     primary: 'minimax_m25',
@@ -120,12 +120,12 @@ export const DASHBOARD_ROUTING: Record<string, DashboardFeatureRouting> = {
     fallback2: 'gpt_oss_120b'
   },
   dashboard_multimodal_mode: {
-    primary: 'nemotron_3_nano_omni',
+    primary: 'gemma_4_31b',
     fallback1: 'nemotron_3_super',
     fallback2: 'gpt_oss_120b'
   },
   dashboard_visual_mode: {
-    primary: 'riverflow_v2'
+    primary: 'gemma_4_31b'
   }
 };
 
@@ -134,11 +134,12 @@ export const DASHBOARD_ROUTING: Record<string, DashboardFeatureRouting> = {
 // =============================================================================
 
 export const GLOBAL_FALLBACK_CHAINS: Record<string, string[]> = {
-  text_reasoning: ['hy3_preview', 'gpt_oss_120b', 'nemotron_3_super', 'minimax_m25'],
-  research: ['nemotron_3_super', 'gpt_oss_120b', 'hy3_preview', 'minimax_m25'],
-  production: ['minimax_m25', 'hermes_3_405b', 'hy3_preview'],
-  validation: ['gpt_oss_120b', 'hermes_3_405b', 'nemotron_3_super'],
-  utility: ['lfm_25_12b', 'minimax_m25', 'hy3_preview']
+  text_reasoning: ['nemotron_3_ultra', 'gpt_oss_120b', 'nemotron_3_super', 'minimax_m25'],
+  research: ['nemotron_3_super', 'nemotron_3_ultra', 'gpt_oss_120b', 'qwen3_coder'],
+  production: ['minimax_m25', 'hermes_3_405b', 'gpt_oss_120b'],
+  validation: ['gpt_oss_120b', 'nemotron_3_ultra', 'qwen3_coder', 'nemotron_3_super'],
+  utility: ['nemotron_3_nano_30b', 'qwen3_coder', 'minimax_m25'],
+  multimodal: ['gemma_4_31b', 'nemotron_3_super', 'gpt_oss_120b']
 };
 
 // =============================================================================
@@ -168,25 +169,15 @@ export const ROUTER_SETTINGS = {
     modelBlockedOrUnavailable: true
   },
   modelRestrictions: {
-    riverflow_v2: {
+    nemotron_3_nano_30b: {
       enabledInProductionWorkflow: true,
-      allowedUseCases: ['visual_generation', 'image_editing'],
-      blockedUseCases: ['text_reasoning', 'research', 'validation', 'writing', 'copywriting']
+      allowedUseCases: ['bulk_classification', 'prefiltering', 'relevance_filtering', 'low_cost_checks', 'deduplication', 'simple_classification', 'short_summary'],
+      blockedUseCases: ['final_validation', 'serious_data_extraction', 'final_pitch_scoring', 'journalist_intelligence_synthesis', 'strategy', 'orchestration']
     },
-    nemotron_3_nano_omni: {
+    gemma_4_31b: {
       enabledInProductionWorkflow: true,
-      allowedUseCases: ['multimodal_input_extraction', 'image_extraction', 'screenshot_extraction'],
-      blockedUseCases: ['final_copywriting', 'pitch_drafting', 'validation', 'research_synthesis']
-    },
-    lfm_25_12b: {
-      enabledInProductionWorkflow: true,
-      allowedUseCases: ['fast_cleanup', 'simple_classification', 'deduplication', 'formatting', 'short_summary'],
-      blockedUseCases: ['final_validation', 'serious_data_extraction', 'final_pitch_scoring', 'journalist_intelligence_synthesis']
-    },
-    big_pickle: {
-      enabledInProductionWorkflow: false,
-      allowedUseCases: ['experimental_debugging'],
-      blockedUseCases: ['all_production_tasks']
+      allowedUseCases: ['multimodal_input_extraction', 'image_extraction', 'screenshot_extraction', 'chart_extraction', 'chart_image_interpretation', 'document_understanding'],
+      blockedUseCases: ['final_copywriting', 'pitch_drafting', 'validation', 'research_synthesis', 'text_reasoning', 'writing']
     }
   } as const,
   provider: {

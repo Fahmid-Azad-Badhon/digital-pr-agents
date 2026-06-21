@@ -130,7 +130,7 @@
       "excludedPatterns": [],
       "maxTokens": 4096,
       "temperature": 0.7,
-      "modelRestriction": "riverflow_v2"
+      "modelRestriction": "gemma_4_31b"
     },
     "S16_CAMPAIGN_LOG_LEARNING_LOOP": {
       "allowedContextFiles": [

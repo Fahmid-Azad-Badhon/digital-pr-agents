@@ -133,9 +133,9 @@ export async function getModelPerformanceByModel(modelKey: string): Promise<Mode
 
 export async function getAllModelPerformance(): Promise<Record<string, ModelPerformanceAggregate>> {
   const models = [
-    'hy3_preview', 'nemotron_3_super', 'minimax_m25', 
-    'gpt_oss_120b', 'hermes_3_405b', 'lfm_25_12b',
-    'nemotron_3_nano_omni', 'riverflow_v2', 'big_pickle'
+    'nemotron_3_ultra', 'nemotron_3_super', 'minimax_m25',
+    'gpt_oss_120b', 'hermes_3_405b', 'qwen3_coder',
+    'gemma_4_31b', 'nemotron_3_nano_30b'
   ];
 
   const results: Record<string, ModelPerformanceAggregate> = {};

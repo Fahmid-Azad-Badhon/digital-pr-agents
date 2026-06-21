@@ -340,7 +340,7 @@ describe('executeStage — human approval dry-run safety', () => {
     vi.clearAllMocks();
     vi.mocked(getStageRoutingInfo).mockReturnValue({
       primary: 'gpt_oss_120b',
-      fallbacks: ['hy3_preview'],
+      fallbacks: ['nemotron_3_ultra'],
       requiresHumanApproval: true,
     });
     vi.mocked(stageRequiresHumanApproval).mockReturnValue(true);
@@ -491,7 +491,7 @@ describe('executeStage — human approval dry-run safety', () => {
     vi.mocked(stageRequiresHumanApproval).mockReturnValue(false);
     vi.mocked(getStageRoutingInfo).mockReturnValue({
       primary: 'gpt_oss_120b',
-      fallbacks: ['hy3_preview'],
+      fallbacks: ['nemotron_3_ultra'],
       requiresHumanApproval: false,
     });
     vi.mocked(runStageWithFallback).mockResolvedValue({

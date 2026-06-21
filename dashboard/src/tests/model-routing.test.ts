@@ -39,43 +39,43 @@ import {
 // =============================================================================
 
 describe('Campaign Stage Routing - S1 Campaign Intake', () => {
-  it('S1 should use hy3_preview as primary', () => {
+  it('S1 should use nemotron_3_ultra as primary', () => {
     const model = getModelForStage('S1_CAMPAIGN_INTAKE');
-    expect(model).toBe('hy3_preview');
+    expect(model).toBe('nemotron_3_ultra');
   });
 
   it('S1 should have correct fallback chain', () => {
     const fallbacks = getFallbacksForStage('S1_CAMPAIGN_INTAKE');
-    expect(fallbacks).toEqual(['gpt_oss_120b', 'nemotron_3_super']);
+    expect(fallbacks).toEqual(['nemotron_3_super', 'gpt_oss_120b']);
   });
 
   it('S1 should return all models to try', () => {
     const models = getModelsToTryForStage('S1_CAMPAIGN_INTAKE');
-    expect(models).toEqual(['hy3_preview', 'gpt_oss_120b', 'nemotron_3_super']);
+    expect(models).toEqual(['nemotron_3_ultra', 'nemotron_3_super', 'gpt_oss_120b']);
   });
 });
 
 describe('Campaign Stage Routing - S2 Data Extraction', () => {
-  it('S2 should use gpt_oss_120b as primary', () => {
+  it('S2 should use nemotron_3_super as primary', () => {
     const model = getModelForStage('S2_DATA_EXTRACTION');
-    expect(model).toBe('gpt_oss_120b');
+    expect(model).toBe('nemotron_3_super');
   });
 
   it('S2 should have correct fallback chain', () => {
     const fallbacks = getFallbacksForStage('S2_DATA_EXTRACTION');
-    expect(fallbacks).toEqual(['nemotron_3_super', 'hy3_preview']);
+    expect(fallbacks).toEqual(['gpt_oss_120b', 'gemma_4_31b']);
   });
 });
 
 describe('Campaign Stage Routing - S5 Angle Generation', () => {
-  it('S5 should use hy3_preview as primary', () => {
+  it('S5 should use nemotron_3_ultra as primary', () => {
     const model = getModelForStage('S5_ANGLE_GENERATION');
-    expect(model).toBe('hy3_preview');
+    expect(model).toBe('nemotron_3_ultra');
   });
 
-  it('S5 should have gpt_oss_120b and hermes_3_405b as fallbacks', () => {
+  it('S5 should have hermes_3_405b and gpt_oss_120b as fallbacks', () => {
     const fallbacks = getFallbacksForStage('S5_ANGLE_GENERATION');
-    expect(fallbacks).toEqual(['gpt_oss_120b', 'hermes_3_405b']);
+    expect(fallbacks).toEqual(['hermes_3_405b', 'gpt_oss_120b']);
   });
 });
 
@@ -87,7 +87,7 @@ describe('Campaign Stage Routing - S7 Human Gate', () => {
 
   it('S7 should have correct fallback chain', () => {
     const fallbacks = getFallbacksForStage('S7_PITCH_SELECTION_HUMAN_GATE');
-    expect(fallbacks).toEqual(['hy3_preview', 'nemotron_3_super']);
+    expect(fallbacks).toEqual(['nemotron_3_ultra', 'nemotron_3_super']);
   });
 
   it('S7 should require human approval', () => {
@@ -102,14 +102,14 @@ describe('Campaign Stage Routing - S7 Human Gate', () => {
 });
 
 describe('Campaign Stage Routing - S10 Pitch Drafting', () => {
-  it('S10 should use hermes_3_405b as primary', () => {
+  it('S10 should use minimax_m25 as primary', () => {
     const model = getModelForStage('S10_PITCH_DRAFTING');
-    expect(model).toBe('hermes_3_405b');
+    expect(model).toBe('minimax_m25');
   });
 
-  it('S10 should have hy3_preview and minimax_m25 as fallbacks', () => {
+  it('S10 should have hermes_3_405b and gpt_oss_120b as fallbacks', () => {
     const fallbacks = getFallbacksForStage('S10_PITCH_DRAFTING');
-    expect(fallbacks).toEqual(['hy3_preview', 'minimax_m25']);
+    expect(fallbacks).toEqual(['hermes_3_405b', 'gpt_oss_120b']);
   });
 });
 
@@ -119,9 +119,9 @@ describe('Campaign Stage Routing - S11 Pitch Optimization', () => {
     expect(model).toBe('hermes_3_405b');
   });
 
-  it('S11 should have gpt_oss_120b and hy3_preview as fallbacks', () => {
+  it('S11 should have minimax_m25 and gpt_oss_120b as fallbacks', () => {
     const fallbacks = getFallbacksForStage('S11_PITCH_OPTIMIZATION');
-    expect(fallbacks).toEqual(['gpt_oss_120b', 'hy3_preview']);
+    expect(fallbacks).toEqual(['minimax_m25', 'gpt_oss_120b']);
   });
 });
 
@@ -131,21 +131,21 @@ describe('Campaign Stage Routing - S13 Validation', () => {
     expect(model).toBe('gpt_oss_120b');
   });
 
-  it('S13 should have nemotron_3_super and hy3_preview as fallbacks', () => {
+  it('S13 should have nemotron_3_ultra and qwen3_coder as fallbacks', () => {
     const fallbacks = getFallbacksForStage('S13_VALIDATION');
-    expect(fallbacks).toEqual(['nemotron_3_super', 'hy3_preview']);
+    expect(fallbacks).toEqual(['nemotron_3_ultra', 'qwen3_coder']);
   });
 });
 
 describe('Campaign Stage Routing - S15 Outreach Asset Creation', () => {
-  it('S15 should use hermes_3_405b as primary', () => {
+  it('S15 should use minimax_m25 as primary', () => {
     const model = getModelForStage('S15_OUTREACH_ASSET_CREATION');
-    expect(model).toBe('hermes_3_405b');
+    expect(model).toBe('minimax_m25');
   });
 
-  it('S15 should have hy3_preview and minimax_m25 fallbacks', () => {
+  it('S15 should have hermes_3_405b and gpt_oss_120b fallbacks', () => {
     const fallbacks = getFallbacksForStage('S15_OUTREACH_ASSET_CREATION');
-    expect(fallbacks).toEqual(['hy3_preview', 'minimax_m25']);
+    expect(fallbacks).toEqual(['hermes_3_405b', 'gpt_oss_120b']);
   });
 });
 
@@ -154,9 +154,9 @@ describe('Campaign Stage Routing - S15 Outreach Asset Creation', () => {
 // =============================================================================
 
 describe('Dashboard Feature Routing', () => {
-  it('workflow_status_summary should use lfm_25_12b', () => {
+  it('workflow_status_summary should use nemotron_3_nano_30b', () => {
     const model = getModelForDashboardFeature('workflow_status_summary');
-    expect(model).toBe('lfm_25_12b');
+    expect(model).toBe('nemotron_3_nano_30b');
   });
 
   it('stage_failure_explanation should use gpt_oss_120b', () => {
@@ -169,14 +169,14 @@ describe('Dashboard Feature Routing', () => {
     expect(model).toBe('gpt_oss_120b');
   });
 
-  it('campaign_progress_overview should use hy3_preview', () => {
+  it('campaign_progress_overview should use nemotron_3_ultra', () => {
     const model = getModelForDashboardFeature('campaign_progress_overview');
-    expect(model).toBe('hy3_preview');
+    expect(model).toBe('nemotron_3_ultra');
   });
 
-  it('recommended_next_action should use hy3_preview', () => {
+  it('recommended_next_action should use nemotron_3_ultra', () => {
     const model = getModelForDashboardFeature('recommended_next_action');
-    expect(model).toBe('hy3_preview');
+    expect(model).toBe('nemotron_3_ultra');
   });
 
   it('audit_log_analysis should use gpt_oss_120b', () => {
@@ -204,14 +204,14 @@ describe('Dashboard Feature Routing', () => {
     expect(model).toBe('nemotron_3_super');
   });
 
-  it('chart_image_interpretation should use nemotron_3_nano_omni', () => {
+  it('chart_image_interpretation should use gemma_4_31b', () => {
     const model = getModelForDashboardFeature('chart_image_interpretation');
-    expect(model).toBe('nemotron_3_nano_omni');
+    expect(model).toBe('gemma_4_31b');
   });
 
-  it('dashboard_visual_asset_generation should use riverflow_v2', () => {
+  it('dashboard_visual_asset_generation should use gemma_4_31b', () => {
     const model = getModelForDashboardFeature('dashboard_visual_asset_generation');
-    expect(model).toBe('riverflow_v2');
+    expect(model).toBe('gemma_4_31b');
   });
 });
 
@@ -231,86 +231,48 @@ describe('Dashboard Feature Fallbacks', () => {
 // MODEL RESTRICTION TESTS
 // =============================================================================
 
-describe('Model Restrictions - Riverflow V2', () => {
-  it('should reject text_reasoning use case', () => {
-    const result = validateModelAllowedForUse('riverflow_v2', 'text_reasoning');
+describe('Model Restrictions - Nemotron 3 Nano 30B', () => {
+  it('should reject pitch_drafting use case', () => {
+    const result = validateModelAllowedForUse('nemotron_3_nano_30b', 'pitch_drafting');
     expect(result.allowed).toBe(false);
     expect(result.reason).toContain('can only be used for');
   });
 
-  it('should allow visual_generation use case', () => {
-    const result = validateModelAllowedForUse('riverflow_v2', 'visual_generation');
-    expect(result.allowed).toBe(true);
-  });
-
-  it('should allow image_editing use case', () => {
-    const result = validateModelAllowedForUse('riverflow_v2', 'image_editing');
-    expect(result.allowed).toBe(true);
-  });
-});
-
-describe('Model Restrictions - Nemotron 3 Nano Omni', () => {
-  it('should reject final_pitch_drafting without inputType', () => {
-    const result = validateModelAllowedForUse('nemotron_3_nano_omni', 'pitch_drafting');
-    expect(result.allowed).toBe(false);
-    expect(result.reason).toContain('requires inputType');
-  });
-
-  it('should reject final_pitch_drafting with text input', () => {
-    const result = validateModelAllowedForUse('nemotron_3_nano_omni', 'pitch_drafting', 'text');
-    expect(result.allowed).toBe(false);
-    expect(result.reason).toContain('can only process');
-  });
-
-  it('should allow multimodal_input_extraction with image input', () => {
-    const result = validateModelAllowedForUse('nemotron_3_nano_omni', 'multimodal_input_extraction', 'image');
-    expect(result.allowed).toBe(true);
-  });
-
-  it('should allow screenshot_extraction', () => {
-    const result = validateModelAllowedForUse('nemotron_3_nano_omni', 'screenshot_extraction', 'screenshot');
-    expect(result.allowed).toBe(true);
-  });
-});
-
-describe('Model Restrictions - LFM 2.5-1.2B', () => {
   it('should reject validation use case', () => {
-    const result = validateModelAllowedForUse('lfm_25_12b', 'validation');
+    const result = validateModelAllowedForUse('nemotron_3_nano_30b', 'validation');
     expect(result.allowed).toBe(false);
-    expect(result.reason).toContain('can only be used for');
   });
 
-  it('should allow fast_cleanup', () => {
-    const result = validateModelAllowedForUse('lfm_25_12b', 'fast_cleanup');
+  it('should allow deduplication', () => {
+    const result = validateModelAllowedForUse('nemotron_3_nano_30b', 'deduplication');
     expect(result.allowed).toBe(true);
   });
 
   it('should allow simple_classification', () => {
-    const result = validateModelAllowedForUse('lfm_25_12b', 'simple_classification');
-    expect(result.allowed).toBe(true);
-  });
-
-  it('should allow short_summary', () => {
-    const result = validateModelAllowedForUse('lfm_25_12b', 'short_summary');
+    const result = validateModelAllowedForUse('nemotron_3_nano_30b', 'simple_classification');
     expect(result.allowed).toBe(true);
   });
 });
 
-describe('Model Restrictions - Big Pickle', () => {
-  it('should be disabled in production workflow', () => {
-    const config = MODEL_CONFIG.big_pickle;
-    expect(config.enabledInProductionWorkflow).toBe(false);
+describe('Model Restrictions - Gemma 4 31B', () => {
+  it('should reject pitch_drafting use case', () => {
+    const result = validateModelAllowedForUse('gemma_4_31b', 'pitch_drafting');
+    expect(result.allowed).toBe(false);
   });
 
-  it('should only allow experimental_debugging', () => {
-    const result = validateModelAllowedForUse('big_pickle', 'experimental_debugging');
-    // Should be allowed when explicitly requested
+  it('should reject text_reasoning use case', () => {
+    const result = validateModelAllowedForUse('gemma_4_31b', 'text_reasoning');
+    expect(result.allowed).toBe(false);
+  });
+
+  it('should allow multimodal_input_extraction', () => {
+    const result = validateModelAllowedForUse('gemma_4_31b', 'multimodal_input_extraction');
     expect(result.allowed).toBe(true);
   });
 
-  it('should reject production tasks', () => {
-    const result = validateModelAllowedForUse('big_pickle', 'pitch_drafting');
-    expect(result.allowed).toBe(false);
+  it('should allow chart_image_interpretation', () => {
+    const result = validateModelAllowedForUse('gemma_4_31b', 'chart_image_interpretation');
+    expect(result.allowed).toBe(true);
   });
 });
 
@@ -324,9 +286,9 @@ describe('Fallback Chain Logic', () => {
     
     // This tests the fallback order - primary should be tried first
     const models = getModelsToTryForStage('S1_CAMPAIGN_INTAKE');
-    expect(models[0]).toBe('hy3_preview'); // primary
-    expect(models[1]).toBe('gpt_oss_120b'); // fallback1
-    expect(models[2]).toBe('nemotron_3_super'); // fallback2
+    expect(models[0]).toBe('nemotron_3_ultra'); // primary
+    expect(models[1]).toBe('nemotron_3_super'); // fallback1
+    expect(models[2]).toBe('gpt_oss_120b'); // fallback2
   });
 
   it('should have at least one fallback for each stage', () => {
@@ -346,7 +308,7 @@ describe('Stage Routing Info', () => {
     const info = getStageRoutingInfo('S7_PITCH_SELECTION_HUMAN_GATE');
     expect(info).not.toBeNull();
     expect(info?.primary).toBe('gpt_oss_120b');
-    expect(info?.fallbacks).toEqual(['hy3_preview', 'nemotron_3_super']);
+    expect(info?.fallbacks).toEqual(['nemotron_3_ultra', 'nemotron_3_super']);
     expect(info?.requiresHumanApproval).toBe(true);
   });
 
@@ -364,15 +326,13 @@ describe('Available Models', () => {
   it('should return only production-enabled models', () => {
     const models = getAllAvailableModels();
     const productionModels = models.filter(m => m.enabledInProductionWorkflow);
-    expect(productionModels.length).toBeGreaterThan(0);
-    // Big Pickle should be excluded
-    expect(productionModels.find(m => m.key === 'big_pickle')).toBeUndefined();
+    expect(productionModels.length).toBe(8);
   });
 
   it('should have correct number of models', () => {
     const models = getAllAvailableModels();
-    // 12 production models (big_pickle disabled)
-    expect(models.length).toBe(12);
+    // 8 production models (all enabled in production)
+    expect(models.length).toBe(8);
   });
 });
 
@@ -423,23 +383,27 @@ describe('Configuration Integrity', () => {
 
 describe('All Stage Routing Verification', () => {
   const stageRoutingMap: Record<string, { primary: string; fallbacks: string[] }> = {
-    'S1_CAMPAIGN_INTAKE': { primary: 'hy3_preview', fallbacks: ['gpt_oss_120b', 'nemotron_3_super'] },
-    'S2_DATA_EXTRACTION': { primary: 'gpt_oss_120b', fallbacks: ['nemotron_3_super', 'hy3_preview'] },
-    'S3_RESEARCH_ENRICHMENT': { primary: 'nemotron_3_super', fallbacks: ['gpt_oss_120b', 'hy3_preview'] },
-    'S4A_DATA_RESEARCH_ANALYST': { primary: 'gpt_oss_120b', fallbacks: ['nemotron_3_super', 'hy3_preview'] },
-    'S4B_INSIGHT_ANALYST': { primary: 'gpt_oss_120b', fallbacks: ['hy3_preview', 'nemotron_3_super'] },
-    'S5_ANGLE_GENERATION': { primary: 'hy3_preview', fallbacks: ['gpt_oss_120b', 'hermes_3_405b'] },
-    'S6_BEAT_MATCHING': { primary: 'nemotron_3_super', fallbacks: ['gpt_oss_120b', 'nemotron_3_nano_30b'] },
-    'S7_PITCH_SELECTION_HUMAN_GATE': { primary: 'gpt_oss_120b', fallbacks: ['hy3_preview', 'nemotron_3_super'] },
-    'S8_JOURNALIST_COLLECTION': { primary: 'minimax_m25', fallbacks: ['nemotron_3_super', 'nemotron_3_nano_30b'] },
-    'S9_JOURNALIST_INTELLIGENCE': { primary: 'nemotron_3_super', fallbacks: ['gpt_oss_120b', 'hy3_preview'] },
-    'S10_PITCH_DRAFTING': { primary: 'hermes_3_405b', fallbacks: ['hy3_preview', 'minimax_m25'] },
-    'S11_PITCH_OPTIMIZATION': { primary: 'hermes_3_405b', fallbacks: ['gpt_oss_120b', 'hy3_preview'] },
-    'S12_PACKAGE_ASSEMBLY': { primary: 'minimax_m25', fallbacks: ['qwen3_coder', 'hy3_preview'] },
-    'S13_VALIDATION': { primary: 'gpt_oss_120b', fallbacks: ['nemotron_3_super', 'hy3_preview'] },
-    'S14_FINAL_FORMATTING': { primary: 'qwen3_coder', fallbacks: ['minimax_m25', 'lfm_25_12b'] },
-    'S15_OUTREACH_ASSET_CREATION': { primary: 'hermes_3_405b', fallbacks: ['hy3_preview', 'minimax_m25'] },
-    'S16_CAMPAIGN_LOG_LEARNING_LOOP': { primary: 'gpt_oss_120b', fallbacks: ['hy3_preview', 'nemotron_3_super'] }
+    'S1_CAMPAIGN_INTAKE': { primary: 'nemotron_3_ultra', fallbacks: ['nemotron_3_super', 'gpt_oss_120b'] },
+    'S2_DATA_EXTRACTION': { primary: 'nemotron_3_super', fallbacks: ['gpt_oss_120b', 'gemma_4_31b'] },
+    'S3_RESEARCH_ENRICHMENT': { primary: 'nemotron_3_super', fallbacks: ['nemotron_3_ultra', 'qwen3_coder'] },
+    'S4A_DATA_RESEARCH_ANALYST': { primary: 'gpt_oss_120b', fallbacks: ['nemotron_3_super', 'nemotron_3_ultra'] },
+    'S4B_INSIGHT_ANALYST': { primary: 'gpt_oss_120b', fallbacks: ['nemotron_3_super', 'nemotron_3_ultra'] },
+    'S5A_RAW_ANGLES': { primary: 'nemotron_3_ultra', fallbacks: ['hermes_3_405b', 'gpt_oss_120b'] },
+    'S5B_JOURNALIST_FRAMED_ANGLES': { primary: 'hermes_3_405b', fallbacks: ['minimax_m25', 'gpt_oss_120b'] },
+    'S5_ANGLE_GENERATION': { primary: 'nemotron_3_ultra', fallbacks: ['hermes_3_405b', 'gpt_oss_120b'] },
+    'S6_BEAT_MATCHING': { primary: 'nemotron_3_nano_30b', fallbacks: ['nemotron_3_super', 'gpt_oss_120b'] },
+    'S7_PITCH_SELECTION_HUMAN_GATE': { primary: 'gpt_oss_120b', fallbacks: ['nemotron_3_ultra', 'nemotron_3_super'] },
+    'S8A_JOURNALIST_COLLECTION': { primary: 'nemotron_3_nano_30b', fallbacks: ['nemotron_3_super', 'qwen3_coder'] },
+    'S8B_JOURNALIST_RELEVANCE_FILTER': { primary: 'nemotron_3_nano_30b', fallbacks: ['nemotron_3_super', 'gpt_oss_120b'] },
+    'S8_JOURNALIST_COLLECTION': { primary: 'nemotron_3_nano_30b', fallbacks: ['nemotron_3_super', 'qwen3_coder'] },
+    'S9_JOURNALIST_INTELLIGENCE': { primary: 'nemotron_3_super', fallbacks: ['gpt_oss_120b', 'minimax_m25'] },
+    'S10_PITCH_DRAFTING': { primary: 'minimax_m25', fallbacks: ['hermes_3_405b', 'gpt_oss_120b'] },
+    'S11_PITCH_OPTIMIZATION': { primary: 'hermes_3_405b', fallbacks: ['minimax_m25', 'gpt_oss_120b'] },
+    'S12_PACKAGE_ASSEMBLY': { primary: 'minimax_m25', fallbacks: ['qwen3_coder', 'hermes_3_405b'] },
+    'S13_VALIDATION': { primary: 'gpt_oss_120b', fallbacks: ['nemotron_3_ultra', 'qwen3_coder'] },
+    'S14_FINAL_FORMATTING': { primary: 'qwen3_coder', fallbacks: ['minimax_m25', 'hermes_3_405b'] },
+    'S15_OUTREACH_ASSET_CREATION': { primary: 'minimax_m25', fallbacks: ['hermes_3_405b', 'gpt_oss_120b'] },
+    'S16_CAMPAIGN_LOG_LEARNING_LOOP': { primary: 'nemotron_3_ultra', fallbacks: ['gpt_oss_120b', 'nemotron_3_super'] }
   };
 
   Object.entries(stageRoutingMap).forEach(([stageId, expected]) => {
@@ -450,5 +414,60 @@ describe('All Stage Routing Verification', () => {
     it(`${stageId} should have correct fallbacks`, () => {
       expect(getFallbacksForStage(stageId)).toEqual(expected.fallbacks);
     });
+  });
+});
+
+// =============================================================================
+// ROUTE KEY EXISTENCE REGRESSION TEST
+// =============================================================================
+
+describe('Campaign Stage Route Key Existence', () => {
+  const requiredStageKeys = [
+    'S1_CAMPAIGN_INTAKE',
+    'S2_DATA_EXTRACTION',
+    'S3_RESEARCH_ENRICHMENT',
+    'S4A_DATA_RESEARCH_ANALYST',
+    'S4B_INSIGHT_ANALYST',
+    'S5A_RAW_ANGLES',
+    'S5B_JOURNALIST_FRAMED_ANGLES',
+    'S5_ANGLE_GENERATION',
+    'S6_BEAT_MATCHING',
+    'S7_PITCH_SELECTION_HUMAN_GATE',
+    'S8A_JOURNALIST_COLLECTION',
+    'S8B_JOURNALIST_RELEVANCE_FILTER',
+    'S8_JOURNALIST_COLLECTION',
+    'S9_JOURNALIST_INTELLIGENCE',
+    'S10_PITCH_DRAFTING',
+    'S11_PITCH_OPTIMIZATION',
+    'S12_PACKAGE_ASSEMBLY',
+    'S13_VALIDATION',
+    'S14_FINAL_FORMATTING',
+    'S15_OUTREACH_ASSET_CREATION',
+    'S16_CAMPAIGN_LOG_LEARNING_LOOP',
+  ];
+
+  it('campaignStageRouting should contain exactly the 21 required keys', () => {
+    const actual = Object.keys(CAMPAIGN_STAGE_ROUTING).sort();
+    const expected = [...requiredStageKeys].sort();
+    expect(new Set(actual)).toEqual(new Set(expected));
+  });
+
+  it('no campaign stage should route to an undefined primary model', () => {
+    for (const stageId of requiredStageKeys) {
+      const primary = getModelForStage(stageId);
+      expect(primary).toBeDefined();
+      expect(typeof primary).toBe('string');
+      expect(primary).not.toBeNull();
+      expect(primary?.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('no campaign stage should reference an undefined model in routing', () => {
+    for (const stageId of requiredStageKeys) {
+      const routing = CAMPAIGN_STAGE_ROUTING[stageId];
+      expect(routing).toBeDefined();
+      expect(routing.primary).toBeDefined();
+      expect(MODEL_CONFIG[routing.primary]).toBeDefined();
+    }
   });
 });

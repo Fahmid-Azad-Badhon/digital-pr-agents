@@ -146,41 +146,31 @@ function validateModelRestrictions(
     }
   }
   
-  // Riverflow V2: Only visual generation
-  if (modelKey === 'riverflow_v2') {
-    const allowedCases = ['visual_generation', 'image_editing'];
-    if (!allowedCases.includes(useCase)) {
-      return { 
-        allowed: false, 
-        reason: 'Riverflow V2 can only be used for visual_generation or image_editing tasks.' 
-      };
-    }
-  }
-  
-  // Nemotron 3 Nano Omni: Only multimodal input
-  if (modelKey === 'nemotron_3_nano_omni') {
+  // Gemma 4 31B: Only multimodal/document understanding
+  if (modelKey === 'gemma_4_31b') {
     const allowedInputs = ['image', 'screenshot', 'chart', 'video', 'audio', 'visual_document'];
+    const allowedCases = ['multimodal_input_extraction', 'image_extraction', 'screenshot_extraction', 'chart_extraction', 'chart_image_interpretation', 'document_understanding'];
     if (inputType && !allowedInputs.includes(inputType)) {
       return { 
         allowed: false, 
-        reason: `Nemotron 3 Nano Omni can only process: ${allowedInputs.join(', ')}. Got: ${inputType}` 
+        reason: `Gemma 4 31B can only process: ${allowedInputs.join(', ')}. Got: ${inputType}`
       };
     }
-    if (!inputType) {
+    if (!allowedCases.includes(useCase)) {
       return { 
         allowed: false, 
-        reason: 'Nemotron 3 Nano Omni requires inputType to be specified (image, screenshot, chart, video, audio, or visual_document)' 
+        reason: `Gemma 4 31B can only be used for: ${allowedCases.join(', ')}. Cannot use for: ${useCase}`
       };
     }
   }
   
-  // LFM 2.5-1.2B: Only fast utility
-  if (modelKey === 'lfm_25_12b') {
-    const allowedCases = ['fast_cleanup', 'simple_classification', 'deduplication', 'formatting', 'short_summary', 'tagging'];
+  // Nemotron 3 Nano 30B: Only fast prefilter/utility
+  if (modelKey === 'nemotron_3_nano_30b') {
+    const allowedCases = ['bulk_classification', 'prefiltering', 'relevance_filtering', 'low_cost_checks', 'deduplication', 'simple_classification', 'short_summary'];
     if (!allowedCases.includes(useCase)) {
       return { 
         allowed: false, 
-        reason: `LFM 2.5-1.2B can only be used for: ${allowedCases.join(', ')}. Cannot use for: ${useCase}` 
+        reason: `Nemotron 3 Nano 30B can only be used for: ${allowedCases.join(', ')}. Cannot use for: ${useCase}`
       };
     }
   }
@@ -600,7 +590,7 @@ export async function runDashboardAI(
     const isPrimary = i === 0;
     
     // Skip visual model for non-visual features
-    if (modelKey === 'riverflow_v2' && featureId !== 'dashboard_visual_mode' && featureId !== 'dashboard_visual_asset_generation') {
+    if (modelKey === 'gemma_4_31b' && featureId !== 'dashboard_multimodal_mode' && featureId !== 'dashboard_visual_asset_generation' && featureId !== 'chart_image_interpretation') {
       continue;
     }
     

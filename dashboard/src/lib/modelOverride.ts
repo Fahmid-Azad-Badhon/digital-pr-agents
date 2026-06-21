@@ -49,7 +49,7 @@ export function applyManualOverride(
   
   const modelConfig = SYSTEM_MODELS[requestedModel];
   
-  if (!modelConfig.enabledInProductionWorkflow && requestedModel !== 'big_pickle') {
+  if (!modelConfig.enabledInProductionWorkflow) {
     return {
       success: false,
       effectiveModel: stageRouting.primary,

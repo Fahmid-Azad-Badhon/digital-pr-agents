@@ -7,7 +7,7 @@
   "prompts": [
     {
       "id": "orchestrator_strategy_v1",
-      "model": "hy3_preview",
+      "model": "nemotron_3_ultra",
       "useCase": "orchestration",
       "version": "1.0.0",
       "createdAt": "2026-05-01",
@@ -61,49 +61,37 @@
       "maxTokens": 4096
     },
     {
-      "id": "fast_utility_v1",
-      "model": "lfm_25_12b",
-      "useCase": "fast_cleanup",
+      "id": "fast_prefilter_v1",
+      "model": "nemotron_3_nano_30b",
+      "useCase": "fast_utility",
       "version": "1.0.0",
       "createdAt": "2026-05-01",
-      "description": "Fast utility tasks - cleanup, formatting, simple classification",
-      "promptText": "You are a fast utility assistant. Perform simple text cleanup, basic classification, deduplication, formatting, short summaries, and tagging tasks. Be quick and accurate.",
+      "description": "Fast utility tasks - prefiltering, classification, deduplication",
+      "promptText": "You are a fast utility assistant. Perform bulk classification, prefiltering, relevance filtering, deduplication, and simple classification tasks. Be quick and accurate.",
       "variables": ["inputText", "taskType"],
       "maxTokens": 2048
     },
     {
-      "id": "multimodal_input_v1",
-      "model": "nemotron_3_nano_omni",
+      "id": "multimodal_document_v1",
+      "model": "gemma_4_31b",
       "useCase": "multimodal_input_extraction",
       "version": "1.0.0",
       "createdAt": "2026-05-01",
-      "description": "Multimodal input extraction - images, charts, screenshots",
-      "promptText": "You are a multimodal extraction specialist. Analyze images, charts, screenshots, and other visual assets. Extract structured data, text, and insights from visual inputs.",
+      "description": "Multimodal document understanding - images, charts, screenshots, documents",
+      "promptText": "You are a multimodal document understanding specialist. Analyze images, charts, screenshots, and other visual assets. Extract structured data, text, and insights from visual inputs.",
       "variables": ["imageData", "extractionType"],
       "maxTokens": 4096
     },
     {
-      "id": "visual_generation_v1",
-      "model": "riverflow_v2",
-      "useCase": "visual_generation",
+      "id": "strict_formatting_v1",
+      "model": "qwen3_coder",
+      "useCase": "strict_formatting",
       "version": "1.0.0",
       "createdAt": "2026-05-01",
-      "description": "Visual asset generation - images, graphics, social cards",
-      "promptText": "You are an expert visual content generator. Create compelling images, graphics, and visual assets for PR campaigns. Generate on-brand visuals for social cards, report graphics, and campaign materials.",
-      "variables": ["campaignId", "assetType", "visualDescription", "brandGuidelines"],
-      "maxTokens": 1024
-    },
-    {
-      "id": "experimental_debugging_v1",
-      "model": "big_pickle",
-      "useCase": "experimental_debugging",
-      "version": "1.0.0",
-      "createdAt": "2026-05-01",
-      "description": "Experimental debugging and testing (NOT FOR PRODUCTION)",
-      "promptText": "You are an experimental assistant for debugging and testing purposes. Use only in development/test environments. Perform experimental tasks as specified.",
-      "variables": ["taskDescription"],
-      "maxTokens": 2048,
-      "productionUse": false
+      "description": "Strict formatting - JSON, schema, markdown cleanup",
+      "promptText": "You are a strict formatting specialist. Perform JSON schema cleanup, markdown cleanup, and file structure cleanup. Ensure outputs meet exact formatting requirements.",
+      "variables": ["inputContent", "formatType"],
+      "maxTokens": 2048
     }
   ],
   "systemPrompts": [
@@ -119,7 +107,7 @@
       "version": "1.0.0",
       "createdAt": "2026-05-01",
       "promptText": "This workflow includes human approval checkpoints. At S7_PITCH_SELECTION_HUMAN_GATE, you must present options clearly and wait for human decision before proceeding.",
-      "appliesTo": ["hy3_preview", "gpt_oss_120b", "nemotron_3_super"]
+      "appliesTo": ["nemotron_3_ultra", "gpt_oss_120b", "nemotron_3_super"]
     },
     {
       "id": "fallback_aware_v1",

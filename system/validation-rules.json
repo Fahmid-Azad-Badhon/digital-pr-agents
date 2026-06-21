@@ -135,15 +135,13 @@
   "modelSelectionValidation": {
     "enforceRoleRestrictions": true,
     "enforceFallbackChain": true,
-    "enforceProductionBlacklist": ["big_pickle"],
+    "enforceProductionBlacklist": [],
     "validationRules": [
       "Primary model MUST have the role that matches the stage/feature",
       "Fallback models MUST exist and be different from primary",
       "All campaign stages MUST have at least one fallback model",
-      "big_pickle MUST NOT be used in production workflow",
-      "lfm_25_12b MUST NOT be used for reasoning/judgment tasks",
-      "riverflow_v2 MUST NOT be used for any text tasks",
-      "nemotron_3_nano_omni MUST ONLY be used for multimodal extraction"
+      "nemotron_3_nano_30b MUST NOT be used for reasoning/judgment tasks",
+      "gemma_4_31b MUST ONLY be used for multimodal/document understanding tasks"
     ]
   },
   "outputQualityRules": {

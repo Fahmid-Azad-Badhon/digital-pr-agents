@@ -358,13 +358,13 @@ export async function GET() {
     ],
     routing: {
       default: 'gpt_oss_120b',
-      fast: 'lfm_25_12b',
-      strategy: 'hy3_preview',
+      fast: 'nemotron_3_nano_30b',
+      strategy: 'nemotron_3_ultra',
       research: 'nemotron_3_super',
       writing: 'minimax_m25',
       editorial: 'hermes_3_405b',
-      multimodal: 'nemotron_3_nano_omni',
-      visual: 'riverflow_v2'
+      multimodal: 'gemma_4_31b',
+      visual: 'gemma_4_31b'
     }
   });
 }

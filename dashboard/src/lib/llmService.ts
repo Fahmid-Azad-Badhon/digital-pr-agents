@@ -2,8 +2,8 @@
  * LLM Service with Smart Error Classification
  * 
  * Model Priority (configured for Digital PR):
- * 1. Primary: Nemotron 3 Super (FREE via OpenRouter)
- * 2. Quality Gate: GPT-5.5 Thinking (OpenAI - requires key)
+ * 1. Primary: Nemotron 3 Ultra (FREE via OpenRouter)
+ * 2. Quality Gate: GPT-OSS-120B (FREE via OpenRouter)
  * 3. Fallback: MiniMax M2.5 (FREE via OpenRouter)
  * 
  * Smart Error Handling:
@@ -35,9 +35,9 @@ interface ErrorClassification {
 }
 
 const MODEL_CONFIG: LLMConfig[] = [
-  { role: 'Primary', model: 'nvidia/nemotron-3-super-8b', status: 'free' },      // FREE via OpenRouter
-  { role: 'Quality Gate', model: 'openai/gpt-5.5-thinking', status: 'requires-key' },
-  { role: 'Fallback', model: 'minimax/minimax-m2.5:free', status: 'free' }        // FREE via OpenRouter
+  { role: 'Primary', model: 'nvidia/nemotron-3-ultra-550b-a55b:free', status: 'free' },       // FREE via OpenRouter
+  { role: 'Quality Gate', model: 'openai/gpt-oss-120b:free', status: 'free' },                 // FREE via OpenRouter
+  { role: 'Fallback', model: 'minimax/minimax-m2.5:free', status: 'free' }                     // FREE via OpenRouter
 ];
 
 // =============================================================================
