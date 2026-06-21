@@ -8,6 +8,7 @@
 
 import { fail, ok } from '@/lib/apiResponse';
 import { resolveCampaignPath } from '@/lib/requestGuard';
+import { getPromptVersionForRoute } from '@/lib/promptVersionResolver';
 import fs from 'fs/promises';
 import path from 'path';
 import {
@@ -150,13 +151,17 @@ export async function POST(
           return fail('INVALID_REPLAY_INPUT', 'stageId, replayType, rerunReason, and triggeredBy are required.', { status: 400 });
         }
         
+        const resolvedPromptVersion = promptVersion === undefined
+          ? getPromptVersionForRoute(stageId)
+          : promptVersion;
+
         const replayRequest: ReplayRequest = {
           campaignSlug,
           stageId,
           replayType,
           rerunReason,
           triggeredBy,
-          promptVersion,
+          promptVersion: resolvedPromptVersion,
           brainVersion,
           modelOverride
         };
