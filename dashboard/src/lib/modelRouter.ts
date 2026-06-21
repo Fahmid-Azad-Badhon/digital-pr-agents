@@ -17,6 +17,7 @@
  */
 
 import { validateLLMOutput } from '@/lib/llmStageValidator';
+import { getPromptVersionForRoute } from '@/lib/promptVersionResolver';
 
 import routingConfig, {
   CAMPAIGN_STAGE_ROUTING,
@@ -771,6 +772,24 @@ export function stageRequiresHumanApproval(stageId: string): boolean {
 }
 
 // =============================================================================
+// PROMPT VERSION ACCESSORS
+// =============================================================================
+
+/**
+ * Get the prompt version for a campaign stage
+ */
+export function getPromptVersionForStage(stageId: string): string | null {
+  return getPromptVersionForRoute(stageId);
+}
+
+/**
+ * Get the prompt version for a dashboard feature
+ */
+export function getPromptVersionForDashboardFeature(featureId: string): string | null {
+  return getPromptVersionForRoute(featureId);
+}
+
+// =============================================================================
 // EXPORTS
 // =============================================================================
 
@@ -801,5 +820,9 @@ export default {
   getAllAvailableModels,
   getModelsByRole,
   getStageRoutingInfo,
-  stageRequiresHumanApproval
+  stageRequiresHumanApproval,
+
+  // Prompt version accessors
+  getPromptVersionForStage,
+  getPromptVersionForDashboardFeature
 };
