@@ -38,33 +38,6 @@ export interface ModelPerformanceAggregate {
 
 const PERFORMANCE_LOG_PATH = path.join(DATA_ROOT, 'model-performance.json');
 
-export async function logModelPerformance(entry: Omit<ModelPerformanceEntry, 'id' | 'timestamp'>): Promise<void> {
-  const fullEntry: ModelPerformanceEntry = {
-    ...entry,
-    id: crypto.randomUUID(),
-    timestamp: new Date().toISOString()
-  };
-
-  let existingLogs: ModelPerformanceEntry[] = [];
-  
-  try {
-    const content = await fs.readFile(PERFORMANCE_LOG_PATH, 'utf-8');
-    existingLogs = JSON.parse(content);
-  } catch {
-    existingLogs = [];
-  }
-
-  existingLogs.push(fullEntry);
-  
-  // Keep last 1000 entries
-  if (existingLogs.length > 1000) {
-    existingLogs = existingLogs.slice(-1000);
-  }
-
-  await fs.mkdir(path.dirname(PERFORMANCE_LOG_PATH), { recursive: true });
-  await fs.writeFile(PERFORMANCE_LOG_PATH, JSON.stringify(existingLogs, null, 2));
-}
-
 export async function getModelPerformanceByModel(modelKey: string): Promise<ModelPerformanceAggregate | null> {
   try {
     const content = await fs.readFile(PERFORMANCE_LOG_PATH, 'utf-8');
