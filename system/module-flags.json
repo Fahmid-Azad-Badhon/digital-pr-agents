@@ -71,7 +71,6 @@
     "filePermissions": "active",
     "schemaOwnership": "active",
     "runtimeHealthCheck": "active",
-    "legacyCampaignAdapter": "active",
     "driftDetector": "active",
     "agentLogicConditionEngine": "active"
   },
