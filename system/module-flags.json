@@ -10,8 +10,7 @@
         "stageOutputRegistry",
         "filePermissions",
         "schemaOwnership",
-        "runtimeHealthCheck",
-        "agentLogicConditionEngine"
+        "runtimeHealthCheck"
       ],
       "stages": ["S0", "S1", "S2", "S3", "S4A", "S4B", "S5", "S6", "S7", "S8", "S9", "S10", "S11", "S12", "S13"]
     },
@@ -71,8 +70,7 @@
     "filePermissions": "active",
     "schemaOwnership": "active",
     "runtimeHealthCheck": "active",
-    "driftDetector": "active",
-    "agentLogicConditionEngine": "active"
+    "driftDetector": "active"
   },
   "activationRules": [
     "V2 modules cannot activate until all V1 modules are stable.",
