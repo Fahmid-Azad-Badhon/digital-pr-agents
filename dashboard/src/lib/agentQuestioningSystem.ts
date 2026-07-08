@@ -199,36 +199,6 @@ async function loadRoutingRules() {
   }
 }
 
-async function loadIssueTypes() {
-  const issuePath = path.join(SYSTEM_DIR, 'question-issue-types.json');
-  try {
-    const data = await fs.readFile(issuePath, 'utf-8');
-    return JSON.parse(data);
-  } catch {
-    return { issueTypes: [] };
-  }
-}
-
-async function loadPriorityRules() {
-  const priorityPath = path.join(SYSTEM_DIR, 'question-priority-rules.json');
-  try {
-    const data = await fs.readFile(priorityPath, 'utf-8');
-    return JSON.parse(data);
-  } catch {
-    return { priorityRules: [] };
-  }
-}
-
-async function loadContracts() {
-  const contractsPath = path.join(SYSTEM_DIR, 'question-answer-contracts.json');
-  try {
-    const data = await fs.readFile(contractsPath, 'utf-8');
-    return JSON.parse(data);
-  } catch {
-    return { contracts: [] };
-  }
-}
-
 // =============================================================================
 // QUESTION CREATION
 // =============================================================================

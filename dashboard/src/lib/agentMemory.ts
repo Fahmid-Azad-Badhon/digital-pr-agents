@@ -10,9 +10,9 @@
  */
 
 import type { AgentId } from '@/types/agentBrain';
-import type { Campaign, WorkflowStage } from '@/types';
+import type { Campaign } from '@/types';
 import { AGENT_BRAIN_REGISTRY, type AgentBrainRegistryEntry } from '@/data/agentBrainRegistry';
-import { DEFAULT_MEMORY_CONTRACTS, type AgentMemoryContract } from '@/types/agentMemory';
+import { DEFAULT_MEMORY_CONTRACTS } from '@/types/agentMemory';
 
 /**
  * Build a complete AgentContextPackage for an agent execution

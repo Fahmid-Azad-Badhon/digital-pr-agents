@@ -102,7 +102,6 @@ export async function runScriptAction(
   const commandDisplay = `${spec.fileName} ${args.join(' ')}`.trim();
 
   return await new Promise((resolve, reject) => {
-    const cmdExe = process.env.ComSpec || 'cmd.exe';
     const child = spawn(`"${scriptPath}"`, args, {
       cwd: REPO_ROOT,
       env: process.env,

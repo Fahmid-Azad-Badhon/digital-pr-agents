@@ -62,7 +62,7 @@ interface ValidationResult {
 export function validateJsonOutput(output: string, schema: z.ZodSchema<unknown>): ValidationResult {
   try {
     const parsed = JSON.parse(output);
-    const validated = schema.parse(parsed);
+    schema.parse(parsed);
     return { valid: true, errors: [], warnings: [] };
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -494,7 +494,7 @@ export async function resumeWorkflowFromS8(
 // EXPORTS
 // =============================================================================
 
-export default {
+const stageExecutorExports = {
   loadStagePrompt,
   validateJsonOutput,
   validateMarkdownSections,
@@ -506,3 +506,5 @@ export default {
   executeStage,
   resumeWorkflowFromS8
 };
+
+export default stageExecutorExports;

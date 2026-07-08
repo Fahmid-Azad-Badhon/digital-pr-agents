@@ -26,7 +26,6 @@ import path from 'path';
 // CONFIGURATION & PATHS - Windows Compatible
 // ============================================================================
 
-const WORKFLOW_ROOT = process.env.ROOT_PATH || 'D:\\Codex Folder\\digital-pr-agents';
 const DASHBOARD_DATA = path.join(__dirname, '..', '..', 'data');
 const CAMPAIGNS_JSON = path.join(DASHBOARD_DATA, 'campaigns.json');
 const LOGS_DIR = path.join(DASHBOARD_DATA, 'logs');
@@ -237,7 +236,7 @@ async function loadDatabase(): Promise<void> {
       logs: parsed.logs || [],
       artifacts: parsed.artifacts || [],
     };
-  } catch (err) {
+  } catch {
     console.warn('No existing database found, starting fresh');
     dbState = { campaigns: [], stages: [], gates: [], logs: [], artifacts: [] };
   }
@@ -685,7 +684,7 @@ export async function getWorkflowProgress(campaignId: string): Promise<{
 // EXPORT FOR OTHER MODULES
 // ============================================================================
 
-export default {
+const db = {
   initDatabase,
   createCampaign,
   getAllCampaigns,
@@ -707,3 +706,5 @@ export default {
   STAGE_DEFINITIONS,
   DEFAULT_STAGES,
 };
+
+export default db;

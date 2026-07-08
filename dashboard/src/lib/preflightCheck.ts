@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { SYSTEM_MODELS, SYSTEM_STAGE_ROUTING, STAGE_CONTRACTS } from './systemConfigLoader';
 import { PITCH_JOBS_ROOT, DATA_ROOT, LOGS_ROOT } from '@/lib/requestGuard';
 
@@ -20,20 +22,36 @@ export interface PreFlightCheck {
 }
 
 export async function runPreFlightChecks(campaignId?: string): Promise<PreFlightCheckResult> {
-  // Simplified: Just return success for campaign creation
-  // Full checks can run when campaign workflow starts
+  const allChecks: PreFlightCheck[] = [];
+
+  allChecks.push(await checkApiKeys());
+  allChecks.push(checkModelIds());
+  allChecks.push(checkRequiredFolders());
+  allChecks.push(checkDashboardConnection());
+  allChecks.push(checkAuditLogging());
+  allChecks.push(checkS7HumanGate());
+  allChecks.push(checkS13Validation());
+
+  if (campaignId) {
+    allChecks.push(checkCampaignBrief(campaignId));
+    allChecks.push(checkPrimaryDataSource(campaignId));
+  }
+
+  const failedCritical = allChecks.filter(c => c.status === 'fail' && c.severity === 'critical');
+  const failedWarning = allChecks.filter(c => c.status === 'fail' && c.severity === 'warning');
+  const warnings = allChecks.filter(c => c.status === 'warning');
+
   return {
-    passed: true,
-    checks: [],
-    failedCriticalCount: 0,
-    failedWarningCount: 0,
-    canProceed: true,
-    blockReason: undefined
+    passed: failedCritical.length === 0,
+    checks: allChecks,
+    failedCriticalCount: failedCritical.length,
+    failedWarningCount: failedWarning.length + warnings.length,
+    canProceed: failedCritical.length === 0,
+    blockReason: failedCritical.length > 0 ? failedCritical[0].message : undefined
   };
 }
 
 async function checkApiKeys(): Promise<PreFlightCheck> {
-  // Don't fail on missing API keys - just warn. Keys may be provided at runtime.
   return {
     category: 'Configuration',
     check: 'API Keys Available',
@@ -82,11 +100,7 @@ function checkModelIds(): PreFlightCheck {
   };
 }
 
-function checkRequiredFolders(campaignId?: string): PreFlightCheck {
-  const fs = require('fs');
-  const path = require('path');
-  
-  // Only check ROOT folders - not campaign-specific folders (those get created)
+function checkRequiredFolders(): PreFlightCheck {
   const requiredPaths = [
     PITCH_JOBS_ROOT,
     DATA_ROOT,
@@ -94,7 +108,7 @@ function checkRequiredFolders(campaignId?: string): PreFlightCheck {
   ];
 
   const missingFolders: string[] = [];
-  
+
   for (const p of requiredPaths) {
     try {
       if (!fs.existsSync(p)) {
@@ -122,16 +136,13 @@ function checkRequiredFolders(campaignId?: string): PreFlightCheck {
     status: 'pass',
     severity: 'info',
     message: 'All required system folders present',
-    details: `Verified: pitch-jobs, data, logs`
+    details: 'Verified: pitch-jobs, data, logs'
   };
 }
 
 function checkCampaignBrief(campaignId: string): PreFlightCheck {
-  const fs = require('fs');
-  const path = require('path');
-  
   const briefPath = path.join(PITCH_JOBS_ROOT, campaignId, '00-brief.md');
-  
+
   try {
     if (!fs.existsSync(briefPath)) {
       return {
@@ -163,24 +174,21 @@ function checkCampaignBrief(campaignId: string): PreFlightCheck {
       severity: 'critical',
       message: 'Campaign brief is present and valid'
     };
-  } catch (error) {
+  } catch {
     return {
       category: 'Campaign Data',
       check: 'Campaign Brief Present',
       status: 'fail',
       severity: 'critical',
-      message: `Error checking brief: ${error}`,
+      message: 'Error checking brief',
       details: 'Ensure brief file is readable'
     };
   }
 }
 
 function checkPrimaryDataSource(campaignId: string): PreFlightCheck {
-  const fs = require('fs');
-  const path = require('path');
-  
   const sourcePath = path.join(PITCH_JOBS_ROOT, campaignId, 'source-files');
-  
+
   try {
     if (!fs.existsSync(sourcePath)) {
       return {
@@ -212,20 +220,20 @@ function checkPrimaryDataSource(campaignId: string): PreFlightCheck {
       severity: 'info',
       message: `Found ${files.length} source file(s)`
     };
-  } catch (error) {
+  } catch {
     return {
       category: 'Campaign Data',
       check: 'Primary Data Source Present',
       status: 'warning',
       severity: 'warning',
-      message: `Error checking source: ${error}`
+      message: 'Error checking source'
     };
   }
 }
 
 function checkDashboardConnection(): PreFlightCheck {
   try {
-    const { initDatabase } = require('./db');
+    require('./db');
     return {
       category: 'Dashboard',
       check: 'Dashboard Connected',
@@ -233,24 +241,21 @@ function checkDashboardConnection(): PreFlightCheck {
       severity: 'critical',
       message: 'Dashboard module available (initDatabase exported)'
     };
-  } catch (error) {
+  } catch {
     return {
       category: 'Dashboard',
       check: 'Dashboard Connected',
       status: 'fail',
       severity: 'critical',
-      message: `Dashboard module not available: ${error}`,
+      message: 'Dashboard module not available',
       details: 'Ensure db.ts is properly configured'
     };
   }
 }
 
 function checkAuditLogging(): PreFlightCheck {
-  const fs = require('fs');
-  const path = require('path');
-  
   const logPath = LOGS_ROOT;
-  
+
   try {
     if (!fs.existsSync(logPath)) {
       fs.mkdirSync(logPath, { recursive: true });
@@ -267,13 +272,13 @@ function checkAuditLogging(): PreFlightCheck {
       severity: 'critical',
       message: 'Audit logging directory is writable'
     };
-  } catch (error) {
+  } catch {
     return {
       category: 'Audit',
       check: 'Audit Logging Working',
       status: 'fail',
       severity: 'critical',
-      message: `Audit logging check failed: ${error}`,
+      message: 'Audit logging check failed',
       details: 'Ensure logs/ directory is writable'
     };
   }
@@ -282,9 +287,9 @@ function checkAuditLogging(): PreFlightCheck {
 function checkS7HumanGate(): PreFlightCheck {
   const s7Config = SYSTEM_STAGE_ROUTING['S7_PITCH_SELECTION_HUMAN_GATE'];
   const s7Contract = STAGE_CONTRACTS?.['S7_PITCH_SELECTION_HUMAN_GATE'];
-  
+
   const isEnabled = s7Config?.requiresHumanApproval || s7Contract?.humanApprovalRequired;
-  
+
   if (!isEnabled) {
     return {
       category: 'Workflow',
@@ -308,9 +313,9 @@ function checkS7HumanGate(): PreFlightCheck {
 function checkS13Validation(): PreFlightCheck {
   const s13Config = SYSTEM_STAGE_ROUTING['S13_VALIDATION'];
   const s13Contract = STAGE_CONTRACTS?.['S13_VALIDATION'];
-  
+
   const isEnabled = s13Config?.requiresHumanApproval || s13Contract?.humanApprovalRequired;
-  
+
   if (!isEnabled) {
     return {
       category: 'Workflow',
@@ -333,25 +338,23 @@ function checkS13Validation(): PreFlightCheck {
 
 export function formatPreFlightReport(result: PreFlightCheckResult): string {
   const lines: string[] = [];
-  
+
   lines.push('═══════════════════════════════════════════════════════════');
   lines.push('                    PRE-FLIGHT CHECK REPORT');
   lines.push('═══════════════════════════════════════════════════════════');
   lines.push('');
-  
+
   if (result.passed) {
     lines.push('✅ ALL CHECKS PASSED - Ready to proceed');
   } else {
     lines.push('❌ PRE-FLIGHT FAILED - Cannot start campaign');
   }
   lines.push('');
-  
-  // Summary
+
   lines.push(`Critical Failures: ${result.failedCriticalCount}`);
   lines.push(`Warnings: ${result.failedWarningCount}`);
   lines.push('');
-  
-  // Detailed checks by category
+
   const byCategory = result.checks.reduce((acc, check) => {
     if (!acc[check.category]) acc[check.category] = [];
     acc[check.category].push(check);
@@ -360,7 +363,7 @@ export function formatPreFlightReport(result: PreFlightCheckResult): string {
 
   for (const [category, categoryChecks] of Object.entries(byCategory)) {
     lines.push(`─── ${category} ───`);
-    
+
     for (const check of categoryChecks) {
       const icon = check.status === 'pass' ? '✅' : check.status === 'fail' ? '❌' : '⚠️';
       const severity = check.severity.toUpperCase();

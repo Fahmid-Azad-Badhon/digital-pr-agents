@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { FileText, Database, CheckCircle, AlertCircle, Loader2, Brain, TrendingUp, Quote, Users, MapPin, FileWarning } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { FileText, Database, CheckCircle, AlertCircle, Loader2, Brain, TrendingUp, Users, FileWarning } from 'lucide-react'
 import Link from 'next/link'
 import StageHeader from '@/components/StageHeader'
 import { useData } from '@/context/DataContext'
@@ -146,7 +146,7 @@ export default function DataExtractionPage() {
         updateStage(2, { status: 'running', progress: 0, startedAt: new Date().toISOString() })
       }
     }
-  }, [currentCampaign?.id])
+  }, [currentCampaign, updateCampaign, updateStage])
 
   // Get study extraction stage status
   useEffect(() => {
@@ -162,7 +162,7 @@ export default function DataExtractionPage() {
   }, [currentCampaign, stages])
 
   // Load all data from files and build internal map
-  const loadAllData = async () => {
+  const loadAllData = useCallback(async () => {
     if (!currentCampaign) return
     
     setLoading(true)
@@ -293,14 +293,14 @@ export default function DataExtractionPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentCampaign])
 
   // Load data when campaign changes
   useEffect(() => {
     if (currentCampaign) {
       loadAllData()
     }
-  }, [currentCampaign])
+  }, [currentCampaign, loadAllData])
 
   // Run extraction
   const runExtraction = async () => {

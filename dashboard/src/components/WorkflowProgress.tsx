@@ -36,7 +36,7 @@ interface WorkflowProgressProps {
 
 export default function WorkflowProgress({
   stages,
-  currentStage,
+  currentStage: _currentStage,
   onStageClick,
   showDuration = true,
   compact = false

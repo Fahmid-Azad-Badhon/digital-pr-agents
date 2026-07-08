@@ -12,7 +12,7 @@
  * =============================================================================
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import {
   getModelForStage,
   getFallbacksForStage,
@@ -23,9 +23,7 @@ import {
   getStageRoutingInfo,
   stageRequiresHumanApproval,
   getAllAvailableModels,
-  runStageWithFallback,
   getModelRunLogs,
-  runDashboardAI,
   logModelRun
 } from '../lib/modelRouter';
 import {
@@ -284,8 +282,6 @@ describe('Model Restrictions - Gemma 4 31B', () => {
 
 describe('Fallback Chain Logic', () => {
   it('should try primary first, then fallbacks', async () => {
-    const logs: string[] = [];
-    
     // This tests the fallback order - primary should be tried first
     const models = getModelsToTryForStage('S1_CAMPAIGN_INTAKE');
     expect(models[0]).toBe('nemotron_3_ultra'); // primary
@@ -344,27 +340,27 @@ describe('Available Models', () => {
 
 describe('Configuration Integrity', () => {
   it('all stage routings should have primary model defined', () => {
-    Object.entries(CAMPAIGN_STAGE_ROUTING).forEach(([stageId, config]) => {
+    Object.entries(CAMPAIGN_STAGE_ROUTING).forEach(([_stageId, config]) => {
       expect(config.primary).toBeDefined();
       expect(config.primary).not.toBe('');
     });
   });
 
   it('all stage routings should have at least one fallback', () => {
-    Object.entries(CAMPAIGN_STAGE_ROUTING).forEach(([stageId, config]) => {
+    Object.entries(CAMPAIGN_STAGE_ROUTING).forEach(([_stageId, config]) => {
       expect(config.fallback1).toBeDefined();
     });
   });
 
   it('all dashboard features should have primary model defined', () => {
-    Object.entries(DASHBOARD_ROUTING).forEach(([featureId, config]) => {
+    Object.entries(DASHBOARD_ROUTING).forEach(([_featureId, config]) => {
       expect(config.primary).toBeDefined();
       expect(config.primary).not.toBe('');
     });
   });
 
   it('model config should have required fields', () => {
-    Object.entries(MODEL_CONFIG).forEach(([key, config]) => {
+    Object.entries(MODEL_CONFIG).forEach(([_key, config]) => {
       expect(config.modelId).toBeDefined();
       expect(config.provider).toBe('openrouter');
       expect(config.timeoutMs).toBeGreaterThan(0);
@@ -507,7 +503,7 @@ describe('Stage Contract Cross-Validation', () => {
 
   it('each campaign route primary model exists in MODEL_CONFIG', () => {
     const entries = Object.entries(CAMPAIGN_STAGE_ROUTING);
-    for (const [stageId, routing] of entries) {
+    for (const [, routing] of entries) {
       expect(MODEL_CONFIG[routing.primary]).toBeDefined();
     }
   });

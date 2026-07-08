@@ -20,17 +20,12 @@ import { validateLLMOutput } from '@/lib/llmStageValidator';
 import { getPromptVersionForRoute } from '@/lib/promptVersionResolver';
 
 import routingConfig, {
-  CAMPAIGN_STAGE_ROUTING,
-  DASHBOARD_ROUTING,
   ROUTER_SETTINGS,
   STAGE_OUTPUT_FILES,
-  type ModelConfig,
-  type StageRoutingConfig,
-  type DashboardFeatureRouting
+  type ModelConfig
 } from '../config/model-routing.config';
 
 const MODEL_CONFIG = routingConfig.MODEL_CONFIG;
-const getModelConfig = routingConfig.getModelConfig;
 const getStageRouting = routingConfig.getStageRouting;
 const getDashboardRouting = routingConfig.getDashboardRouting;
 const isModelAllowedForUseCase = routingConfig.isModelAllowedForUseCase;
@@ -102,15 +97,10 @@ export interface FailureReport {
 // =============================================================================
 
 const modelRunLogs: RouterLogEntry[] = [];
-const FAILURE_REPORT_DIR = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\logs';
 
 // =============================================================================
 // HELPER FUNCTIONS
 // =============================================================================
-
-function generateId(): string {
-  return Math.random().toString(36).substring(2, 15);
-}
 
 function getCurrentTimestamp(): string {
   return new Date().toISOString();
@@ -670,7 +660,7 @@ export function getModelRunLogs(): RouterLogEntry[] {
 /**
  * Get logs for a specific campaign
  */
-export function getLogsForCampaign(campaignId: string): RouterLogEntry[] {
+export function getLogsForCampaign(_campaignId: string): RouterLogEntry[] {
   // In production, this would read from file system
   return modelRunLogs.filter(log => log.contextType === 'campaign_stage');
 }
@@ -795,7 +785,7 @@ export function getPromptVersionForDashboardFeature(featureId: string): string |
 // EXPORTS
 // =============================================================================
 
-export default {
+const routerExports = {
   // Core routing
   getModelForStage,
   getFallbacksForStage,
@@ -828,3 +818,5 @@ export default {
   getPromptVersionForStage,
   getPromptVersionForDashboardFeature
 };
+
+export default routerExports;

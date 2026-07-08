@@ -12,8 +12,6 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import path from 'path';
-import os from 'os';
 
 describe('Integration Readiness Checks', () => {
   const originalEnv = { ...process.env };
@@ -151,8 +149,6 @@ describe('Fallback Prevention', () => {
     expect(STRICT_MODE && !ALLOW_DEV_MOCK_ARTIFACTS).toBe(true);
 
     // Simulate dev mode: STRICT=false, ALLOW=true -> ALLOW fallback (dev only)
-    const devStrict = process.env.STRICT_REAL_ONLY === 'false';
-    const devAllow = process.env.ALLOW_DEV_MOCK_ARTIFACTS === 'true';
     // This would be: false && false = false (but this is dev-only scenario)
   });
 });

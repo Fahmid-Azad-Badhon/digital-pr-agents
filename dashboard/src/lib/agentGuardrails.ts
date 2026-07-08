@@ -9,7 +9,7 @@
  * =============================================================================
  */
 
-import { GUARDRAIL_REGISTRY, getGuardrailsForAgent, getBlockerGuardrailsForAgent, type GuardrailRegistryEntry } from '@/data/agentGuardrails';
+import { getGuardrailsForAgent, getBlockerGuardrailsForAgent, type GuardrailRegistryEntry } from '@/data/agentGuardrails';
 import type { AgentId } from '@/types/agentBrain';
 
 /**
@@ -22,7 +22,7 @@ export function runAgentGuardrails(params: {
   output?: unknown;
   handoffData?: Record<string, unknown>;
 }): GuardrailResult {
-  const { agentId, stageId, input, output, handoffData } = params;
+  const { agentId, input, output, handoffData } = params;
   
   const results: GuardrailCheckResult[] = [];
   

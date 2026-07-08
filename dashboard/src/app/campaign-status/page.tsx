@@ -18,13 +18,9 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { DashboardProvider, useDashboard } from '@/context/DashboardContext';
-import { 
-  getModelForStage, 
-  getFallbacksForStage,
-  getStageRoutingInfo 
-} from '@/lib/modelRoutingConfig';
+import { getModelForStage } from '@/lib/modelRoutingConfig';
 
 function CampaignStatusContent() {
   const { 
@@ -44,10 +40,6 @@ function CampaignStatusContent() {
   const [campaignInput, setCampaignInput] = useState('');
   const [aiResult, setAiResult] = useState<Record<string, unknown> | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
-
-  // Get model for current stage
-  const currentStageId = status?.currentStage || 'S1_CAMPAIGN_INTAKE';
-  const stageRouting = getStageRoutingInfo(currentStageId);
 
   if (!campaignSlug) {
     return (

@@ -12,11 +12,10 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import { validateBrainStack, detectBrainDrift, listDeprecatedBrainFiles } from './brainResolver.js';
+import { detectBrainDrift, listDeprecatedBrainFiles } from './brainResolver.js';
 import { validateAllStages } from './brainResolver.js';
 
 const BRAIN_DIR = 'D:\\Codex Folder\\digital-pr-agents\\brain';
-const SYSTEM_DIR = 'D:\\Codex Folder\\digital-pr-agents\\system';
 const SCHEMAS_DIR = 'D:\\Codex Folder\\digital-pr-agents\\schemas';
 const CAMPAIGN_ROOT = 'D:\\Codex Folder\\digital-pr-agents\\pitch-jobs';
 

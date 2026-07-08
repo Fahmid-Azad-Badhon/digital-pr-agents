@@ -34,7 +34,7 @@ interface RewriteSuggestion {
 }
 
 export async function POST(request: Request) {
-  const { campaignId, stage, content, checkClaimLedger = true } = await request.json().catch(() => ({} as Record<string, unknown>));
+  const { campaignId, content, checkClaimLedger = true } = await request.json().catch(() => ({} as Record<string, unknown>));
   
   const checks: ValidationCheck[] = [];
   const unsupportedClaims: UnsupportedClaim[] = [];
@@ -181,8 +181,7 @@ export async function POST(request: Request) {
     ? path.join(resolveCampaignPath(campaignId), 'verified-findings.json')
     : path.join(PITCH_JOBS_ROOT, 'default', 'verified-findings.json');
   try {
-    const findingsContent = await fs.readFile(verifiedFindingsPath, 'utf-8');
-    const findings = JSON.parse(findingsContent);
+    await fs.readFile(verifiedFindingsPath, 'utf-8');
     
     checks.push({
       name: 'Factual Consistency',

@@ -20,7 +20,7 @@
  * =============================================================================
  */
 
-import type { Campaign, WorkflowStage, StageStatus, ActivityLog } from './index';
+import type { Campaign, StageStatus, ActivityLog } from './index';
 import type { AgentMemoryContract } from './agentMemory';
 import type { AgentToolContract } from './agentTool';
 import type { AgentHandoffContract } from './agentHandoff';

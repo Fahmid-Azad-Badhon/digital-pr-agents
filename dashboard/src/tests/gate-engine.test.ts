@@ -46,17 +46,6 @@ function addCampaignFile(name: string, content: string) {
   fileContents.set(path.join(CAMPAIGNS_DIR, TEST_CAMPAIGN, name), content);
 }
 
-function removeCampaignFile(name: string) {
-  fileContents.delete(path.join(CAMPAIGNS_DIR, TEST_CAMPAIGN, name));
-}
-
-function getWrittenGateResults(): Record<string, unknown> | null {
-  const raw = writtenFiles.get(
-    path.join(CAMPAIGNS_DIR, TEST_CAMPAIGN, 'gate-results.json'),
-  );
-  return raw ? (JSON.parse(raw) as Record<string, unknown>) : null;
-}
-
 const VALIDATION_REPORT_SCHEMA_CONTENT = JSON.stringify({
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Validation Report Schema",

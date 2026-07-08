@@ -117,10 +117,6 @@ export async function GET(request: NextRequest) {
       .filter(r => stageSources.includes(r.source) && r.currentStage !== null && r.error === null)
       .map(r => r.currentStage);
 
-    const statusValues = results
-      .filter(r => r.workflowStatus !== null && r.error === null)
-      .map(r => r.workflowStatus);
-
     comparisons.push({
       comparison: 'currentStage consistency across sources',
       passed: stageValues.length >= 2 && stageValues.every(v => v === stageValues[0]),

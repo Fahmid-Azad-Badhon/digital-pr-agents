@@ -3,30 +3,26 @@
 import React, { useState, useEffect } from 'react';
 import { useData } from '@/context/DataContext';
 import { 
-  BarChart3, CheckCircle, AlertTriangle, 
-  Search, FileCheck, TrendingUp, Target, Users, 
-  Shield, Clock, Brain, Activity
+  CheckCircle, AlertTriangle,
+  FileCheck, TrendingUp,
+  Shield, Brain, Activity
 } from 'lucide-react';
 import StageHeader from '@/components/StageHeader';
-import clsx from 'clsx';
 
 export default function AnalysisPage() {
-  const { currentCampaign, stages, addLog } = useData();
+  const { currentCampaign, stages } = useData();
   
   const analysisStage = stages.find(s => s.stageNumber === 4);
   const isCompleted = analysisStage?.status === 'completed';
   const isRunning = analysisStage?.status === 'running';
 
-  const [insightMap, setInsightMap] = useState<any>(null);
   const [analysisData, setAnalysisData] = useState<any>(null);
   const [isLoadingData, setIsLoadingData] = useState(false);
-  const [isReady, setIsReady] = useState(false);
   const [isAutoProgressing, setIsAutoProgressing] = useState(false);
   const [autoProgressNote, setAutoProgressNote] = useState<string | null>(null);
 
   useEffect(() => {
     if (currentCampaign) {
-      setIsReady(true);
       loadAnalysisData(currentCampaign.id);
       void triggerAutoProgress(currentCampaign.id);
     }

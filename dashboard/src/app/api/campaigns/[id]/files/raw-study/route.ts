@@ -14,7 +14,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
   try {
     const content = readFileSync(filePath, 'utf-8');
     return ok({ content });
-  } catch (error) {
+  } catch {
     return fail('FAILED_TO_READ_FILE', 'Failed to read file.', { status: 500 });
   }
 }
@@ -43,7 +43,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     const buffer = Buffer.from(await file.arrayBuffer());
     writeFileSync(filePath, buffer);
     return ok({ message: 'File uploaded successfully' });
-  } catch (error) {
+  } catch {
     return fail('FAILED_TO_SAVE_FILE', 'Failed to save file.', { status: 500 });
   }
 }

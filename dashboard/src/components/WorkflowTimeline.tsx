@@ -5,7 +5,7 @@
  * Visual timeline of workflow stages with connections
  */
 
-import { CheckCircle, Circle, Loader2, Lock, AlertTriangle, ArrowRight } from 'lucide-react'
+import { CheckCircle, Circle, Loader2, Lock, AlertTriangle } from 'lucide-react'
 
 // ============================================================================
 // TYPES

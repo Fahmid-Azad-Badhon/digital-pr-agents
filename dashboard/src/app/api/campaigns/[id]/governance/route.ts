@@ -7,20 +7,15 @@
 // POST /api/campaigns/[id]/governance/run-gate - Run a specific gate
 
 import { fail, ok } from '@/lib/apiResponse';
-import { PITCH_JOBS_ROOT } from '@/lib/requestGuard';
-import fs from 'fs/promises';
-import path from 'path';
 import {
   canStageRun,
-  getContractStatus,
   type ContractStatus
 } from '@/lib/stageContractValidator';
 import {
   runGate,
   canWorkflowContinue,
   getBlockedStages,
-  getLatestGateStatus,
-  type GateResult
+  getLatestGateStatus
 } from '@/lib/gateEngine';
 import {
   loadClaimLedger,
@@ -28,17 +23,13 @@ import {
   getUnsafeClaims,
   getClaimsByStatus,
   validateClaimUsage,
-  approveHumanReviewClaim,
-  type ClaimLedger
+  approveHumanReviewClaim
 } from '@/lib/claimLedgerManager';
 import {
   getWorkflowState,
-  updateWorkflowState,
-  type WorkflowStateFile
+  updateWorkflowState
 } from '@/lib/workflowStateMachine';
 import { writeApiAuditLog } from '@/lib/logger';
-
-const CAMPAIGNS_DIR = PITCH_JOBS_ROOT;
 
 export async function GET(
   request: Request,

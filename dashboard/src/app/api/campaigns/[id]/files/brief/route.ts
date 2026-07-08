@@ -15,7 +15,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
   try {
     const content = readFileSync(filePath, 'utf-8');
     return NextResponse.json({ content });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to read brief file' }, { status: 500 });
   }
 }

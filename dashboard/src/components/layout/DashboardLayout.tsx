@@ -17,8 +17,6 @@ import {
   Bell, 
   Search, 
   Settings, 
-  Menu,
-  X,
   Wifi,
   WifiOff,
   Clock
@@ -56,7 +54,7 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   const [isOnline] = useState(true)
   const [currentTime] = useState(new Date())
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
 
   return (
     <div className="min-h-screen bg-slate-900">

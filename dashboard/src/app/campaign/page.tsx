@@ -16,7 +16,7 @@ const tones = ['Professional', 'Casual', 'Authoritative', 'Friendly', 'Urgent', 
 
 export default function CampaignPage() {
   const router = useRouter();
-  const { createCampaign, setCurrentCampaign, startWorkflow, addLog, addNotification } = useData();
+  const { createCampaign, startWorkflow, addLog, addNotification } = useData();
   const [formData, setFormData] = useState({
     name: '',
     clientName: '',
@@ -47,7 +47,7 @@ export default function CampaignPage() {
 
     const slug = formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-');
     
-    const campaign = createCampaign({
+    createCampaign({
       ...formData,
       slug,
     });

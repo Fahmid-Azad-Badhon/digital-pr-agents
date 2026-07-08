@@ -5,10 +5,7 @@
 // GET /api/campaigns/[id]/template/guidance - Get guidance for specific stage
 
 import { ok, fail } from '@/lib/apiResponse';
-import fs from 'fs/promises';
-import path from 'path';
 import {
-  loadTemplateRegistry,
   loadTemplate,
   matchTemplate,
   selectTemplate,
@@ -18,8 +15,7 @@ import {
   getTemplateForStage,
   getActiveTemplates,
   validateTemplate,
-  type TemplateMatchResult,
-  type TemplateApplicationLog
+  type TemplateMatchResult
 } from '@/lib/campaignTemplateManager';
 
 export async function GET(

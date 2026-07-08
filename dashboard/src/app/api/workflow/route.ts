@@ -6,12 +6,12 @@ import { WorkflowActionInputSchema } from '@/lib/inputSchemas';
 import { writeApiAuditLog } from '@/lib/logger';
 import { validateStagePitchGovernance } from '@/lib/pitchGovernanceValidator';
 import { checkRateLimit } from '@/lib/rateLimiter';
-import { assertValidCampaignId, PITCH_JOBS_ROOT, resolveCampaignPath } from '@/lib/requestGuard';
+import { assertValidCampaignId, resolveCampaignPath } from '@/lib/requestGuard';
 import { validateInput } from '@/lib/schemaValidation';
 import { appendCircuitBreakerError, validateStageHandoff } from '@/lib/stageHandoffValidator';
 import { getCampaignState } from '@/lib/campaignStateService';
 import { looksLikeFallback } from '@/lib/fallbackMarkers';
-import { STAGES, TOTAL_WORKFLOW_STAGES, getPhaseByStage } from '@/types';
+import { STAGES, TOTAL_WORKFLOW_STAGES } from '@/types';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -111,27 +111,6 @@ async function writeStageState(campaignPath: string, newState: { currentStage: n
   await fs.rename(tempPath, stageStatePath);
 }
 
-async function countSelectedAngles(campaignPath: string): Promise<number> {
-  const stage5Path = path.join(campaignPath, '05-angles.md');
-  const stage4Path = path.join(campaignPath, '04-angles.md');
-
-  const stage5Content = await fs.readFile(stage5Path, 'utf-8').catch(() => '');
-  if (stage5Content.trim()) {
-    const checked = stage5Content.match(/-\s*\[[xX]\]\s*A\d+/g);
-    if (checked && checked.length > 0) {
-      return checked.length;
-    }
-  }
-
-  const stage4Content = await fs.readFile(stage4Path, 'utf-8').catch(() => '');
-  if (stage4Content.trim()) {
-    const selected = stage4Content.match(/\[SELECTED\]/gi);
-    return selected ? selected.length : 0;
-  }
-
-  return 0;
-}
-
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const campaignId = searchParams.get('campaignId') || 'default';
@@ -209,7 +188,7 @@ export async function GET(request: Request) {
     };
 
     return ok(workflowStatus, { headers: { 'Cache-Control': 'no-store' } });
-  } catch (error) {
+  } catch {
     return fail('WORKFLOW_STATUS_FAILED', 'Failed to get workflow status', { status: 500 });
   }
 }

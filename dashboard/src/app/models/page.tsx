@@ -1,17 +1,9 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { useData } from '@/context/DataContext';
-import { 
-  getStageRoutingInfo,
-  getModelsToTryForStage,
-  getModelForStage,
-  getFallbacksForStage
-} from '@/lib/modelRoutingConfig';
 import { CAMPAIGN_STAGE_ROUTING, MODEL_CONFIG, ROUTER_SETTINGS } from '@/config/model-routing.config';
 import { 
-  Cpu, Shield, Search, Zap, Bug, Code, ArrowRight, 
-  CheckCircle, XCircle, Clock, AlertCircle, GitBranch
+  Cpu, Shield, Search, Zap, Code, GitBranch
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -80,7 +72,6 @@ const stageNames: Record<string, string> = {
 };
 
 export default function ModelsPage() {
-  const { stages, currentCampaign } = useData();
   const [audit, setAudit] = useState<AuditResponse | null>(null);
   const [auditError, setAuditError] = useState<string | null>(null);
   const [selectedAuditStage, setSelectedAuditStage] = useState<string>('ALL');
@@ -124,11 +115,6 @@ export default function ModelsPage() {
   );
 
   const recentEvents = useMemo(() => (audit?.events || []).slice(0, 20), [audit]);
-
-  const getStageStatus = (stageNum: number) => {
-    const stage = stages.find(s => s.stageNumber === stageNum);
-    return stage?.status || 'waiting';
-  };
 
   const stagesList = Object.keys(CAMPAIGN_STAGE_ROUTING);
 
@@ -356,7 +342,6 @@ export default function ModelsPage() {
             <tbody>
               {stagesList.map((stageId, idx) => {
                 const routing = CAMPAIGN_STAGE_ROUTING[stageId];
-                const stageStatus = getStageStatus(idx + 1);
                 return (
                   <tr key={stageId} className="border-b border-[#334155] hover:bg-[#273449]">
                     <td className="px-3 py-3">
@@ -433,7 +418,6 @@ export default function ModelsPage() {
                 { feature: 'chart_image_interpretation', desc: 'Extract data from images' },
                 { feature: 'dashboard_visual_asset_generation', desc: 'Generate visual content' },
               ].map(item => {
-                const routing = (ROUTER_SETTINGS as any).dashboard_features?.[item.feature];
                 return (
                   <tr key={item.feature} className="border-b border-[#334155] hover:bg-[#273449]">
                     <td className="px-4 py-3">

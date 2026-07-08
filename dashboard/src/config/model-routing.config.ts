@@ -13,11 +13,7 @@ import {
   SYSTEM_MODELS, 
   SYSTEM_STAGE_ROUTING, 
   SYSTEM_DASHBOARD_ROUTING,
-  getSystemModel,
-  getSystemStageRouting,
-  getSystemDashboardRouting,
   isModelEnabledInProduction,
-  isModelRestrictedForUseCase,
   SYSTEM_VERSION,
   SYSTEM_LAST_UPDATED
 } from '@/lib/systemConfigLoader';
@@ -247,7 +243,7 @@ export function isModelEnabledInProductionWrapper(modelKey: string): boolean {
   return isModelEnabledInProduction(modelKey);
 }
 
-export default {
+const config = {
   MODEL_CONFIG,
   CAMPAIGN_STAGE_ROUTING,
   DASHBOARD_ROUTING,
@@ -260,3 +256,5 @@ export default {
   isModelAllowedForUseCase,
   isModelEnabledInProduction: isModelEnabledInProductionWrapper
 };
+
+export default config;

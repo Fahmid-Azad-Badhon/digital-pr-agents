@@ -98,15 +98,7 @@ const CARTOON_FACES = ['😎', '🤓', '🧐', '🤩', '🎭', '✏️', '🤖',
 
 export default function AgentTracker({ currentAgentId }: { currentAgentId?: string }) {
   const activeAgent = AGENTS.find(a => a.id === currentAgentId) || AGENTS[0]
-  const [pulse, setPulse] = useState(0)
   const [agentMetrics, setAgentMetrics] = useState<Record<string, { tasks: number; efficiency: number }>>({})
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPulse(p => (p + 1) % 360)
-    }, 50)
-    return () => clearInterval(interval)
-  }, [])
 
   useEffect(() => {
     const metrics: Record<string, { tasks: number; efficiency: number }> = {}

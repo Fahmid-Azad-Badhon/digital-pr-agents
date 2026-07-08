@@ -42,7 +42,7 @@ interface AgentCardProps {
 // ============================================================================
 
 export default function AgentCard({
-  id,
+  id: _id,
   name,
   role,
   emoji,

@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useState, useEffect } from 'react'
+import { Suspense, useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { 
   Users, 
@@ -12,15 +12,9 @@ import {
   Twitter,
   Linkedin,
   Loader2,
-  Star,
   CheckCircle,
-  RefreshCcw,
   Play,
-  Settings,
   AlertCircle,
-  Zap,
-  Filter,
-  BarChart3,
   Target
 } from 'lucide-react'
 import Link from 'next/link'
@@ -59,7 +53,7 @@ function MuckRackContent() {
   const [beatFilter, setBeatFilter] = useState('all')
   const [selectedJournalists, setSelectedJournalists] = useState<string[]>([])
 
-  const fetchJournalists = async () => {
+  const fetchJournalists = useCallback(async () => {
     try {
       const res = await fetch('/api/journalists' + (campaign ? `?campaign=${campaign}` : ''))
       const data = await res.json()
@@ -83,11 +77,11 @@ function MuckRackContent() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [campaign])
 
   useEffect(() => {
     fetchJournalists()
-  }, [campaign])
+  }, [campaign, fetchJournalists])
 
   const handleRunCollector = async () => {
     setCollecting(true)

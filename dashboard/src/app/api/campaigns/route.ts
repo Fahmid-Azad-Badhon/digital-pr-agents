@@ -7,7 +7,6 @@ import { fail, ok } from '@/lib/apiResponse';
 import { Campaign } from '@/types';
 import { runPreFlightChecks, formatPreFlightReport } from '@/lib/preflightCheck';
 import { createWeakEtag, wasNotModified } from '@/lib/httpCaching';
-import { safeReadJsonFile } from '@/lib/fileReadSafety';
 import { CampaignCreateInputSchema } from '@/lib/inputSchemas';
 import { validateInput } from '@/lib/schemaValidation';
 import { getCampaignListState } from '@/lib/campaignStateService';
@@ -65,12 +64,6 @@ function buildBriefFromIntake(intake: CampaignIntakeMetadata): string {
     intake.notes || 'No additional notes.',
     ``,
   ].join('\n');
-}
-
-function titleizeSlug(slug: string): string {
-  return slug
-    .replace(/-/g, ' ')
-    .replace(/\b\w/g, l => l.toUpperCase());
 }
 
 // GET - List all campaigns from canonical campaign state service

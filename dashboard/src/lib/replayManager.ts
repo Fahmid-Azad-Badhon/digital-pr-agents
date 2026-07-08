@@ -18,7 +18,6 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
 
 const CAMPAIGNS_DIR = 'D:\\Codex Folder\\digital-pr-agents\\pitch-jobs';
 const SYSTEM_DIR = 'D:\\Codex Folder\\digital-pr-agents\\system';
@@ -195,26 +194,6 @@ export interface DryRunReport {
 // =============================================================================
 // CONFIG LOADING
 // =============================================================================
-
-async function loadReplayConfig() {
-  const configPath = path.join(SYSTEM_DIR, 'replay-config.json');
-  try {
-    const data = await fs.readFile(configPath, 'utf-8');
-    return JSON.parse(data);
-  } catch {
-    return { runIdFormat: '{campaignSlug}-{stageId}-{YYYYMMDD-HHMMSS}-run{runNumber}' };
-  }
-}
-
-async function loadReplayRules() {
-  const rulesPath = path.join(SYSTEM_DIR, 'replay-rules.json');
-  try {
-    const data = await fs.readFile(rulesPath, 'utf-8');
-    return JSON.parse(data);
-  } catch {
-    return { preReplayChecks: [], humanApprovalRules: [], claimLedgerRules: [] };
-  }
-}
 
 async function loadStageDependencies() {
   const depsPath = path.join(SYSTEM_DIR, 'replay-stage-dependencies.json');
@@ -581,8 +560,8 @@ export async function runDryRunReplay(
   campaignSlug: string,
   stageId: string,
   replayType: ReplayType,
-  rerunReason: string,
-  triggeredBy: TriggerSource
+  _rerunReason: string,
+  _triggeredBy: TriggerSource
 ): Promise<DryRunReport> {
   const report: DryRunReport = {
     campaignSlug,
@@ -743,22 +722,19 @@ export async function compareRunOutputs(
   const diffSummary: { added: string[]; removed: string[]; changed: string[] } = { added: [], removed: [], changed: [] };
   const claimChanges: { claimsAdded: string[]; claimsRemoved: string[]; claimsChanged: string[]; unsupportedClaimsAdded: string[] } = { claimsAdded: [], claimsRemoved: [], claimsChanged: [], unsupportedClaimsAdded: [] };
   
-  let oldContent = '';
-  let newContent = '';
-  
   const mainOutputFile = outputFiles[0];
   if (mainOutputFile) {
     const oldPath = path.join(campaignPath, 'archive', stageId, oldRunId, mainOutputFile);
     const newPath = path.join(campaignPath, mainOutputFile);
     
     try {
-      oldContent = await fs.readFile(oldPath, 'utf-8');
+      await fs.readFile(oldPath, 'utf-8');
     } catch {
       diffSummary.removed.push(`${mainOutputFile} (old run archive not found)`);
     }
     
     try {
-      newContent = await fs.readFile(newPath, 'utf-8');
+      await fs.readFile(newPath, 'utf-8');
     } catch {
       diffSummary.added.push(`${mainOutputFile} (new file not found)`);
     }

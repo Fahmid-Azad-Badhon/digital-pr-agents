@@ -14,7 +14,7 @@ import path from 'path';
 import { STAGES, TOTAL_WORKFLOW_STAGES, isHumanGate, getPhaseByStage } from '@/types';
 import { safeReadJsonFile } from './fileReadSafety';
 import { getIntegrationReadiness, stageRequiresIntegration } from './integrationReadiness';
-import { FALLBACK_MARKERS, looksLikeFallback } from './fallbackMarkers';
+import { looksLikeFallback } from './fallbackMarkers';
 import { PITCH_JOBS_ROOT } from './requestGuard';
 import { classifyProvenance, type ApprovalSource, type ProvenanceStatus } from './provenance';
 import { type RunMode } from './runMode';

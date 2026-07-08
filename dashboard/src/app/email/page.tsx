@@ -1,31 +1,24 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { 
   ShieldCheck, 
   Zap, 
-  Send, 
   AlertCircle, 
   CheckCircle2, 
-  ArrowRight,
-  TrendingUp,
   Mail,
   Search,
   Lock,
   Loader2,
-  Sparkles,
   RefreshCcw,
   Copy,
   Edit3,
-  Eye,
   Clock,
   Target,
   BarChart3,
   AlertTriangle,
-  X,
-  Settings
+  X
 } from 'lucide-react'
-import AgentTracker from '@/components/AgentTracker'
 
 interface SpamCheck {
   id: number
@@ -79,11 +72,9 @@ const PERSONALIZATION_TAGS: PersonalizationTag[] = [
 ]
 
 export default function EmailOptimizationPage() {
-  const [loading, setLoading] = useState(false)
   const [runningAudit, setRunningAudit] = useState(false)
   const [spamChecks, setSpamChecks] = useState<SpamCheck[]>(SPAM_CHECKS)
   const [subjectOptions, setSubjectOptions] = useState<SubjectLine[]>(SUBJECT_OPTIONS)
-  const [selectedSubject, setSelectedSubject] = useState('a')
   const [emailContent, setEmailContent] = useState('Information unavailable. Verification required before use.')
 
   const [showEditModal, setShowEditModal] = useState(false)
@@ -106,7 +97,6 @@ export default function EmailOptimizationPage() {
   }
 
   const selectSubject = (id: string) => {
-    setSelectedSubject(id)
     setSubjectOptions(prev => prev.map(s => ({
       ...s,
       selected: s.id === id
@@ -116,15 +106,6 @@ export default function EmailOptimizationPage() {
   const saveContent = () => {
     setEmailContent(editedContent)
     setShowEditModal(false)
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pass': return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
-      case 'warning': return 'text-amber-400 bg-amber-500/10 border-amber-500/20'
-      case 'fail': return 'text-red-400 bg-red-500/10 border-red-500/20'
-      default: return 'text-slate-400 bg-slate-500/10 border-slate-500/20'
-    }
   }
 
   return (
@@ -421,20 +402,6 @@ export default function EmailOptimizationPage() {
           </div>
         </div>
       )}
-    </div>
-  )
-}
-
-function SubjectOption({ label, text, score, active }: any) {
-  return (
-    <div className={`p-4 rounded-xl border transition-all ${
-      active ? 'bg-blue-500/10 border-blue-500' : 'bg-white/5 border-transparent hover:border-white/10'
-    }`}>
-       <div className="flex justify-between items-center mb-1">
-          <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest">{label}</span>
-          <span className="text-[10px] font-black text-white">{score}%</span>
-       </div>
-       <p className="text-xs text-slate-300 font-medium line-clamp-2">{text}</p>
     </div>
   )
 }

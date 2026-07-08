@@ -189,7 +189,7 @@ export async function saveTrace(trace: AgentRunTrace): Promise<SaveTraceResult> 
       message: `Trace ${trace.runId} queued (API responded ${response.status})`,
       traceId: trace.runId,
     };
-  } catch (error) {
+  } catch {
     // Network or other error - return stub response
     return {
       success: true,
@@ -251,14 +251,6 @@ export async function getTracesForAgent(agentId: string): Promise<AgentRunTrace[
   } catch {
     return [];
   }
-}
-
-function checkLoggingStatus(): { available: boolean; message: string } {
-  // Logging API is now connected
-  return {
-    available: true,
-    message: 'Trace logging connected to /api/logs endpoint',
-  };
 }
 
 function getStageName(stageId: number): string {

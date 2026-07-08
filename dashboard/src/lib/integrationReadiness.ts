@@ -49,8 +49,6 @@ async function checkMuckRackReadiness(): Promise<{ status: IntegrationStatus; de
 
   // Check for Chrome debug port configuration
   const chromePort = process.env.CHROME_DEBUG_PORT || process.env.MUCKRACK_DEBUG_PORT || process.env.PUPPETEER_DEBUG_PORT;
-  const chromeHost = process.env.CHROME_HOST || 'localhost';
-
   // Check for required scripts
   const scriptsPath = BROWSER_TOOLS_ROOT;
   let scriptPathExists = false;
@@ -247,7 +245,6 @@ async function checkScriptsReadiness(): Promise<{ status: IntegrationStatus; det
   ];
 
   const availableScripts: string[] = [];
-  const errors: string[] = [];
 
   for (const dir of scriptDirs) {
     try {

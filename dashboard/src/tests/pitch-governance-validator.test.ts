@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import path from 'path';
-import type { GovernanceValidationResult } from '@/lib/pitchGovernanceValidator';
 
 // ---------------------------------------------------------------------------
 // Known SYSTEM_ROOT for test isolation
@@ -200,14 +199,6 @@ const SOFT_LANGUAGE_CLAIMS_WITH_WORDING = [
     status: 'usable_with_soft_language',
     safeToUseInPitch: true,
     allowedWording: 'Several cities report positive trends',
-  },
-];
-
-const SOFT_LANGUAGE_CLAIMS_NO_WORDING = [
-  {
-    claim: 'Many cities see improvement',
-    status: 'usable_with_soft_language',
-    safeToUseInPitch: true,
   },
 ];
 

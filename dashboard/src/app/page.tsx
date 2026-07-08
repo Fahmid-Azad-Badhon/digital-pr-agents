@@ -1,17 +1,17 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useData } from '@/context/DataContext';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, PieChart, Pie, Cell, Legend
+  PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { 
-  Play, Pause, AlertTriangle, CheckCircle, Clock, TrendingUp,
+  Play, AlertTriangle, CheckCircle,
   Users, FileText, Target, Activity, Zap, Shield
 } from 'lucide-react';
 import clsx from 'clsx';
-import { TOTAL_WORKFLOW_STAGES, STAGES, PHASES, AGENTS } from '@/types';
+import { TOTAL_WORKFLOW_STAGES, AGENTS } from '@/types';
 
 function AgentCard({ agent, currentStage, isExpanded, onClick }: { 
   agent: { id: string; name: string; role: string; color: string; stages: readonly number[] }, 
@@ -321,12 +321,7 @@ function AgentPanel({ currentStage }: { currentStage: number }) {
   );
 }
 
-const kpiData = [
-  { label: 'Active Campaigns', value: 2, change: 0, changeType: 'increase' as const, icon: Activity, color: 'text-primary' },
-  { label: 'Completed Today', value: 0, change: 0, changeType: 'increase' as const, icon: CheckCircle, color: 'text-success' },
-  { label: 'Pending Actions', value: 1, change: 0, changeType: 'increase' as const, icon: AlertTriangle, color: 'text-warning' },
-  { label: 'Success Rate', value: '94%', change: 2, changeType: 'increase' as const, icon: TrendingUp, color: 'text-success' },
-];
+
 
 const progressData = [
   { date: 'Mon', completed: 4, running: 2, paused: 1, failed: 0 },
@@ -348,8 +343,7 @@ const stageDistribution = [
 const COLORS = ['#22C55E', '#2563EB', '#FBBF24', '#64748B'];
 
 function WorkflowTimeline() {
-  const { stages, currentCampaign } = useData();
-  const activeStages = stages.filter(s => s.status !== 'waiting');
+  const { stages } = useData();
   
   return (
     <div className="flex items-center gap-1 overflow-x-auto pb-2">

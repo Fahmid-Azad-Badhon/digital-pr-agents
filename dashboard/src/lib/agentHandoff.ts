@@ -11,9 +11,7 @@
  */
 
 import { 
-  HANDOFF_REGISTRY, 
   getHandoff, 
-  getHandoffsForStage,
   type HandoffRegistryEntry 
 } from '@/data/agentHandoffRegistry';
 

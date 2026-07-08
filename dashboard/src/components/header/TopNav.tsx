@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useData } from '@/context/DataContext';
 import { 
-  Search, Calendar, Bell, Play, Users, Target, Zap, 
-  ChevronDown, Activity, AlertTriangle, RefreshCw
+  Search, Calendar, Bell, Play, Users,
+  ChevronDown, Activity, RefreshCw
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -13,7 +13,7 @@ export default function TopNav() {
   const { campaigns, currentCampaign, setCurrentCampaign, refreshCampaigns, notifications } = useData();
   const [searchOpen, setSearchOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
-  const [dateRange, setDateRange] = useState('Last 7 Days');
+  const [dateRange] = useState('Last 7 Days');
   
   const unreadCount = notifications.filter(n => !n.read).length;
   const hasCampaigns = campaigns.length > 0;

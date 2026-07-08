@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useData } from '@/context/DataContext';
 import { AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
 
@@ -23,7 +23,7 @@ export default function ApprovalsPage() {
   const [submitting, setSubmitting] = useState<Record<string, boolean>>({});
   const [feedback, setFeedback] = useState<Record<string, { type: 'success' | 'error'; message: string }>>({});
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!currentCampaign?.id) {
       setQuestions([]);
       return;
@@ -39,11 +39,11 @@ export default function ApprovalsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentCampaign]);
 
   useEffect(() => {
     void load();
-  }, [currentCampaign?.id]);
+  }, [load]);
 
   const submitAnswer = async (question: PendingHumanQuestion) => {
     if (!currentCampaign?.id) {

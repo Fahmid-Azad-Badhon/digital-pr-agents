@@ -15,13 +15,11 @@ export interface OverrideResult {
   message: string;
 }
 
-const OVERRIDE_STORAGE_PATH = 'data/model-overrides.json';
-
 export function applyManualOverride(
   stageId: string,
-  campaignId: string,
+  _campaignId: string,
   requestedModel: string,
-  appliedBy: string = 'operator'
+  _appliedBy: string = 'operator'
 ): OverrideResult {
   const stageRouting = SYSTEM_STAGE_ROUTING[stageId];
   
@@ -65,8 +63,8 @@ export function applyManualOverride(
 }
 
 export function checkStageSpecificOverride(
-  campaignId: string,
-  stageId: string
+  _campaignId: string,
+  _stageId: string
 ): string | null {
   return null;
 }

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { 
-  Mail, 
   Sparkles, 
   ChevronRight, 
   Copy, 
@@ -14,22 +13,13 @@ import {
   BrainCircuit,
   Eye,
   Loader2,
-  RefreshCcw,
-  Save,
-  Send,
-  Edit3,
-  Trash2,
   Archive,
   FileText,
-  Wand2,
   Target,
-  TrendingUp,
-  Star,
   Clock,
   BarChart3,
   X
 } from 'lucide-react'
-import AgentTracker from '@/components/AgentTracker'
 
 interface Variant {
   id: string
@@ -117,7 +107,7 @@ export default function PitchDraftingPage() {
 
   useEffect(() => {
     generateContent(selectedVariant)
-  }, [selectedVariant.id])
+  }, [selectedVariant, selectedVariant.id, generateContent])
 
   const handleRegenerate = () => {
     generateContent(selectedVariant)

@@ -12,8 +12,7 @@ import { validateStagePitchGovernance } from '@/lib/pitchGovernanceValidator';
 import { appendRuntimeEvent } from '@/lib/runtimeEvents';
 import { getRunModeFromRequest, shouldBlockExternalAction, type RunMode } from '@/lib/runMode';
 import { getApprovalProgressionDecision, type ProvenanceStatus } from '@/lib/provenance';
-import { looksLikeFallback, FALLBACK_MARKERS } from '@/lib/fallbackMarkers';
-import { STAGES } from '@/types';
+import { looksLikeFallback } from '@/lib/fallbackMarkers';
 import { validateS10OutputContract, validateS1OutputContract } from '@/lib/stageOutputContractValidator';
 import { getGatesForStage, runGate } from '@/lib/gateEngine';
 

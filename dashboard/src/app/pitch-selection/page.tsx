@@ -4,9 +4,9 @@ import React, { useState, useMemo } from 'react';
 import { useData } from '@/context/DataContext';
 import { TOTAL_WORKFLOW_STAGES, getPhaseByStage } from '@/types';
 import { 
-  CheckCircle, XCircle, AlertTriangle, Search, Filter, 
-  ChevronRight, ChevronDown, ChevronUp, Star, Zap,
-  BarChart3, GitCompare, Keyboard, X, BookOpen, ExternalLink
+  CheckCircle, AlertTriangle, Search, Filter,
+  ChevronRight, Star, Zap,
+  Keyboard, X
 } from 'lucide-react';
 import Link from 'next/link';
 import StageHeader from '@/components/StageHeader';
@@ -36,7 +36,6 @@ export default function PitchSelectionPage() {
     currentCampaign, 
     pitchAngles, 
     selectedPitchAngles, 
-    rejectedPitchAngles,
     selectPitchAngle,
     rejectPitchAngle,
     unselectPitchAngle,
@@ -44,27 +43,19 @@ export default function PitchSelectionPage() {
     getPitchSelectionSummary,
     updateStage,
     angles: stage4Angles,
-    stages,
     addLog,
     addNotification
   } = useData();
 
   const [filter, setFilter] = useState<'all' | 'selected' | 'rejected' | 'undecided'>('all');
-  const [sortField, setSortField] = useState<'score' | 'newsworthiness' | 'timeliness'>('score');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedForCompare, setSelectedForCompare] = useState<Set<string>>(new Set());
-  const [showCompareModal, setShowCompareModal] = useState(false);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
-  const [showDetailsModal, setShowDetailsModal] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isSubmittingApproval, setIsSubmittingApproval] = useState(false);
 
   const currentPhase = getPhaseByStage(7);
   const stats = getPitchSelectionSummary();
-  const angleStage = stages.find(s => s.stageNumber === 5);
-  const beatMatchStage = stages.find(s => s.stageNumber === 6);
 
   // Get angles from workflow - prioritized: pitchAngles (S5) > stage4Angles (S4) > empty
   const angles: AngleWithMeta[] = useMemo(() => {
@@ -132,13 +123,9 @@ export default function PitchSelectionPage() {
       return true;
     })
     .sort((a, b) => {
-      const aVal = sortField === 'score' ? (a.score || 0) : 
-                   sortField === 'newsworthiness' ? a.newsworthinessScore / 10 : 
-                   a.timelinessScore / 10;
-      const bVal = sortField === 'score' ? (b.score || 0) : 
-                   sortField === 'newsworthiness' ? b.newsworthinessScore / 10 : 
-                   b.timelinessScore / 10;
-      return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
+      const aVal = a.score || 0;
+      const bVal = b.score || 0;
+      return bVal - aVal;
     });
 
   const handleSelectAll = () => {

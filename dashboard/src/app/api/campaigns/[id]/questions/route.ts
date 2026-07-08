@@ -20,7 +20,6 @@ import {
   getQuestions,
   getAnswers,
   getQuestionById,
-  getAnswerForQuestion,
   updateContextResolutionStatus,
   getContextResolutionStatus,
   getPendingHumanQuestions,

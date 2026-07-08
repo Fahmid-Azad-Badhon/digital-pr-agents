@@ -468,7 +468,6 @@ async function testRuntimeStatus() {
  */
 async function testAntiHallucination() {
   try {
-    const strategistBrain = getAgentRegistryEntry('strategist');
     const strategistGuardrails = getGuardrailsForAgent('strategist');
     
     // Check for anti-hallucination guardrails

@@ -12,7 +12,7 @@
  * =============================================================================
  */
 
-import { DEFAULT_ARTIFACT_RULES, getArtifactRulesForStage, type AgentArtifactRule } from '@/types/agentArtifact';
+
 
 /**
  * Get artifact configuration for a stage
@@ -230,7 +230,7 @@ export async function saveArtifact(params: SaveArtifactParams): Promise<SaveArti
         createdAt: new Date().toISOString(),
       },
     };
-  } catch (error) {
+  } catch {
     // Network or other error - return stub response
     return {
       success: true,
@@ -251,7 +251,7 @@ export async function saveArtifact(params: SaveArtifactParams): Promise<SaveArti
  * Read artifact - connects to campaign file API
  */
 export async function readArtifact(params: ReadArtifactParams): Promise<ReadArtifactResult> {
-  const { campaignId, stageId, fileName } = params;
+  const { campaignId, fileName } = params;
   
   try {
     // Try to read via campaign API endpoint
@@ -273,7 +273,7 @@ export async function readArtifact(params: ReadArtifactParams): Promise<ReadArti
       message: `Artifact ${fileName} not found (API responded ${response.status})`,
       content: undefined,
     };
-  } catch (error) {
+  } catch {
     // Network or other error
     return {
       success: false,
@@ -281,17 +281,6 @@ export async function readArtifact(params: ReadArtifactParams): Promise<ReadArti
       content: undefined,
     };
   }
-}
-
-/**
- * Check if actual persistence is available
- */
-function checkPersistenceStatus(): { available: boolean; message: string } {
-  // Check if campaign API is available
-  return {
-    available: true,
-    message: 'Artifact persistence connected to campaign file API',
-  };
 }
 
 export interface StageArtifactConfig {

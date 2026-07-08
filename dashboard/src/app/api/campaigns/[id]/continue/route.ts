@@ -4,7 +4,6 @@ import { fail, ok } from '@/lib/apiResponse';
 import { evaluateMutationAuth } from '@/lib/authGuard';
 import { z } from 'zod';
 import { writeSystemLog } from '@/lib/logger';
-import path from 'path';
 import { appendCircuitBreakerError, validateStageHandoff } from '@/lib/stageHandoffValidator';
 import { assertValidCampaignId, resolveCampaignPath } from '@/lib/requestGuard';
 

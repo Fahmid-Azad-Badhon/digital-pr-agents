@@ -1,7 +1,7 @@
 'use client'
 
 import StageHeader from '@/components/StageHeader'
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { 
   Package, 
   CheckCircle2, 
@@ -9,8 +9,6 @@ import {
   FileText, 
   Download, 
   ShieldCheck, 
-  ChevronRight,
-  ArrowRight,
   Sparkles,
   Zap,
   Globe,
@@ -18,15 +16,10 @@ import {
   AlertCircle,
   Clock,
   Lock,
-  Upload,
   Send,
-  RefreshCcw,
   Check,
   X,
   Eye,
-  Edit3,
-  Copy,
-  Trash2,
   Archive
 } from 'lucide-react'
 import AgentTracker from '@/components/AgentTracker'
@@ -62,7 +55,7 @@ export default function PackagePage() {
   const [exporting, setExporting] = useState(false)
   const [exportType, setExportType] = useState<'gdocs' | 'zip' | 'api'>('gdocs')
   const [exportProgress, setExportProgress] = useState(0)
-  const [packageItems, setPackageItems] = useState<PackageItem[]>([
+  const [packageItems] = useState<PackageItem[]>([
     { id: '1', name: 'campaign_brief.md', type: 'document', size: '24 KB', status: 'ready', lastModified: '2026-05-05 10:30' },
     { id: '2', name: 'pitch_email_final.html', type: 'email', size: '12 KB', status: 'ready', lastModified: '2026-05-05 10:28' },
     { id: '3', name: 'journalist_leads_800.json', type: 'data', size: '156 KB', status: 'ready', lastModified: '2026-05-05 10:25' },

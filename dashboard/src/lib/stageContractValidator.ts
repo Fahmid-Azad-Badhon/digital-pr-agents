@@ -94,7 +94,6 @@ export async function validateForbiddenInputs(
     return { detected: false, found: [] };
   }
   
-  const forbidden = contract.forbiddenInputs || [];
   // This would require more complex checking against outputs
   // For now, return empty - actual validation happens at gate time
   return { detected: false, found: [] };

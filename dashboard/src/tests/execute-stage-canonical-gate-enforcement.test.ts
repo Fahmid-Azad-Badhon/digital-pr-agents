@@ -325,7 +325,7 @@ describe('execute-stage canonical gate enforcement', () => {
       blockedStages: [],
     });
 
-    const response = await POST(
+    await POST(
       mockRequest({ stage: 14 }),
       { params: Promise.resolve({ id: 'test-campaign' }) },
     );

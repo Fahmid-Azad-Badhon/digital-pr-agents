@@ -1,7 +1,7 @@
 'use client'
 
 import { ALL_AGENTS } from '@/types/agentData'
-import { AGENT_BRAIN_REGISTRY, getAgentRegistryEntry } from '@/data/agentBrainRegistry'
+import { getAgentRegistryEntry } from '@/data/agentBrainRegistry'
 import { Brain, UserCheck, Database, Search, Lightbulb, Target, Users, FileText, Mail, Package, Shield, Rocket, Activity, ChevronDown, ChevronRight, Clock, Zap, CheckCircle, AlertCircle, BarChart3, Layers, ArrowRight, Workflow, BrainCircuit } from 'lucide-react'
 import clsx from 'clsx'
 import { useState } from 'react'

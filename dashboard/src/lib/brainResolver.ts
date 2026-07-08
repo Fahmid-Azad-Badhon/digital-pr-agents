@@ -16,7 +16,6 @@ import fs from 'fs/promises';
 import path from 'path';
 
 const BRAIN_DIR = 'D:\\Codex Folder\\digital-pr-agents\\brain';
-const SYSTEM_DIR = 'D:\\Codex Folder\\digital-pr-agents\\system';
 
 export interface BrainManifest {
   version: string;

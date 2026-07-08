@@ -85,7 +85,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [angles, setAnglesState] = useState<Angle[]>([]);
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [validations, setValidations] = useState<ValidationCheck[]>([]);
+  const [validations] = useState<ValidationCheck[]>([]);
   const [journalists, setJournalists] = useState<Journalist[]>([]);
   const [pitchVariants, setPitchVariants] = useState<PitchVariant[]>([]);
   const [isPaused, setIsPaused] = useState(false);

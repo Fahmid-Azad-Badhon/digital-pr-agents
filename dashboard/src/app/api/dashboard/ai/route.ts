@@ -261,7 +261,7 @@ Provide search results in JSON format:
 export async function POST(request: NextRequest) {
   try {
     const body: DashboardAIRequest = await request.json();
-    const { campaignSlug, featureId, input, mode } = body;
+    const { featureId, input, mode } = body;
     
     // Get routing info for the feature
     const primaryModel = getModelForDashboardFeature(featureId);

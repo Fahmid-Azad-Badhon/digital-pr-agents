@@ -16,7 +16,7 @@
  */
 
 import { fail, ok } from '@/lib/apiResponse';
-import { REPO_ROOT, resolveCampaignPath } from '@/lib/requestGuard';
+import { resolveCampaignPath } from '@/lib/requestGuard';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
@@ -37,7 +37,6 @@ export async function POST(request: Request, { params }: { params: { id: string 
     // =====================================================================
     // STEP 1: Define paths
     // =====================================================================
-    const projectRoot = REPO_ROOT;
     const pitchJobDir = resolveCampaignPath(id);
     const rawStudyPath = join(pitchJobDir, 'source-files', 'study-inputs', 'raw-study-copy.md');
     const insightsPath = join(pitchJobDir, '02-insights.md');
@@ -190,7 +189,6 @@ export async function GET(request: Request, { params }: { params: { id: string }
   const { id } = params;
   
   try {
-    const projectRoot = REPO_ROOT;
     const pitchJobDir = resolveCampaignPath(id);
     const rawStudyPath = join(pitchJobDir, 'source-files', 'study-inputs', 'raw-study-copy.md');
     const insightsPath = join(pitchJobDir, '02-insights.md');
@@ -231,7 +229,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
  * @param {string | null} briefContent - Optional brief content for context
  * @returns {string} Formatted markdown insights
  */
-function extractRealData(content: string, briefContent: string | null): string {
+function extractRealData(content: string, _briefContent: string | null): string {
   // =========================================================================
   // Basic content analysis
   // =========================================================================
@@ -242,9 +240,6 @@ function extractRealData(content: string, briefContent: string | null): string {
   // =========================================================================
   // Extract numbers and percentages
   // =========================================================================
-  // Match numbers with comma formatting (e.g., 7,314) or plain (e.g., 741)
-  const numbers = content.match(/\d+(,\d{3})*(\.\d+)?/g) || [];
-  
   // Match percentages (e.g., 17.9%, 10.1%)
   const percentages = content.match(/\d+(\.\d+)?%/g) || [];
   
@@ -482,28 +477,4 @@ function extractRealData(content: string, briefContent: string | null): string {
   ];
   
   return insights.join('\n');
-}
-
-/**
- * Validation helper - checks if content is ready for extraction
- */
-function validateContent(content: string): { valid: boolean; issues: string[] } {
-  const issues: string[] = [];
-  
-  if (!content || content.trim().length < 100) {
-    issues.push('Content too short (minimum 100 characters)');
-  }
-  
-  // Check for placeholder indicators
-  const placeholders = ['[INSERT', '[TO BE', '{{', 'TBD'];
-  placeholders.forEach(p => {
-    if (content.includes(p)) {
-      issues.push(`Contains placeholder: ${p}`);
-    }
-  });
-  
-  return {
-    valid: issues.length === 0,
-    issues
-  };
 }

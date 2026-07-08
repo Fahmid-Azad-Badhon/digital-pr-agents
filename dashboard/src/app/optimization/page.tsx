@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Mail, AlertTriangle } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import StageHeader from '@/components/StageHeader';
 
 export default function OptimizationPage() {

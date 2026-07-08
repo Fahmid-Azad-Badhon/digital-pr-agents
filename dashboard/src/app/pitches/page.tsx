@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { FileText, AlertTriangle } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import StageHeader from '@/components/StageHeader';
 
 export default function PitchesPage() {

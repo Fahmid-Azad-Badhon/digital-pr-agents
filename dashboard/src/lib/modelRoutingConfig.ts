@@ -10,11 +10,7 @@
  */
 
 import routingConfig, {
-  CAMPAIGN_STAGE_ROUTING,
-  DASHBOARD_ROUTING,
-  STAGE_OUTPUT_FILES,
-  type StageRoutingConfig,
-  type DashboardFeatureRouting
+  STAGE_OUTPUT_FILES
 } from '../config/model-routing.config';
 
 const getStageRouting = routingConfig.getStageRouting;

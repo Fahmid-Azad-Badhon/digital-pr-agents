@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Package, AlertTriangle } from 'lucide-react';
+import { Package } from 'lucide-react';
 import StageHeader from '@/components/StageHeader';
 
 export default function PackagePage() {

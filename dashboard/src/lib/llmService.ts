@@ -1371,7 +1371,7 @@ export interface FeedbackPayload {
 }
 
 const LEARNED_RULES_DB = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\data\\learned-rules.json'
-const RULE_DECAY_FILE = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\data\\rule-decay.json'
+
 
 export async function processShadowWinner(payload: FeedbackPayload): Promise<void> {
   console.log('[Rule Engine] Processing winner: ' + payload.winningVersion + ' for campaign ' + payload.campaignId)
@@ -1483,7 +1483,6 @@ export function applyRuleDecay(): void {
 
 // Probabilistic Trigger for New Rules
 export function shouldApplyNewRule(ruleConfidence: number): boolean {
-  const threshold = 0.5
   if (ruleConfidence >= 0.7) return true // High confidence = always use
   if (ruleConfidence < 0.3) return false // Low confidence = don't use
   
@@ -1887,7 +1886,7 @@ export async function getPersonaDiff(stage: string): Promise<{ diff: any[]; summ
     const summary = await callLLM(analysisPrompt)
     
     return { diff: formattedDiff, summary }
-  } catch (e) {
+  } catch {
     return { diff: [], summary: 'Analysis failed' }
   }
 }
@@ -2127,7 +2126,6 @@ export class ConstraintValidator {
     const failedRules: string[] = []
     const warnings: string[] = []
     
-    const anchors = loadImmutableAnchors()
     const forbiddenWords = ['synergy', 'game-changer', 'paradigm shift', 'thrilled to announce', 'circle back', 'low-hanging fruit', 'leverage']
     
     // 1. Check Forbidden Words
@@ -2358,7 +2356,7 @@ export async function validateAndRetryWithCorrection(
   s4Data?: any
 ): Promise<{ output: string; fixed: boolean }> {
   const validator = new CitationValidator()
-  const { isValid, hallucinatedIds, missingIds } = await validator.check(campaignId, pitchOutput, s4Data)
+  const { isValid, hallucinatedIds } = await validator.check(campaignId, pitchOutput, s4Data)
   
   if (isValid) {
     return { output: pitchOutput, fixed: false }
@@ -2368,9 +2366,6 @@ export async function validateAndRetryWithCorrection(
   
   const correctionPrompt = prompt + '\n\n### VALIDATION ERROR ###\nYour previous pitch included invalid source IDs: ' + (hallucinatedIds.join(', ') || 'zero citations') + '.\nThese IDs do not exist in the provided Analysis (Source of Truth).\nPlease rewrite the pitch using ONLY the verified IDs from the source.\n\nIMPORTANT: Every factual claim must be cited with a valid [VF_XX] or [IN_XX] ID.'
   
-  // Retry with lower temperature
-  const { getTemperatureForStage } = await import('./llmService')
-  const originalTemp = getTemperatureForStage(stage)
   
   const fixedOutput = await callLLM(correctionPrompt)
   
@@ -3145,8 +3140,8 @@ export async function saveCheckpoint(
   stage: number,
   stageName: string,
   status: SemanticCheckpoint['status'],
-  checkpointData?: any,
-  error?: string
+  _checkpointData?: any,
+  _error?: string
 ): Promise<void> {
   console.log(`[Checkpoint] Saving ${stageName}: ${status}`)
   // This would save to database - implementation depends on DB choice
@@ -3383,7 +3378,7 @@ export function sanitizeAndParseJSON(response: string): { data: any; wasFixed: b
   try {
     const parsed = JSON.parse(cleaned)
     return { data: parsed, wasFixed: false }
-  } catch (e) {
+  } catch {
     // Try to extract just the JSON portion
     const jsonMatch = cleaned.match(/\{[\s\S]*\}|\[[\s\S]*\]/)
     if (jsonMatch) {
@@ -3392,7 +3387,7 @@ export function sanitizeAndParseJSON(response: string): { data: any; wasFixed: b
         const parsed = JSON.parse(extracted)
         console.log('[JSON Repair] Extracted valid JSON from response')
         return { data: parsed, wasFixed: true, original }
-      } catch (inner) {
+      } catch {
         console.log('[JSON Repair] Failed to repair JSON')
       }
     }
@@ -3435,7 +3430,7 @@ export function loadTokenUsage(): TokenUsage {
       }
       return data as TokenUsage
     }
-  } catch (e) {
+  } catch {
     // Ignore
   }
   const today = new Date().toISOString().split('T')[0]
@@ -3716,7 +3711,7 @@ export function loadCampaignState(campaignId: string): CampaignState | null {
       const allStates = JSON.parse(fs.readFileSync(STATE_FILE, 'utf-8'))
       return allStates[campaignId] || null
     }
-  } catch (e) {}
+  } catch {}
   return null
 }
 
@@ -4398,14 +4393,10 @@ export function validateCitations(
 ): { valid: boolean; errors: string[]; usedCitations: string[] } {
   const foundVFCitations = pitchText.match(/\[VF_(\d+)\]/g) || []
   const foundINCitations = pitchText.match(/\[IN_(\d+)\]/g) || []
-  const foundJIntelCitations = pitchText.match(/\[J_Intel_(\d+)\]/g) || []
-  
   const errors: string[] = []
   
   const validVFIds = verifiedFindings.map(f => `VF_${f.id}`)
   const validINIds = insights.map(i => `IN_${i.id}`)
-  const validJIntelIds = foundJIntelCitations.map(c => c.replace(/[\[\]]/g, ''))
-  
   for (const citation of foundVFCitations) {
     const cleanId = citation.replace(/[\[\]]/g, '')
     if (!validVFIds.includes(cleanId)) {

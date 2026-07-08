@@ -10,10 +10,8 @@ import {
   Clock, 
   Filter, 
   AlertCircle, 
-  CheckCircle, 
   Info, 
   AlertTriangle,
-  X,
   RefreshCw,
   ExternalLink
 } from 'lucide-react'
@@ -56,8 +54,8 @@ export default function RecentActivityLog({
   showTimestamp = true,
   onEntryClick,
   onRefresh,
-  autoRefresh = false,
-  refreshInterval = 5000
+  autoRefresh: _autoRefresh = false,
+  refreshInterval: _refreshInterval = 5000
 }: RecentActivityLogProps) {
   const [levelFilter, setLevelFilter] = useState<LogLevel | 'all'>('all')
   const [searchQuery, setSearchQuery] = useState('')

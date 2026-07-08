@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '@/context/DataContext';
 import { 
   Search, CheckCircle, AlertTriangle, 
   Globe, Database, Clock, Brain, Activity, FileText,
-  TrendingUp, Users, Target, ExternalLink
+  Target, ExternalLink
 } from 'lucide-react';
 import StageHeader from '@/components/StageHeader';
 import clsx from 'clsx';
@@ -61,6 +61,30 @@ export default function ResearchEnrichmentPage() {
   const [autoProgressNote, setAutoProgressNote] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'sources' | 'findings' | 'hooks'>('overview');
 
+  const loadResearchData = useMemo(
+    () => async (campaignId: string) => {
+      try {
+        setLoadError(null);
+        const res = await fetch(`/api/research-enrichment?campaignId=${campaignId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setResearchData(data);
+          addLog({ level: 'info', source: 'research-enrichment', message: 'Research enrichment data loaded successfully' });
+        } else {
+          const payload = await res.json().catch(() => ({}));
+          const message = payload?.message || payload?.error || `Request failed (${res.status})`;
+          setLoadError(message);
+        }
+      } catch (err) {
+        console.error('Failed to load research data:', err);
+        setLoadError('Failed to load research enrichment data. Please retry.');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [addLog]
+  );
+
   useEffect(() => {
     if (currentCampaign?.id) {
       loadResearchData(currentCampaign.id);
@@ -68,7 +92,7 @@ export default function ResearchEnrichmentPage() {
     } else {
       setIsLoading(false);
     }
-  }, [currentCampaign]);
+  }, [currentCampaign, loadResearchData]);
 
   useEffect(() => {
     if (currentCampaign || campaigns.length === 0) {
@@ -81,26 +105,7 @@ export default function ResearchEnrichmentPage() {
     }
   }, [campaigns, currentCampaign, setCurrentCampaign]);
 
-  const loadResearchData = async (campaignId: string) => {
-    try {
-      setLoadError(null);
-      const res = await fetch(`/api/research-enrichment?campaignId=${campaignId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setResearchData(data);
-        addLog({ level: 'info', source: 'research-enrichment', message: 'Research enrichment data loaded successfully' });
-      } else {
-        const payload = await res.json().catch(() => ({}));
-        const message = payload?.message || payload?.error || `Request failed (${res.status})`;
-        setLoadError(message);
-      }
-    } catch (err) {
-      console.error('Failed to load research data:', err);
-      setLoadError('Failed to load research enrichment data. Please retry.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+
 
   const triggerAutoProgress = async (campaignId: string) => {
     setIsAutoProgressing(true);

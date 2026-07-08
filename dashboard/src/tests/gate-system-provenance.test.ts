@@ -43,10 +43,6 @@ function resetMockFs() {
   mockFileContents.clear();
 }
 
-function addStageFile(stage: number) {
-  addCampaignFile(`stage-${String(stage).padStart(2, '0')}.json`, JSON.stringify({ currentStage: stage }));
-}
-
 function addStageFileForCurrentStage(stage: number) {
   addCampaignFile('stage.json', JSON.stringify({ currentStage: stage }));
 }
