@@ -18,6 +18,7 @@
  */
 
 import { getRunModeFromEnv, shouldBlockExternalAction } from '@/lib/runMode';
+import { isZombieResponse } from './llm/utils/zombieDetector';
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || process.env.OPENCODE_API_KEY || 'free';
 const OPENROUTER_BASE = 'https://openrouter.ai/api/v1';
@@ -136,29 +137,6 @@ function classifyError(status: number | null, errorMessage: string): ErrorClassi
     action: 'halt',
     message: `Unknown error (status: ${status}): ${errorMessage}`
   };
-}
-
-/**
- * Zombie Check: Detect hidden refusals in short responses
- */
-function isZombieResponse(content: string): boolean {
-  if (!content || content.length < 100) {
-    const zombiePatterns = [
-      /i cannot/i,
-      /i'm sorry/i,
-      /cannot fulfill/i,
-      /cannot complete/i,
-      /unable to/i,
-      /not able to/i,
-      /do not have the ability/i,
-      /cannot assist/i,
-      /safety guidelines/i,
-      /content policy/i
-    ];
-    
-    return zombiePatterns.some(pattern => pattern.test(content));
-  }
-  return false;
 }
 
 /**
