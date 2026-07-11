@@ -363,6 +363,7 @@ export function getTemperatureForStage(stageName: string): number {
 }
 
 import { z } from 'zod'
+import { containsForbiddenWords } from './llm/utils/forbiddenWordsChecker'
 
 export {
   VerifiedFindingSchema,
@@ -378,6 +379,7 @@ export {
 } from './llm/schemas/stageSchemas'
 
 export { sanitizeAndParseJSON } from './llm/utils/jsonRepair'
+export { containsForbiddenWords } from './llm/utils/forbiddenWordsChecker'
 
 // Context-Length Fingerprinting (Token Optimization)
 export function estimateTokens(text: string): number {
@@ -2001,14 +2003,6 @@ ${activeAnchors.map((rule, i) => (i + 1) + '. ' + rule).join('\n')}
 
 ### EXECUTION RULE ###
 If the System Identity conflicts with the Immutable Constraints, the Constraints ALWAYS take precedence.`
-}
-
-// Forbidden words check
-const FORBIDDEN_WORDS = ['synergy', 'paradigm shift', 'game-changer', 'leverage', 'deep dive', 'circle back', 'low-hanging fruit']
-
-export function containsForbiddenWords(text: string): string[] {
-  const lower = text.toLowerCase()
-  return FORBIDDEN_WORDS.filter(word => lower.includes(word))
 }
 
 export function scanAndRetryIfForbidden(prompt: string, output: string): { clean: boolean; found: string[] } {
