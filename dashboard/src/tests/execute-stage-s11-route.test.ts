@@ -442,4 +442,73 @@ describe('S11 route-level integration behavior', () => {
     expect(body.error).toBe('STAGE_DEPENDENCY_BLOCKED');
     expect(body.message).toBe('S11 blocked: optimized pitch output is too thin.');
   });
+
+  it('S11 filters anti-sales language from optimized body', async () => {
+    const { validateStagePitchGovernance } = await import('@/lib/pitchGovernanceValidator');
+    vi.mocked(validateStagePitchGovernance).mockResolvedValue({
+      valid: true,
+      issues: [],
+      stage: 11,
+      filePath: null,
+      warnings: [],
+    });
+
+    const draftWithSales = [
+      '# Subject Line',
+      'Test: New data reveals key insights about campaign strategy',
+      '',
+      '## Body',
+      'This is the body of the pitch draft that contains several lines of meaningful content about the campaign and why the journalist coverage would be valuable. limited time',
+      'The research shows compelling evidence that this angle resonates with current market dynamics and audience interests. act now',
+      'This pitch draft has been carefully crafted based on journalist intelligence and beat analysis to ensure maximum relevance and engagement. exclusive offer',
+      'Additional context about this campaign and why it matters for the target audience and their coverage interests. hurry',
+      'More supporting evidence drawn from verified findings and journalist intelligence data. last chance',
+      '',
+      '## CTA',
+      'Let me know if you would like more information about the campaign.',
+    ].join('\n');
+
+    const writtenFiles: Record<string, string> = {};
+
+    vi.mocked(fs.writeFile).mockImplementation(async (pathLike: FsFilePath, data: FsFileData) => {
+      writtenFiles[String(pathLike)] = String(data);
+    });
+
+    vi.mocked(fs.rename).mockImplementation(async (from: FsFilePath, to: FsFilePath) => {
+      const fromStr = String(from);
+      if (writtenFiles[fromStr]) {
+        writtenFiles[String(to)] = writtenFiles[fromStr];
+      }
+    });
+
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike: FsFilePath) => {
+      const pStr = String(pathLike);
+      if (writtenFiles[pStr]) return writtenFiles[pStr];
+      if (pStr.includes('stage-state.json')) return makeStageState(11);
+      if (pStr.includes('circuit-state.json')) throw new Error('ENOENT');
+      if (pStr.includes('.stage-lock')) throw new Error('ENOENT');
+      if (pStr.includes('human-approval.json')) return makeApproval();
+      if (pStr.includes('10-pitch-draft.md')) return draftWithSales;
+      throw new Error('ENOENT');
+    });
+
+    const response = await POST(
+      mockRequest({ stage: 11 }),
+      { params: Promise.resolve({ id: 'test-campaign' }) },
+    );
+    expect(response.status).toBe(200);
+
+    const outputEntry = Object.entries(writtenFiles).find(
+      ([path]) => path.includes('11-optimized-pitch.md') && !path.endsWith('.tmp'),
+    );
+    expect(outputEntry).toBeDefined();
+    const output = outputEntry![1];
+
+    expect(output).not.toContain('limited time');
+    expect(output).not.toContain('act now');
+    expect(output).not.toContain('exclusive offer');
+    expect(output).not.toContain('hurry');
+    expect(output).not.toContain('last chance');
+    expect(output).toContain('Anti-sales language filtered');
+  });
 });
