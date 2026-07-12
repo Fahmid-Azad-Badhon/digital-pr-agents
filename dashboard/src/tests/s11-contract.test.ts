@@ -47,6 +47,41 @@ function getStageInputs(data: unknown, stageKey: string): string[] | null {
   return inputs;
 }
 
+function getStageProduces(data: unknown, stageKey: string): string[] | null {
+  if (!isRecord(data)) return null;
+  const stages = data.stages;
+  if (!isRecord(stages)) return null;
+  const stage = stages[stageKey];
+  if (!isRecord(stage)) return null;
+  const produces = stage.produces;
+  if (!isStringArray(produces)) return null;
+  return produces;
+}
+
+function getStageOutputs(data: unknown, stageKey: string): string[] | null {
+  if (!isRecord(data)) return null;
+  const stages = data.stages;
+  if (!isRecord(stages)) return null;
+  const stage = stages[stageKey];
+  if (!isRecord(stage)) return null;
+  const outputs = stage.outputs;
+  if (!isStringArray(outputs)) return null;
+  return outputs;
+}
+
+function getRouteStageOutputFiles(stage: number): string[] | null {
+  const content = readRouteSource();
+  const blockStart = content.indexOf('STAGE_OUTPUT_FILES');
+  if (blockStart === -1) return null;
+  const blockEnd = content.indexOf('};', blockStart);
+  if (blockEnd === -1) return null;
+  const block = content.substring(blockStart, blockEnd + 2);
+  const pattern = new RegExp(`\\b${stage}:\\s*\\[([^\\]]+)\\]`);
+  const match = block.match(pattern);
+  if (!match) return null;
+  return match[1].split(',').map((s) => s.trim().replace(/['"`]/g, '')).filter(Boolean);
+}
+
 describe('S11 contract dependency alignment', () => {
   it('RED: S11 runtime dependencies include claim-ledger.json', () => {
     const content = readRouteSource();
@@ -75,5 +110,23 @@ describe('S11 contract dependency alignment', () => {
     const data = parseJsonFile(registryPath);
     const inputs = getStageInputs(data, 'S11');
     expect(inputs).toEqual(['10-pitch-draft.md', 'claim-ledger.json']);
+  });
+
+  it('S11 canonical output sources agree on 11-optimized-pitch.md', () => {
+    const routeOutputs = getRouteStageOutputFiles(11);
+    expect(routeOutputs).toEqual(['11-optimized-pitch.md']);
+
+    const contractPath = path.join(PROJECT_ROOT, 'system/stage-contracts.json');
+    const contractData = parseJsonFile(contractPath);
+    const contractProduces = getStageProduces(contractData, 'S11_PITCH_OPTIMIZATION');
+    expect(contractProduces).toEqual(['11-optimized-pitch.md']);
+
+    const registryPath = path.join(PROJECT_ROOT, 'system/stage-output-registry.json');
+    const registryData = parseJsonFile(registryPath);
+    const registryOutputs = getStageOutputs(registryData, 'S11');
+    expect(registryOutputs).toEqual(['11-optimized-pitch.md']);
+
+    expect(routeOutputs).toEqual(contractProduces);
+    expect(routeOutputs).toEqual(registryOutputs);
   });
 });
