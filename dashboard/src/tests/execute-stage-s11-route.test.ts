@@ -419,4 +419,27 @@ describe('S11 route-level integration behavior', () => {
     expect(output).toContain('let me know');
     expect(output).not.toContain('Reply to this email');
   });
+
+  it('S11 blocked when optimized pitch output is too thin after write', async () => {
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike: FsFilePath) => {
+      const pStr = String(pathLike);
+      if (pStr.includes('stage-state.json')) return makeStageState(11);
+      if (pStr.includes('circuit-state.json')) throw new Error('ENOENT');
+      if (pStr.includes('.stage-lock')) throw new Error('ENOENT');
+      if (pStr.includes('human-approval.json')) return makeApproval();
+      if (pStr.includes('10-pitch-draft.md')) return VALID_DRAFT;
+      if (pStr.includes('11-optimized-pitch.md')) return 'Short thin output.';
+      throw new Error('ENOENT');
+    });
+
+    const response = await POST(
+      mockRequest({ stage: 11 }),
+      { params: Promise.resolve({ id: 'test-campaign' }) },
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(body.error).toBe('STAGE_DEPENDENCY_BLOCKED');
+    expect(body.message).toBe('S11 blocked: optimized pitch output is too thin.');
+  });
 });
