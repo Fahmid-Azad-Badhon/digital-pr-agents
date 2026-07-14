@@ -644,4 +644,65 @@ describe('S11 route-level integration behavior', () => {
     expect(subjectSection).not.toContain('Pitch: Campaign angle overview');
     expect(subjectSection).not.toContain('Data-backed angle for your coverage');
   });
+
+  it('S11 uses default CTA when draft has no CTA section', async () => {
+    const draftWithoutCta = [
+      '# Subject Line',
+      'New data shows how newsroom-relevant campaign angles can be refined for coverage',
+      '',
+      '## Body',
+      'This pitch draft intentionally has no CTA section, but it still contains enough meaningful body content for S11 to optimize. The campaign explains a timely data-backed story angle with clear journalist relevance and enough detail to avoid thin-draft blocking.',
+      'The body continues with additional context about audience interest, current coverage value, and why this angle can be useful for reporters covering this beat. It includes multiple sentences so the route receives a realistic draft body for optimization.',
+      'The final body paragraph preserves a practical story angle and gives the optimizer enough content to assemble a complete artifact without relying on a CTA heading.',
+    ].join('\n');
+
+    const writtenFiles: Record<string, string> = {};
+
+    vi.mocked(fs.writeFile).mockImplementation(async (pathLike: FsFilePath, data: FsFileData) => {
+      writtenFiles[String(pathLike)] = String(data);
+    });
+
+    vi.mocked(fs.rename).mockImplementation(async (from: FsFilePath, to: FsFilePath) => {
+      const fromStr = String(from);
+      if (writtenFiles[fromStr]) {
+        writtenFiles[String(to)] = writtenFiles[fromStr];
+      }
+    });
+
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike: FsFilePath) => {
+      const pStr = String(pathLike);
+      if (writtenFiles[pStr]) return writtenFiles[pStr];
+      if (pStr.includes('stage-state.json')) return makeStageState(11);
+      if (pStr.includes('circuit-state.json')) throw new Error('ENOENT');
+      if (pStr.includes('.stage-lock')) throw new Error('ENOENT');
+      if (pStr.includes('human-approval.json')) return makeApproval();
+      if (pStr.includes('10-pitch-draft.md')) return draftWithoutCta;
+      throw new Error('ENOENT');
+    });
+
+    const response = await POST(
+      mockRequest({ stage: 11 }),
+      { params: Promise.resolve({ id: 'test-campaign' }) },
+    );
+    expect(response.status).toBe(200);
+
+    const body = await response.json();
+    expect(body.data.outputFile).toBe('11-optimized-pitch.md');
+
+    const outputEntry = Object.entries(writtenFiles).find(
+      ([path]) => path.includes('11-optimized-pitch.md') && !path.endsWith('.tmp'),
+    );
+    expect(outputEntry).toBeDefined();
+    const output = outputEntry![1];
+
+    const ctaSectionStart = output.indexOf('## Call to Action');
+    const ctaSectionEnd = output.indexOf('## Optimization Notes');
+    const ctaSection = output.slice(ctaSectionStart, ctaSectionEnd);
+
+    expect(ctaSection).toContain('Let me know if this resonates with your beat coverage.');
+
+    const notesSection = output.slice(ctaSectionEnd);
+
+    expect(notesSection).toContain('CTA softened to: "Let me know if this resonates with your beat coverage."');
+  });
 });
