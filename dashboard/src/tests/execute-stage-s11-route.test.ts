@@ -511,4 +511,71 @@ describe('S11 route-level integration behavior', () => {
     expect(output).not.toContain('last chance');
     expect(output).toContain('Anti-sales language filtered');
   });
+
+  it('S11 selects shortest valid generated subject variant', async () => {
+    const draftWithSubject = [
+      'Subject: Study reveals latest childcare cost pressure across Ohio families',
+      '',
+      '## Body',
+      'This is the body of the pitch draft that contains several lines of meaningful content about the campaign and why the journalist coverage would be valuable. The story covers emerging trends in the industry that align with the journalist beat.',
+      'The research shows compelling evidence that this angle resonates with current market dynamics and audience interests. The data points included here demonstrate the newsworthiness of this story.',
+      '',
+      '## CTA',
+      'Reply to this email if you are interested in covering this story.',
+    ].join('\n');
+
+    const writtenFiles: Record<string, string> = {};
+
+    vi.mocked(fs.writeFile).mockImplementation(async (pathLike: FsFilePath, data: FsFileData) => {
+      writtenFiles[String(pathLike)] = String(data);
+    });
+
+    vi.mocked(fs.rename).mockImplementation(async (from: FsFilePath, to: FsFilePath) => {
+      const fromStr = String(from);
+      if (writtenFiles[fromStr]) {
+        writtenFiles[String(to)] = writtenFiles[fromStr];
+      }
+    });
+
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike: FsFilePath) => {
+      const pStr = String(pathLike);
+      if (writtenFiles[pStr]) return writtenFiles[pStr];
+      if (pStr.includes('stage-state.json')) return makeStageState(11);
+      if (pStr.includes('circuit-state.json')) throw new Error('ENOENT');
+      if (pStr.includes('.stage-lock')) throw new Error('ENOENT');
+      if (pStr.includes('human-approval.json')) return makeApproval();
+      if (pStr.includes('10-pitch-draft.md')) return draftWithSubject;
+      throw new Error('ENOENT');
+    });
+
+    const response = await POST(
+      mockRequest({ stage: 11 }),
+      { params: Promise.resolve({ id: 'test-campaign' }) },
+    );
+    expect(response.status).toBe(200);
+
+    const body = await response.json();
+    expect(body.data.outputFile).toBe('11-optimized-pitch.md');
+
+    const outputEntry = Object.entries(writtenFiles).find(
+      ([path]) => path.includes('11-optimized-pitch.md') && !path.endsWith('.tmp'),
+    );
+    expect(outputEntry).toBeDefined();
+    const output = outputEntry![1];
+
+    const outputLines = output.split('\n');
+
+    expect(outputLines).toContain('  1. Study reveals latest childcare cost pressure across Ohio families');
+    expect(outputLines).toContain('  2. Study reveals  childcare cost pressure across Ohio families');
+    expect(outputLines).toContain('  3. Data point: Study reveals latest childcare cost pressure across Ohio fam');
+
+    expect(output).toContain('## Subject Line');
+    const subjectSectionStart = output.indexOf('## Subject Line');
+    const subjectSectionEnd = output.indexOf('## Subject Line Variants');
+    const subjectSection = output.slice(subjectSectionStart, subjectSectionEnd);
+
+    expect(subjectSection).toContain('Study reveals  childcare cost pressure across Ohio families');
+    expect(subjectSection).not.toContain('Study reveals latest');
+    expect(subjectSection).not.toContain('Data point:');
+  });
 });
