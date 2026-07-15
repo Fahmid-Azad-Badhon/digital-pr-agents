@@ -839,4 +839,68 @@ describe('S11 route-level integration behavior', () => {
 
     expect(notesSection).toContain('CTA softened to: "let me know today."');
   });
+
+  it('S11 uses full draft as body when parsing finds no sections', async () => {
+    const unstructuredDraft = [
+      'This unstructured pitch draft opens with a clear data-backed story angle for reporters covering public safety, community impact, and policy response. It intentionally avoids section labels so the S11 parser must rely on the full-draft fallback path.',
+      'The second paragraph adds enough context to pass the draft length guard while preserving normal journalist-facing language. It explains why the campaign can support coverage with verified findings, relevant examples, and timely framing for a local or national newsroom.',
+      'The third paragraph gives the optimizer additional material that should remain visible in the body section after parsing. It does not include a subject heading, a body heading, a call-to-action heading, or any parser marker that would populate structured sections directly.',
+    ].join('\n');
+
+    const writtenFiles: Record<string, string> = {};
+
+    vi.mocked(fs.writeFile).mockImplementation(async (pathLike: FsFilePath, data: FsFileData) => {
+      writtenFiles[String(pathLike)] = String(data);
+    });
+
+    vi.mocked(fs.rename).mockImplementation(async (from: FsFilePath, to: FsFilePath) => {
+      const fromStr = String(from);
+      if (writtenFiles[fromStr]) {
+        writtenFiles[String(to)] = writtenFiles[fromStr];
+      }
+    });
+
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike: FsFilePath) => {
+      const pStr = String(pathLike);
+      if (writtenFiles[pStr]) return writtenFiles[pStr];
+      if (pStr.includes('stage-state.json')) return makeStageState(11);
+      if (pStr.includes('circuit-state.json')) throw new Error('ENOENT');
+      if (pStr.includes('.stage-lock')) throw new Error('ENOENT');
+      if (pStr.includes('human-approval.json')) return makeApproval();
+      if (pStr.includes('10-pitch-draft.md')) return unstructuredDraft;
+      throw new Error('ENOENT');
+    });
+
+    const response = await POST(
+      mockRequest({ stage: 11 }),
+      { params: Promise.resolve({ id: 'test-campaign' }) },
+    );
+    expect(response.status).toBe(200);
+
+    const body = await response.json();
+    expect(body.data.outputFile).toBe('11-optimized-pitch.md');
+
+    const outputEntry = Object.entries(writtenFiles).find(
+      ([path]) => path.includes('11-optimized-pitch.md') && !path.endsWith('.tmp'),
+    );
+    expect(outputEntry).toBeDefined();
+    const output = outputEntry![1];
+
+    const bodySectionStart = output.indexOf('## Body');
+    const bodySectionEnd = output.indexOf('## Call to Action');
+    const bodySection = output.slice(bodySectionStart, bodySectionEnd);
+
+    expect(bodySectionStart).toBeGreaterThanOrEqual(0);
+    expect(bodySectionEnd).toBeGreaterThan(bodySectionStart);
+    expect(bodySection.trim().length).toBeGreaterThan(0);
+
+    expect(bodySection).toContain('This unstructured pitch draft opens with a clear data-backed story angle');
+    expect(bodySection).toContain('The second paragraph adds enough context to pass the draft length guard');
+
+    expect(output).toContain('Pitch: Campaign angle overview');
+    expect(output).toContain('Story idea for your beat');
+    expect(output).toContain('Data-backed angle for your coverage');
+    expect(output).toContain('Let me know if this resonates with your beat coverage.');
+    expect(output).toContain('## Optimization Notes');
+  });
 });
