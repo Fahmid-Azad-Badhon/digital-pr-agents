@@ -512,6 +512,74 @@ describe('S11 route-level integration behavior', () => {
     expect(output).toContain('Anti-sales language filtered');
   });
 
+  it('S11 normalizes repeated exclamation marks in body', async () => {
+    const draftWithBodyExclamation = [
+      '# Subject Line',
+      'New data shows how newsroom-relevant campaign angles can be refined for coverage',
+      '',
+      '## Body',
+      'This data point matters!! The newsroom angle remains useful for reporters covering this beat. The broader context matters!',
+      'This campaign context is timely!!! It gives the route a realistic body line to normalize with multiple sentences of coverage value.',
+      'The research shows compelling evidence that this angle resonates with current market dynamics and audience interest in the topic.',
+      'Additional supporting evidence drawn from verified findings and journalist intelligence data confirms the story angle is strong.',
+      '',
+      '## CTA',
+      'Let me know if you would like more information about the campaign.',
+    ].join('\n');
+
+    const writtenFiles: Record<string, string> = {};
+
+    vi.mocked(fs.writeFile).mockImplementation(async (pathLike: FsFilePath, data: FsFileData) => {
+      writtenFiles[String(pathLike)] = String(data);
+    });
+
+    vi.mocked(fs.rename).mockImplementation(async (from: FsFilePath, to: FsFilePath) => {
+      const fromStr = String(from);
+      if (writtenFiles[fromStr]) {
+        writtenFiles[String(to)] = writtenFiles[fromStr];
+      }
+    });
+
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike: FsFilePath) => {
+      const pStr = String(pathLike);
+      if (writtenFiles[pStr]) return writtenFiles[pStr];
+      if (pStr.includes('stage-state.json')) return makeStageState(11);
+      if (pStr.includes('circuit-state.json')) throw new Error('ENOENT');
+      if (pStr.includes('.stage-lock')) throw new Error('ENOENT');
+      if (pStr.includes('human-approval.json')) return makeApproval();
+      if (pStr.includes('10-pitch-draft.md')) return draftWithBodyExclamation;
+      throw new Error('ENOENT');
+    });
+
+    const response = await POST(
+      mockRequest({ stage: 11 }),
+      { params: Promise.resolve({ id: 'test-campaign' }) },
+    );
+    expect(response.status).toBe(200);
+
+    const body = await response.json();
+    expect(body.data.outputFile).toBe('11-optimized-pitch.md');
+
+    const outputEntry = Object.entries(writtenFiles).find(
+      ([path]) => path.includes('11-optimized-pitch.md') && !path.endsWith('.tmp'),
+    );
+    expect(outputEntry).toBeDefined();
+    const output = outputEntry![1];
+
+    const bodySectionStart = output.indexOf('## Body');
+    const bodySectionEnd = output.indexOf('## Call to Action');
+    const bodySection = output.slice(bodySectionStart, bodySectionEnd);
+
+    expect(bodySection).toContain('This data point matters!');
+    expect(bodySection).toContain('This campaign context is timely!');
+    expect(bodySection).not.toContain('!!!');
+    expect(bodySection).not.toContain('!!');
+
+    const notesSection = output.slice(output.indexOf('## Optimization Notes'));
+
+    expect(notesSection).toContain('Anti-sales language filtered');
+  });
+
   it('S11 selects shortest valid generated subject variant', async () => {
     const draftWithSubject = [
       'Subject: Study reveals latest childcare cost pressure across Ohio families',
