@@ -12,10 +12,25 @@
  * =============================================================================
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
+
+vi.mock('../lib/integrationReadiness', () => ({
+  getIntegrationReadiness: vi.fn().mockResolvedValue({
+    muckrack: 'not_configured',
+    googleOAuth: 'not_configured',
+    scripts: 'not_configured',
+    details: {
+      muckrack: { error: 'mocked for test determinism' },
+      googleOAuth: { error: 'mocked for test determinism' },
+      scripts: { error: 'mocked for test determinism' },
+    },
+  }),
+  stageRequiresIntegration: vi.fn().mockReturnValue(false),
+  getIntegrationBlockerReason: vi.fn().mockResolvedValue(null),
+}));
 
 // Test constants
 const PITCH_JOBS_ROOT = path.join(os.tmpdir(), 'test-campaign-state-' + Date.now());

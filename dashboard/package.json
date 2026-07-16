@@ -8,7 +8,7 @@
     "dev:stable": "powershell -ExecutionPolicy Bypass -File .\\scripts\\launch-dashboard-stable.ps1",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint src --ext .ts,.tsx",
+    "lint": "eslint src --ext .ts,.tsx --cache --cache-location node_modules/.cache/eslint/.eslintcache",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:model-routing": "vitest run src/tests/model-routing.test.ts",
