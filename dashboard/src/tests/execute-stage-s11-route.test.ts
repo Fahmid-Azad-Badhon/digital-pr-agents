@@ -903,4 +903,120 @@ describe('S11 route-level integration behavior', () => {
     expect(output).toContain('Let me know if this resonates with your beat coverage.');
     expect(output).toContain('## Optimization Notes');
   });
+
+  it('S11 uses raw body lines when anti-sales filter removes all body content', async () => {
+    const pureAntiSalesLines = [
+      'limited time',
+      'act now',
+      "don't miss",
+      'exclusive offer',
+      'hurry',
+      'last chance',
+      'limited time',
+      'act now',
+      "don't miss",
+      'exclusive offer',
+      'hurry',
+      'last chance',
+      'limited time',
+      'act now',
+      "don't miss",
+      'exclusive offer',
+      'hurry',
+      'last chance',
+      'limited time',
+      'act now',
+      "don't miss",
+      'exclusive offer',
+      'hurry',
+      'last chance',
+      'limited time',
+      'act now',
+      "don't miss",
+      'exclusive offer',
+      'hurry',
+      'last chance',
+      'limited time',
+      'act now',
+      "don't miss",
+      'exclusive offer',
+      'hurry',
+      'last chance',
+      'limited time',
+      'act now',
+      "don't miss",
+      'exclusive offer',
+      'hurry',
+      'last chance',
+      'limited time',
+      'act now',
+      "don't miss",
+      'exclusive offer',
+      'hurry',
+      'last chance',
+    ];
+
+    const draftWithPureAntiSalesBody = [
+      '## Body',
+      ...pureAntiSalesLines,
+    ].join('\n');
+
+    const writtenFiles: Record<string, string> = {};
+
+    vi.mocked(fs.writeFile).mockImplementation(async (pathLike: FsFilePath, data: FsFileData) => {
+      writtenFiles[String(pathLike)] = String(data);
+    });
+
+    vi.mocked(fs.rename).mockImplementation(async (from: FsFilePath, to: FsFilePath) => {
+      const fromStr = String(from);
+      if (writtenFiles[fromStr]) {
+        writtenFiles[String(to)] = writtenFiles[fromStr];
+      }
+    });
+
+    vi.mocked(fs.readFile).mockImplementation(async (pathLike: FsFilePath) => {
+      const pStr = String(pathLike);
+      if (writtenFiles[pStr]) return writtenFiles[pStr];
+      if (pStr.includes('stage-state.json')) return makeStageState(11);
+      if (pStr.includes('circuit-state.json')) throw new Error('ENOENT');
+      if (pStr.includes('.stage-lock')) throw new Error('ENOENT');
+      if (pStr.includes('human-approval.json')) return makeApproval();
+      if (pStr.includes('10-pitch-draft.md')) return draftWithPureAntiSalesBody;
+      throw new Error('ENOENT');
+    });
+
+    const response = await POST(
+      mockRequest({ stage: 11 }),
+      { params: Promise.resolve({ id: 'test-campaign' }) },
+    );
+    expect(response.status).toBe(200);
+
+    const body = await response.json();
+    expect(body.data.outputFile).toBe('11-optimized-pitch.md');
+
+    const outputEntry = Object.entries(writtenFiles).find(
+      ([path]) => path.includes('11-optimized-pitch.md') && !path.endsWith('.tmp'),
+    );
+    expect(outputEntry).toBeDefined();
+    const output = outputEntry![1];
+
+    const bodySectionStart = output.indexOf('## Body');
+    const bodySectionEnd = output.indexOf('## Call to Action');
+    const bodySection = output.slice(bodySectionStart, bodySectionEnd);
+
+    expect(bodySectionStart).toBeGreaterThanOrEqual(0);
+    expect(bodySectionEnd).toBeGreaterThan(bodySectionStart);
+    expect(bodySection.trim().length).toBeGreaterThan(0);
+
+    expect(bodySection).toContain('limited time');
+    expect(bodySection).toContain('act now');
+    expect(bodySection).toContain('exclusive offer');
+    expect(bodySection).toContain('last chance');
+
+    expect(output).toContain('Pitch: Campaign angle overview');
+    expect(output).toContain('Story idea for your beat');
+    expect(output).toContain('Data-backed angle for your coverage');
+    expect(output).toContain('Let me know if this resonates with your beat coverage.');
+    expect(output).toContain('## Optimization Notes');
+  });
 });
