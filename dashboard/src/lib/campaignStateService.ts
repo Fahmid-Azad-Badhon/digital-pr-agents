@@ -209,7 +209,8 @@ async function checkOutputQuality(campaignPath: string, stageNumber: number): Pr
 
   let artifactStatus: 'exists' | 'missing' | 'empty' | 'thin' = 'missing';
   if (expectedFiles.length > 0) {
-    const existingCount = expectedFiles.filter(async (f) => (await checkFileExists(path.join(campaignPath, f))).exists).length;
+    const existingResults = await Promise.all(expectedFiles.map((f) => checkFileExists(path.join(campaignPath, f))));
+    const existingCount = existingResults.filter((r) => r.exists).length;
     if (existingCount === expectedFiles.length) {
       artifactStatus = totalSize < 100 ? 'thin' : 'exists';
     } else if (existingCount > 0) {

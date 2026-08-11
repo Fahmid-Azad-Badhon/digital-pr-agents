@@ -265,12 +265,14 @@ describe('Cross-Endpoint Consistency Contract', () => {
 
     const { getCampaignStats, getCampaignListState } = await import('../lib/campaignStateService');
 
-    // This test verifies the contract - actual values depend on filesystem
+    // This test verifies the contract - actual values depend on filesystem.
+    // It scans the real repository pitch-jobs directory twice, so it needs a
+    // larger timeout than the default 5000ms.
     const stats = await getCampaignStats();
     const list = await getCampaignListState();
 
     expect(stats.total).toBe(list.length);
-  });
+  }, 30000);
 });
 
 describe('Human Approval Provenance Classification', () => {
