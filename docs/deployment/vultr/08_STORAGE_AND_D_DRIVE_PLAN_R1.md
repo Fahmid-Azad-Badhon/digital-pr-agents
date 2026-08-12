@@ -41,15 +41,36 @@ script only and is **not executed in this batch**.
 
 ### Script Behavior (documented)
 
+The script now requires a mandatory `-ExpectedDiskSizeGB` parameter so it never
+initializes a disk without an explicit identity check:
+
 1. Check whether `D:` already exists.
-   - If it does, verify the volume, create `D:\Codex Folder`, and exit 0.
-2. Find the largest RAW disk.
-   - If none, exit 1 with a clear error.
-3. Initialize the disk as GPT.
-4. Create partition `D:` using the maximum size.
-5. Format `D:` as NTFS with label `DPRData`.
-6. Create `D:\Codex Folder`.
-7. Print final volume and folder state.
+   - If it does, print the existing volume's label/size, create `D:\Codex Folder`
+     if missing (it never reformats an existing volume), and exit 0.
+2. Require `-ExpectedDiskSizeGB <GB>` (must be supplied; the value comes from the
+   storage plan / Block Storage order).
+3. Find RAW disks (the OS/boot/system disk is never selected) that match the
+   expected size within a 5% tolerance.
+   - The script refuses to initialize any disk whose size does not match.
+   - If none match, exit 1 with the sizes of the RAW disks that were found; it
+     never picks a disk automatically.
+   - If more than one RAW disk matches within tolerance, exit 1 and never choose
+     arbitrarily: detach the unintended volume or re-run with a unique expected
+     size.
+4. Initialize the matching disk as GPT.
+5. Create partition `D:` using the maximum size.
+6. Format `D:` as NTFS with label `DPRData`.
+7. Create `D:\Codex Folder`.
+8. Print final volume and folder state.
+
+Example invocation (future gate):
+
+```powershell
+.\Initialize-DPR-DDrive.ps1 -ExpectedDiskSizeGB 250
+```
+
+Before running, confirm the attached disk identity and size from the
+`Inspect-Windows-Baseline.ps1` read-only output and from the Vultr storage order.
 
 ### Script Header
 
@@ -63,6 +84,7 @@ script only and is **not executed in this batch**.
 
 - Vultr server created.
 - Storage (plan disk or Block Storage) attached and verified visible.
+- The exact ordered storage size is known so `-ExpectedDiskSizeGB` matches.
 - D-drive initialization gate authorized.
 - Administrator access to the VM via the approved access model.
 

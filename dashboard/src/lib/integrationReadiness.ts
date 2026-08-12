@@ -147,7 +147,7 @@ async function checkGoogleOAuthReadiness(): Promise<{ status: IntegrationStatus;
 
   // Validate redirect URI matches actual server port
   if (redirectUri) {
-    const serverPort = process.env.PORT || process.env.NEXT_PUBLIC_PORT || '3000';
+    const serverPort = process.env.PORT || process.env.NEXT_PUBLIC_PORT || '3002';
     const redirectPort = new URL(redirectUri).port || '443';
     if (redirectPort !== serverPort) {
       return {

@@ -48,6 +48,9 @@ same sensitive/build artifacts as Option B.
 
 ## Exclusion List (for any transfer)
 
+Manual transfer (zip/copy) must exclude local runtime state and secrets. Git
+clone transfers only tracked files, but manual copies must be filtered:
+
 ```
 .env
 .env.*
@@ -56,9 +59,29 @@ node_modules/
 logs/
 dashboard/.next/
 dashboard/node_modules/
+dashboard/logs/
+dashboard/data/
+dashboard/reports/
+dashboard/scratch/
+dashboard/.diagnostics/
+dashboard/tmp-diagnosis/
+data/            # local runtime data (all except the tracked .gitkeep)
+pitch-jobs/      # local campaign state
+pitch-jobs-backup*/
+Birth Injury Law/
+.secrets/
+browser-tools/profiles/
+browser-tools/data/
+browser-tools/logs/
+browser-tools/screenshots/
 data/google-token.json
 any credential/secret files
 ```
+
+On the server these are re-created as needed by the app or created manually at
+the environment gate; they must not be copied from the local machine.
+`dashboard/.env.local.example` IS tracked in Git and is the safe template to
+copy to `.env.local` on the server (never copy the local `.env.local`).
 
 ## Post-Transfer Checks
 

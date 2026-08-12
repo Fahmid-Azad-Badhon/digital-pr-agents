@@ -8,7 +8,7 @@ Defines the future application build and runtime sequence on the Vultr Windows V
 
 ## Future Sequence (each step in its own authorized gate)
 
-1. **Verify Node** — Confirm Node.js 18+ and npm are installed.
+1. **Verify Node** — Confirm Node.js 18.17+ (Next.js 14.2.3 minimum; Node 20 LTS recommended) and npm are installed.
    ```
    node --version
    npm --version
@@ -22,7 +22,9 @@ Defines the future application build and runtime sequence on the Vultr Windows V
 3. **Build dashboard** — `npm run build` (must exit 0).
 4. **Validate paths** — Confirm the app resolves `../scripts`, `../system`,
    `../browser-tools` correctly from the dashboard.
-5. **Start on localhost** — `npm run dev:3002` or `next start -p 3002` bound to 127.0.0.1.
+5. **Start on localhost** — `npm start`, which runs `next start -p 3002 -H 127.0.0.1`
+   and binds private port 3002 to 127.0.0.1 only. Development smoke testing uses
+   `npm run dev:3002` (`next dev -p 3002`).
 6. **Keep app port private** — The app must never bind publicly; no firewall rule opens 3002.
 7. **Add PM2 (later)** — Wrap the start command with PM2 so it survives reboots.
 8. **Add Nginx (later)** — Reverse proxy only at the exposure gate.

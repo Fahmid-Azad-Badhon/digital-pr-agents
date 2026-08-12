@@ -21,7 +21,7 @@ cd "D:\Codex Folder\digital-pr-agents\dashboard"
 npm install
 ```
 
-**Note:** If you see `npm error code ETARGET` about sqlite3, this is normal - the parent folder has workspace configuration. The dashboard uses in-memory state for MVP.
+**Note:** If you see `npm error code ETARGET` about sqlite3, this is normal - the parent folder has workspace configuration. The dashboard persists campaign state under `..\pitch-jobs`; data, logs, and campaign outputs live on the local disk and must be on a persistent volume.
 
 ### 3. Start Development Server
 
@@ -32,10 +32,10 @@ npm run dev
 **Expected Output:**
 ```
 > digital-pr-dashboard@1.0.0 dev
-> next dev -p 3001
+> next dev -p 3002
 
   ▲ Next.js 14.2.3
-  - Local:        http://localhost:3001
+  - Local:        http://localhost:3002
  ✓ Ready in X.Xs
 ```
 
@@ -43,8 +43,18 @@ npm run dev
 
 Open your browser and navigate to:
 ```
-http://localhost:3001
+http://localhost:3002
 ```
+
+### 5. Production (Build + Start)
+
+```powershell
+npm run build
+npm start
+```
+
+`npm start` runs `next start -p 3002 -H 127.0.0.1`, binding the app to
+127.0.0.1 on private port **3002** only.
 
 ---
 
@@ -245,7 +255,7 @@ npm install
 - Ensure all required fields are present in objects
 
 ### Issue: Page shows 404
-**Solution:** Make sure you're accessing `http://localhost:3001` (not 3000)
+**Solution:** Make sure you're accessing `http://localhost:3002`
 
 ### Issue: Styles not loading
 **Solution:** 
@@ -324,7 +334,7 @@ dashboard/
 ## Current Status
 
 ✅ **BUILD SUCCESSFUL** - All 23 pages compile successfully
-✅ **DEVELOPMENT SERVER RUNNING** - http://localhost:3001
+✅ **DEVELOPMENT SERVER RUNNING** - http://localhost:3002
 ✅ **CORE PAGES COMPLETE** - Overview, Campaign, Workflow, Angles, Artifacts, Models, Validation, Logs
 ✅ **SIMULATED WORKFLOW** - Auto-run stages with pause at Angle Selection
 ✅ **DARK PREMIUM UI** - Follows specification with navy sidebar, dark cards, blue primary
@@ -348,4 +358,4 @@ For issues:
 3. Verify all files are in correct locations
 4. Ensure Node.js 18+ is installed (`node --version`)
 
-Dashboard Control Center: **http://localhost:3001**
+Dashboard Control Center: **http://localhost:3002**

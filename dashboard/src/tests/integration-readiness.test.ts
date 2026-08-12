@@ -115,6 +115,31 @@ describe('Integration Readiness Checks', () => {
   });
 });
 
+describe('Canonical Port Contract', () => {
+  const originalEnv = { ...process.env };
+
+  afterAll(() => {
+    process.env = originalEnv;
+  });
+
+  it('defaults to the canonical private production port 3002 for redirect matching', async () => {
+    delete process.env.PORT;
+    delete process.env.NEXT_PUBLIC_PORT;
+    delete process.env.GOOGLE_CLIENT_ID;
+    delete process.env.GOOGLE_CLIENT_SECRET;
+    delete process.env.CHROME_DEBUG_PORT;
+    delete process.env.PUPPETEER_DEBUG_PORT;
+    process.env.GOOGLE_REDIRECT_URI = 'http://localhost:3002/api/integrations/google/callback';
+
+    const { getIntegrationReadiness } = await import('../lib/integrationReadiness');
+    const result = await getIntegrationReadiness();
+
+    expect(result.googleOAuth).toBe('not_configured');
+    expect(result.details.googleOAuth?.error).toBeDefined();
+    expect(result.details.googleOAuth?.error).not.toMatch(/does not match/i);
+  });
+});
+
 describe('Fallback Prevention', () => {
   const originalEnv = { ...process.env };
 

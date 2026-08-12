@@ -55,8 +55,18 @@ npm run dev
 
 4. Open your browser to:
 ```
-http://localhost:3001
+http://localhost:3002
 ```
+
+### Production
+
+```powershell
+npm run build
+npm start
+```
+
+`npm start` binds the app to `127.0.0.1` on private port **3002** via
+`next start -p 3002 -H 127.0.0.1`.
 
 ## Folder Structure
 

@@ -70,8 +70,12 @@ Return firewall and access evidence.
 ```text
 # DPR VULTR GATE: D_DRIVE_INITIALIZATION
 
-Run ops/vultr/Initialize-DPR-DDrive.ps1 on the VM.
-Return volume and folder verification output.
+Disks/volumes confirmed read-only via ops/vultr/Inspect-Windows-Baseline.ps1.
+Run ops/vultr/Initialize-DPR-DDrive.ps1 -ExpectedDiskSizeGB <GB> on the VM,
+where <GB> is the exact size of the ordered storage (Block Storage or plan disk).
+The script will refuse to initialize a RAW disk that does not match that size,
+and it will abort if more than one RAW disk matches (attach only the intended
+volume before re-running). Return volume and folder verification output.
 ```
 
 ### 6. Windows Baseline Validation

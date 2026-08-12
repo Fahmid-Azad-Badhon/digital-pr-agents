@@ -25,7 +25,7 @@ created.
 | 11 | Backups / snapshots | Enable Vultr backups or scheduled snapshots | Yes | Planned |
 | 12 | Block Storage decision | Decide: plan disk vs. attached Block Storage for `D:` | Yes | Open decision |
 | 13 | Chrome support | Google Chrome installable/stable on the VM | Yes | Future gate |
-| 14 | Node.js support | Node.js 18+ installable on Windows | Yes | Future gate |
+| 14 | Node.js support | Node.js 18.17+ installable on Windows (Node 20 LTS recommended) | Yes | Future gate |
 | 15 | PM2 support | PM2 installable as a service (recommended later) | No | Future gate |
 | 16 | Nginx support | Nginx for Windows only when reverse proxy is needed | No | Deferred |
 | 17 | Manual secrets entry | All secrets entered manually on the VM, never pasted | Yes | Deferred |
