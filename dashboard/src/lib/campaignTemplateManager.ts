@@ -11,8 +11,8 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-const TEMPLATES_DIR = 'D:\\Codex Folder\\digital-pr-agents\\templates\\campaigns';
-const CAMPAIGNS_DIR = 'D:\\Codex Folder\\digital-pr-agents\\pitch-jobs';
+const TEMPLATES_DIR = path.join(process.cwd(), '..', 'templates', 'campaigns');
+const CAMPAIGNS_DIR = path.join(process.cwd(), '..', 'pitch-jobs');
 
 // =============================================================================
 // TYPES

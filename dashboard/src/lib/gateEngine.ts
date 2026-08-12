@@ -13,8 +13,8 @@ import path from 'path';
 import { getApprovalProgressionDecision, type ProvenanceStatus } from '@/lib/provenance';
 import { validateJsonFileAgainstSchema, JsonSchemaValidationError } from '@/lib/jsonSchemaValidator';
 
-const CAMPAIGNS_DIR = 'D:\\Codex Folder\\digital-pr-agents\\pitch-jobs';
-const SYSTEM_DIR = 'D:\\Codex Folder\\digital-pr-agents\\system';
+const CAMPAIGNS_DIR = path.join(process.cwd(), '..', 'pitch-jobs');
+const SYSTEM_DIR = path.join(process.cwd(), '..', 'system');
 
 export interface GateResult {
   gateId: string;

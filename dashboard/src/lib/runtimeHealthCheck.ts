@@ -15,9 +15,9 @@ import path from 'path';
 import { detectBrainDrift, listDeprecatedBrainFiles } from './brainResolver.js';
 import { validateAllStages } from './brainResolver.js';
 
-const BRAIN_DIR = 'D:\\Codex Folder\\digital-pr-agents\\brain';
-const SCHEMAS_DIR = 'D:\\Codex Folder\\digital-pr-agents\\schemas';
-const CAMPAIGN_ROOT = 'D:\\Codex Folder\\digital-pr-agents\\pitch-jobs';
+const BRAIN_DIR = path.join(process.cwd(), '..', 'brain');
+const SCHEMAS_DIR = path.join(process.cwd(), '..', 'schemas');
+const CAMPAIGN_ROOT = path.join(process.cwd(), '..', 'pitch-jobs');
 
 export interface HealthCheckResult {
   status: 'healthy' | 'warning' | 'critical';

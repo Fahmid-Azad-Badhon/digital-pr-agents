@@ -5,6 +5,7 @@ import { FileText, Database, CheckCircle, AlertCircle, Loader2, Brain, TrendingU
 import Link from 'next/link'
 import StageHeader from '@/components/StageHeader'
 import { useData } from '@/context/DataContext'
+import { apiFetch } from '@/lib/clientApi'
 
 // Internal Data Map Types
 interface ExtractedStatistic {
@@ -309,12 +310,12 @@ export default function DataExtractionPage() {
     setExtractionStatus(prev => ({ ...prev, status: 'extracting', completionPercentage: 50 }))
     setLoading(true)
     try {
-      const res = await fetch(`/api/campaigns/${currentCampaign.id}/extract`, {
+      const res = await apiFetch(`/api/campaigns/${currentCampaign.id}/extract`, {
         method: 'POST'
       })
       if (res.ok) {
         setAutomationMessage('Stage 2 completed. Auto-routing workflow to next eligible stage...')
-        await fetch(`/api/campaigns/${currentCampaign.id}/auto-progress`, {
+        await apiFetch(`/api/campaigns/${currentCampaign.id}/auto-progress`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ mode: 'pre_pitch' }),

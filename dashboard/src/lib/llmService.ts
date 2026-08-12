@@ -23,6 +23,12 @@ import { isZombieResponse } from './llm/utils/zombieDetector';
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || process.env.OPENCODE_API_KEY || 'free';
 const OPENROUTER_BASE = 'https://openrouter.ai/api/v1';
 
+const DASHBOARD_ROOT = process.cwd();
+const DATA_ROOT = path.join(DASHBOARD_ROOT, 'data');
+const LOGS_ROOT = path.join(DASHBOARD_ROOT, 'logs');
+const PROMPTS_ROOT = path.join(DASHBOARD_ROOT, 'prompts');
+const PERSONAS_DIR = path.join(PROMPTS_ROOT, 'personas');
+
 interface LLMConfig {
   role: string;
   model: string;
@@ -301,7 +307,7 @@ export async function callLLM(prompt: string): Promise<string> {
 // Extracts <thought> tags for debugging, strips from final output
 // =============================================================================
 
-const REASONING_LOG_DIR = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\logs'
+const REASONING_LOG_DIR = path.join(LOGS_ROOT)
 
 // =============================================================================
 // Dynamic Temperature Scaling
@@ -707,7 +713,7 @@ export function validateHandover(contract: keyof typeof HandoverContracts, data:
 }
 
 // Immutable Snapshot Save
-const SNAPSHOT_DIR = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\snapshots'
+const SNAPSHOT_DIR = path.join(DASHBOARD_ROOT, 'snapshots')
 
 export async function saveHandoverSnapshot(
   campaignId: string,
@@ -810,7 +816,7 @@ export interface GoldenExample {
   successCount: number;
 }
 
-const GOLDEN_EXAMPLES_FILE = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\data\\golden-examples.json'
+const GOLDEN_EXAMPLES_FILE = path.join(DATA_ROOT, 'golden-examples.json')
 
 export function storeGoldenExample(
   campaignType: string,
@@ -892,7 +898,7 @@ export interface Correction {
   approvedBy: string; // 'human' or 'auto'
 }
 
-const CORRECTIONS_FILE = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\data\\corrections.json'
+const CORRECTIONS_FILE = path.join(DATA_ROOT, 'corrections.json')
 
 export function storeCorrection(
   stage: string,
@@ -959,7 +965,7 @@ export interface AnglePreference {
   popularityScore: number;
 }
 
-const PREFERENCES_FILE = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\data\\angle-preferences.json'
+const PREFERENCES_FILE = path.join(DATA_ROOT, 'angle-preferences.json')
 
 export function recordAngleSelection(campaignId: string, selectedAngles: string[], allAngles: string[]): void {
   try {
@@ -1038,7 +1044,7 @@ export interface PromptOptimization {
   status: 'pending_review' | 'approved' | 'rejected';
 }
 
-const OPTIMIZATIONS_FILE = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\data\\prompt-optimizations.json'
+const OPTIMIZATIONS_FILE = path.join(DATA_ROOT, 'prompt-optimizations.json')
 
 export function suggestPromptOptimization(
   stage: string,
@@ -1099,8 +1105,8 @@ export interface HumanCorrection {
   timestamp: string;
 }
 
-const CORRECTIONS_LOG_FILE = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\data\\human-corrections.json'
-const LEARNED_RULES_FILE = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\data\\learned-rules.json'
+const CORRECTIONS_LOG_FILE = path.join(DATA_ROOT, 'human-corrections.json')
+const LEARNED_RULES_FILE = path.join(DATA_ROOT, 'learned-rules.json')
 
 export interface LearnedRules {
   patternsFound: string[];
@@ -1217,7 +1223,7 @@ export function injectLearnedRules(prompt: string): string {
 }
 
 // Negative Memory (Rejections)
-const REJECTIONS_FILE = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\data\\rejected-pitches.json'
+const REJECTIONS_FILE = path.join(DATA_ROOT, 'rejected-pitches.json')
 
 export function storeRejectedPitch(campaignId: string, pitch: string, reason: string): void {
   try {
@@ -1263,7 +1269,7 @@ export interface FeedbackPayload {
   userNote?: string;
 }
 
-const LEARNED_RULES_DB = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\data\\learned-rules.json'
+const LEARNED_RULES_DB = path.join(DATA_ROOT, 'learned-rules.json')
 
 
 export async function processShadowWinner(payload: FeedbackPayload): Promise<void> {
@@ -1327,7 +1333,7 @@ export async function processShadowWinner(payload: FeedbackPayload): Promise<voi
     }
     
     let auditTrail: any[] = []
-    const auditPath = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\data\\rule-audit.json'
+    const auditPath = path.join(DATA_ROOT, 'rule-audit.json')
     if (fs.existsSync(auditPath)) {
       auditTrail = JSON.parse(fs.readFileSync(auditPath, 'utf-8'))
     }
@@ -1488,7 +1494,7 @@ export interface RejectedPattern {
   timestamp: string;
 }
 
-const NEGATIVE_PATTERNS_FILE = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\data\\negative-patterns.json'
+const NEGATIVE_PATTERNS_FILE = path.join(DATA_ROOT, 'negative-patterns.json')
 
 export function storeNegativePattern(stage: string, content: string, reason: string, campaignId: string): void {
   const pattern: RejectedPattern = {
@@ -1583,7 +1589,7 @@ export interface WeightedCorrection {
   timestamp: string;
 }
 
-const WEIGHTED_CORRECTIONS_FILE = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\data\\weighted-corrections.json'
+const WEIGHTED_CORRECTIONS_FILE = path.join(DATA_ROOT, 'weighted-corrections.json')
 
 export function storeWeightedCorrection(
   stage: string,
@@ -1664,7 +1670,7 @@ export interface PipelineGap {
   frequency: number;
 }
 
-const PIPELINE_GAPS_FILE = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\data\\pipeline-gaps.json'
+const PIPELINE_GAPS_FILE = path.join(DATA_ROOT, 'pipeline-gaps.json')
 
 export function detectPipelineGap(fromStage: string, toStage: string, missingType: string): void {
   try {
@@ -1702,7 +1708,7 @@ export function getPipelineRequirements(): string[] {
 }
 
 // 7. AGENT PERSONA EVOLUTION
-const PERSONA_DIR = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\prompts\\personas'
+const PERSONA_DIR = path.join(PERSONAS_DIR)
 
 export async function evolveAgentPersona(stage: string): Promise<string> {
   console.log('[Persona Evolver] Analyzing recent wins for ' + stage + '...')
@@ -1710,7 +1716,7 @@ export async function evolveAgentPersona(stage: string): Promise<string> {
   try {
     const fs = require('fs')
     const personaPath = path.join(PERSONA_DIR, stage + '-current.txt')
-    const winsPath = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\data\\golden-examples.json'
+    const winsPath = path.join(DATA_ROOT, 'golden-examples.json')
     
     let currentPersona = 'Professional PR Assistant'
     if (fs.existsSync(personaPath)) {
@@ -1844,7 +1850,7 @@ export interface NeverAgainRule {
   neverAgainRule: string;
 }
 
-const BLACKLIST_DIR = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\prompts\\personas'
+const BLACKLIST_DIR = path.join(PERSONAS_DIR)
 
 export async function runPersonaPostMortem(stage: string, failedContent: string): Promise<NeverAgainRule | null> {
   console.log('[Post-Mortem] Analyzing failed evolution for ' + stage + '...')
@@ -1949,7 +1955,7 @@ export const STAGE_ANCHORS: Record<string, string[]> = {
   ]
 }
 
-export const IMMUTABLE_ANCHORS_FILE = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\prompts\\anchors.json'
+export const IMMUTABLE_ANCHORS_FILE = path.join(PROMPTS_ROOT, 'anchors.json')
 
 export function loadImmutableAnchors(): { GLOBAL: string[]; [key: string]: string[] } {
   try {
@@ -2003,7 +2009,7 @@ export interface ValidationResult {
   warnings: string[];
 }
 
-const VALIDATION_LOG_FILE = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\logs\\validation-failures.json'
+const VALIDATION_LOG_FILE = path.join(LOGS_ROOT, 'validation-failures.json')
 
 export class ConstraintValidator {
   async validate(stage: string, output: string): Promise<ValidationResult> {
@@ -2194,7 +2200,7 @@ export class CitationValidator {
       // Try to load from file
       try {
         const fs = require('fs')
-        const s4Path = 'D:\\Codex Folder\\digital-pr-agents\\campaigns\\' + campaignId + '\\04-analysis.json'
+        const s4Path = path.join(DASHBOARD_ROOT, '..', 'pitch-jobs', campaignId, '04-analysis.json')
         if (fs.existsSync(s4Path)) {
           const data = JSON.parse(fs.readFileSync(s4Path, 'utf-8'))
           validIds = [...(data.verified_findings?.map((f: any) => f.id) || []), ...(data.insight_mapping?.map((m: any) => m.id) || [])]
@@ -2306,7 +2312,7 @@ export async function runFullFactCheck(campaignId: string, pitchText: string, s4
   if (!s4Data) {
     try {
       const fs = require('fs')
-      const s4Path = 'D:\\Codex Folder\\digital-pr-agents\\campaigns\\' + campaignId + '\\04-analysis.json'
+      const s4Path = path.join(DASHBOARD_ROOT, '..', 'pitch-jobs', campaignId, '04-analysis.json')
       if (fs.existsSync(s4Path)) {
         s4Data = JSON.parse(fs.readFileSync(s4Path, 'utf-8'))
       }
@@ -2619,7 +2625,7 @@ export function createJournalistHandover(
 // Domain Authority-based ranking
 // =============================================================================
 
-const DA_CACHE_FILE = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\data\\da-cache.json'
+const DA_CACHE_FILE = path.join(DATA_ROOT, 'da-cache.json')
 
 export interface TieredJournalist {
   journalist_name: string
@@ -3240,7 +3246,7 @@ interface TokenUsage {
   qwen: number;
 }
 
-const TOKEN_FILE = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\data\\token-usage.json'
+const TOKEN_FILE = path.join(DATA_ROOT, 'token-usage.json')
 
 const DAILY_LIMITS = {
   nemotron: 100000,  // 100k tokens/day free tier
@@ -3533,7 +3539,7 @@ export interface CampaignState {
   history?: StageSnapshot[];
 }
 
-const STATE_FILE = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\data\\campaign-states.json'
+const STATE_FILE = path.join(DATA_ROOT, 'campaign-states.json')
 
 export function loadCampaignState(campaignId: string): CampaignState | null {
   try {

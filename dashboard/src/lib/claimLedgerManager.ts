@@ -12,8 +12,8 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-const CAMPAIGNS_DIR = 'D:\\Codex Folder\\digital-pr-agents\\pitch-jobs';
-const SYSTEM_DIR = 'D:\\Codex Folder\\digital-pr-agents\\system';
+const CAMPAIGNS_DIR = path.join(process.cwd(), '..', 'pitch-jobs');
+const SYSTEM_DIR = path.join(process.cwd(), '..', 'system');
 
 export interface Claim {
   claimId: string;

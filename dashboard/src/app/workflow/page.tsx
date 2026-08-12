@@ -358,11 +358,18 @@ export default function WorkflowPage() {
     setActionMessage(null);
 
     try {
-      const payload = await apiRequest<{ stdout?: string }>(`/api/campaigns/${encodeURIComponent(currentCampaign.id)}/scripts`, {
+      const payload = await apiRequest<{ success?: boolean; stdout?: string; stderr?: string }>(`/api/campaigns/${encodeURIComponent(currentCampaign.id)}/scripts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action }),
       });
+
+      if (payload?.success === false) {
+        const stderr = payload.stderr ? ` | ${String(payload.stderr).slice(0, 160)}` : '';
+        setActionError(`Script ${action} failed (exit code).${stderr}`);
+        addLog({ level: 'error', source: 'script-runner', message: `Script ${action} failed.${stderr}` });
+        return;
+      }
 
       const stdout = payload?.stdout ? ` | ${String(payload.stdout).slice(0, 160)}` : '';
       const message = `Script ${action} finished.${stdout}`;

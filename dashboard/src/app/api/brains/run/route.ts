@@ -36,6 +36,27 @@ export async function POST(request: NextRequest) {
   const baseUrl = process.env.DASHBOARD_BASE_URL || 'http://localhost:3002';
   const token = process.env.DASHBOARD_API_TOKEN || '';
 
+  const scriptExists = await fs.stat(scriptPath).then(stat => stat.isFile()).catch(() => false);
+  if (!scriptExists) {
+    await writeApiAuditLog(request, {
+      level: 'error',
+      source: 'brain-worker',
+      message: `Brain worker spawn aborted: script missing at ${scriptPath}`,
+      fields: {
+        campaignId,
+        actor: 'dashboard_user',
+        action: 'spawn_brain_worker',
+        extra: { brainKey },
+      },
+    });
+    return fail(
+      'WORKER_SCRIPT_MISSING',
+      'The brain worker script (scripts/run-brain-worker.mjs) is not installed on this host yet.',
+      { status: 503 },
+      { scriptPath, brainKey, campaignId }
+    );
+  }
+
   await fs.mkdir(JOBS_DIR, { recursive: true });
 
   const child = spawn(process.execPath, [

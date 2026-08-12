@@ -10,7 +10,7 @@ import { createWeakEtag, wasNotModified } from '@/lib/httpCaching';
 import { CampaignCreateInputSchema } from '@/lib/inputSchemas';
 import { validateInput } from '@/lib/schemaValidation';
 import { getCampaignListState } from '@/lib/campaignStateService';
-import { PITCH_JOBS_ROOT } from '@/lib/requestGuard';
+import { PITCH_JOBS_ROOT, resolveCampaignPath } from '@/lib/requestGuard';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -154,8 +154,13 @@ export async function DELETE(request: NextRequest) {
   if (!campaignId) {
     return fail('CAMPAIGN_ID_REQUIRED', 'Campaign ID required.', { status: 400 });
   }
-  
-  const campaignPath = path.join(PITCH_JOBS_ROOT, campaignId);
+
+  let campaignPath: string;
+  try {
+    campaignPath = resolveCampaignPath(campaignId);
+  } catch {
+    return fail('INVALID_CAMPAIGN_ID', 'Invalid campaign ID format.', { status: 400 });
+  }
   
   try {
     await fs.access(campaignPath);
@@ -198,32 +203,11 @@ export async function POST(request: NextRequest) {
     );
   }
   const data = parsedInput.data;
-  
-  const preflight = await runPreFlightChecks();
-  
-  if (!preflight.canProceed) {
-    return fail(
-      'PRE_FLIGHT_FAILED',
-      preflight.blockReason || 'Pre-flight checks failed.',
-      { status: 400 },
-      {
-        preflightReport: formatPreFlightReport(preflight),
-        failedChecks: preflight.checks.filter((c: any) => c.status === 'fail'),
-      }
-    );
-  }
-
   const campaignId = data.slug || data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') || crypto.randomUUID();
-  
-  console.log('[CREATE CAMPAIGN] Starting preflight checks for:', campaignId);
-  
-  // Don't check campaign-specific files for NEW campaigns - folder doesn't exist yet
+
   const preflightWithCampaign = await runPreFlightChecks();
-  
-  console.log('[CREATE CAMPAIGN] Preflight result:', JSON.stringify(preflightWithCampaign.checks.map((c: any) => ({ check: c.check, status: c.status, severity: c.severity }))));
-  
+
   if (!preflightWithCampaign.canProceed) {
-    console.log('[CREATE CAMPAIGN] Preflight failed:', preflightWithCampaign.blockReason);
     return fail(
       'PRE_FLIGHT_FAILED',
       preflightWithCampaign.blockReason || 'Pre-flight checks failed.',

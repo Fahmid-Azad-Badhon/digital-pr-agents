@@ -101,14 +101,24 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       await atomicWriteFile(join(pitchJobDir, 'source-files', 'study-inputs', 'raw-study-copy.md'), data.rawStudy);
     }
 
+    const stageStatePath = join(pitchJobDir, 'stage-state.json');
+    const existingStageState = await fs.readFile(stageStatePath, 'utf-8')
+      .then(content => JSON.parse(content) as { currentStage?: number; status?: string })
+      .catch(() => null);
+
     await atomicWriteFile(
-      join(pitchJobDir, 'stage-state.json'),
+      stageStatePath,
       JSON.stringify(
-        {
-          currentStage: 1,
-          status: 'running',
-          updatedAt: new Date().toISOString(),
-        },
+        existingStageState
+          ? {
+              ...existingStageState,
+              updatedAt: new Date().toISOString(),
+            }
+          : {
+              currentStage: 1,
+              status: 'running',
+              updatedAt: new Date().toISOString(),
+            },
         null,
         2
       )

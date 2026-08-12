@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { fail, ok } from '@/lib/apiResponse';
-import { PITCH_JOBS_ROOT } from '@/lib/requestGuard';
+import { resolveCampaignPath } from '@/lib/requestGuard';
 import { validateStagePitchGovernance } from '@/lib/pitchGovernanceValidator';
 
 type ValidationStatus = 'passed' | 'failed' | 'warning' | 'pending';
@@ -63,7 +63,7 @@ export async function GET(request: Request) {
       return fail('CAMPAIGN_ID_REQUIRED', 'campaignId is required.', { status: 400 });
     }
 
-    const campaignPath = path.join(PITCH_JOBS_ROOT, campaignId);
+    const campaignPath = resolveCampaignPath(campaignId);
     const stageStatePath = path.join(campaignPath, 'stage-state.json');
     const validationPath = path.join(campaignPath, '13-validation-report.json');
     const finalPackagePath = path.join(campaignPath, '14-final-formatted-package.md');

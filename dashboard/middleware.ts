@@ -1,6 +1,7 @@
 import { NextFetchEvent, NextRequest, NextResponse } from 'next/server';
 import { evaluateMutationAuth } from '@/lib/authGuard';
 import { checkRateLimit } from '@/lib/rateLimiter';
+import { safeTimingEqual } from '@/lib/sessionAuth';
 
 const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const INTERNAL_AUDIT_PATH = '/api/_internal/mutation-audit';
@@ -81,7 +82,7 @@ function hasValidCsrfToken(request: NextRequest) {
   const csrfCookie = request.cookies.get(CSRF_COOKIE_NAME)?.value?.trim();
   const csrfHeader = request.headers.get('x-csrf-token')?.trim();
   if (!csrfCookie || !csrfHeader) return false;
-  return csrfCookie === csrfHeader;
+  return safeTimingEqual(csrfCookie, csrfHeader);
 }
 
 async function emitMutationAudit(request: NextRequest, requestId: string) {

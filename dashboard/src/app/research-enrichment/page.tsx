@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import StageHeader from '@/components/StageHeader';
 import clsx from 'clsx';
+import { apiFetch } from '@/lib/clientApi';
 
 interface ResearchData {
   campaign?: {
@@ -111,7 +112,7 @@ export default function ResearchEnrichmentPage() {
     setIsAutoProgressing(true);
     setAutoProgressNote('Automation active: validating and handing off to next stage if passed.');
     try {
-      const res = await fetch(`/api/campaigns/${campaignId}/auto-progress`, {
+      const res = await apiFetch(`/api/campaigns/${campaignId}/auto-progress`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode: 'pre_pitch' }),

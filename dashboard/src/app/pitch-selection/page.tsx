@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import StageHeader from '@/components/StageHeader';
+import { apiFetch } from '@/lib/clientApi';
 
 interface AngleWithMeta {
   id: string;
@@ -162,7 +163,7 @@ export default function PitchSelectionPage() {
     setIsSubmittingApproval(true);
     try {
       const selectedPrimary = selectedPitchAngles[0];
-      await fetch(`/api/campaigns/${currentCampaign.id}/human-approval`, {
+      await apiFetch(`/api/campaigns/${currentCampaign.id}/human-approval`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -173,7 +174,7 @@ export default function PitchSelectionPage() {
         }),
       });
 
-      await fetch(`/api/campaigns/${currentCampaign.id}/auto-progress`, {
+      await apiFetch(`/api/campaigns/${currentCampaign.id}/auto-progress`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode: 'post_pitch' }),

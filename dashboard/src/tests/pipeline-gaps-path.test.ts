@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
+import path from 'path';
 import { detectPipelineGap, getPipelineRequirements } from '@/lib/llmService';
 
 describe('pipeline-gaps path regression', () => {
-  const expectedPath = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\data\\pipeline-gaps.json';
+  const expectedPath = path.join(process.cwd(), 'data', 'pipeline-gaps.json');
 
   beforeEach(() => {
     vi.restoreAllMocks();

@@ -21,7 +21,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-const CAMPAIGN_ROOT = 'D:\\Codex Folder\\digital-pr-agents\\pitch-jobs';
+const CAMPAIGN_ROOT = path.join(process.cwd(), '..', 'pitch-jobs');
 
 export interface CampaignFolderStructure {
   root: string;

@@ -30,8 +30,8 @@ import { type ApprovalSource, getApprovalProgressionDecision } from './provenanc
 // CONFIGURATION
 // =============================================================================
 
-const PROMPTS_DIR = 'D:\\Codex Folder\\digital-pr-agents\\dashboard\\prompts\\campaign';
-const CAMPAIGNS_DIR = 'D:\\Codex Folder\\digital-pr-agents\\pitch-jobs';
+const PROMPTS_DIR = path.join(process.cwd(), 'prompts', 'campaign');
+const CAMPAIGNS_DIR = path.join(process.cwd(), '..', 'pitch-jobs');
 
 // =============================================================================
 // STAGE PROMPT LOADING

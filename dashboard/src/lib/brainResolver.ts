@@ -15,7 +15,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-const BRAIN_DIR = 'D:\\Codex Folder\\digital-pr-agents\\brain';
+const BRAIN_DIR = path.join(process.cwd(), '..', 'brain');
 
 export interface BrainManifest {
   version: string;
@@ -141,7 +141,7 @@ export async function validateBrainStack(stageId: string): Promise<BrainValidati
   
   const deprecatedPaths = manifest.deprecatedBrainPaths || [];
   for (const deprecatedPath of deprecatedPaths) {
-    const fullDeprecatedPath = path.join('D:\\Codex Folder\\digital-pr-agents', deprecatedPath);
+    const fullDeprecatedPath = path.join(process.cwd(), '..', deprecatedPath);
     try {
       const files = await fs.readdir(fullDeprecatedPath);
       if (files.length > 0) {
@@ -182,8 +182,8 @@ export async function detectBrainDrift(): Promise<{
   ];
   
   const legacyPaths = [
-    'D:\\Codex Folder\\digital-pr-agents\\dashboard\\src\\brain',
-    'D:\\Codex Folder\\digital-pr-agents\\dashboard\\skills\\agent-brains'
+    path.join(process.cwd(), 'src', 'brain'),
+    path.join(process.cwd(), 'skills', 'agent-brains')
   ];
   
   for (const canonical of canonicalBrainFiles) {
@@ -231,7 +231,7 @@ export async function listDeprecatedBrainFiles(): Promise<string[]> {
   const deprecatedFiles: string[] = [];
   
   for (const deprecatedPath of manifest.deprecatedBrainPaths) {
-    const fullPath = path.join('D:\\Codex Folder\\digital-pr-agents', deprecatedPath);
+    const fullPath = path.join(process.cwd(), '..', deprecatedPath);
     try {
       const files = await fs.readdir(fullPath);
       for (const file of files) {

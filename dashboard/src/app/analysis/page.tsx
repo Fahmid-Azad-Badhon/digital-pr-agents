@@ -8,6 +8,7 @@ import {
   Shield, Brain, Activity
 } from 'lucide-react';
 import StageHeader from '@/components/StageHeader';
+import { apiFetch } from '@/lib/clientApi';
 
 export default function AnalysisPage() {
   const { currentCampaign, stages } = useData();
@@ -47,7 +48,7 @@ export default function AnalysisPage() {
     setIsAutoProgressing(true);
     setAutoProgressNote('Automation active: validating and handing off to Angle Generation if passed.');
     try {
-      const res = await fetch(`/api/campaigns/${campaignId}/auto-progress`, {
+      const res = await apiFetch(`/api/campaigns/${campaignId}/auto-progress`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode: 'pre_pitch' }),

@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { AuthRole, getSessionTokenFromRequest, verifySessionToken } from '@/lib/sessionAuth';
+import { AuthRole, getSessionTokenFromRequest, verifySessionToken, safeTimingEqual } from '@/lib/sessionAuth';
 
 function extractBearerToken(authorizationHeader: string | null): string | null {
   if (!authorizationHeader) {
@@ -12,6 +12,12 @@ function extractBearerToken(authorizationHeader: string | null): string | null {
 function shouldRequireAuth(): boolean {
   const explicit = (process.env.DASHBOARD_AUTH_REQUIRED || '').toLowerCase();
   if (explicit === 'true') {
+    return true;
+  }
+  if (explicit === 'false') {
+    return false;
+  }
+  if (process.env.NODE_ENV === 'production') {
     return true;
   }
   return Boolean(process.env.DASHBOARD_API_TOKEN);
@@ -63,7 +69,7 @@ export function evaluateMutationAuth(request: NextRequest): { allowed: true } | 
     : (process.env.DASHBOARD_API_TOKEN_ROLE || 'admin').toLowerCase() === 'viewer'
       ? 'viewer'
       : 'admin') as AuthRole;
-  const role = session?.role || (token === expectedToken ? primaryRole : tokenRoles[token]);
+  const role = session?.role || (safeTimingEqual(token, expectedToken) ? primaryRole : tokenRoles[token]);
 
   if (!role) {
     return { allowed: false, reason: 'Missing or invalid API token.' };

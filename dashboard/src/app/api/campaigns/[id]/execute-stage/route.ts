@@ -526,10 +526,10 @@ async function executeStage4(campaignPath: string) {
   // STRICT MODE: Block if no verified findings (only fallback content)
   if (STRICT_MODE && !hasRealVerifiedFindings) {
     const dependencyError: DependencyFailure = {
-      stage: 3,
-      missing: ['verified findings from S2'],
-      message: 'S3 blocked in strict mode: no verified findings from real data extraction',
-      requiredAction: 'Provide valid S2 output with verified findings or disable strict mode for development',
+      stage: 4,
+      missing: ['verified findings from S3'],
+      message: 'S4 blocked in strict mode: no verified findings from real data extraction',
+      requiredAction: 'Provide valid S3 output with verified findings or disable strict mode for development',
     };
     throw Object.assign(new Error(dependencyError.message), { dependencyError });
   }
@@ -537,10 +537,10 @@ async function executeStage4(campaignPath: string) {
   // Non-strict: Block fallback in production unless explicitly enabled for dev testing
   if (!hasRealVerifiedFindings && !ALLOW_DEV_MOCK_ARTIFACTS) {
     const dependencyError: DependencyFailure = {
-      stage: 3,
-      missing: ['verified findings from S2'],
-      message: 'S3 blocked: no verified findings and fallback generation disabled in production.',
-      requiredAction: 'Provide valid S2 output or set ALLOW_DEV_MOCK_ARTIFACTS=true for dev testing only.',
+      stage: 4,
+      missing: ['verified findings from S3'],
+      message: 'S4 blocked: no verified findings and fallback generation disabled in production.',
+      requiredAction: 'Provide valid S3 output or set ALLOW_DEV_MOCK_ARTIFACTS=true for dev testing only.',
     };
     throw Object.assign(new Error(dependencyError.message), { dependencyError });
   }

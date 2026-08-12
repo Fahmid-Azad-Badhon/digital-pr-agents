@@ -11,6 +11,13 @@ const TEST_ROOT = vi.hoisted(() => {
 
 vi.mock('@/lib/requestGuard', () => ({
   PITCH_JOBS_ROOT: TEST_ROOT,
+  assertValidCampaignId: (value: unknown) => {
+    if (typeof value !== 'string') {
+      throw new Error('Invalid campaignId format.');
+    }
+    return value;
+  },
+  resolveCampaignPath: (campaignId: string) => path.join(TEST_ROOT, campaignId),
 }));
 
 vi.mock('@/lib/logger', () => ({
@@ -177,6 +184,12 @@ describe('resume route — provenance gate', () => {
     expect(body.success).toBe(true);
     expect(body.data.selectedAngle).toBe('My Angle');
     expect(body.data.provenanceWarning).toBeUndefined();
+    const stageState = await fs.readFile(
+      path.join(TEST_ROOT, 'verified-angle', 'stage-state.json'),
+      'utf-8',
+    ).then(content => JSON.parse(content) as { currentStage?: number; status?: string });
+    expect(stageState.currentStage).toBe(8);
+    expect(stageState.status).toBe('running');
   });
 
   it('approved unknown + angle — success (legacy compat)', async () => {

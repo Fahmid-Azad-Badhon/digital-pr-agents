@@ -164,7 +164,7 @@ export async function POST(
       stderr: result.stderr,
       command: result.command,
     }, {
-      status: isSuccess ? 200 : 500,
+      status: 200,
       headers: {
         'X-RateLimit-Remaining': String(limit.remaining),
         'X-RateLimit-Reset': String(limit.resetAt),

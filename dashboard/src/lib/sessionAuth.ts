@@ -43,6 +43,16 @@ function signPayload(payloadPart: string, secret: string) {
     .digest('base64url');
 }
 
+export function safeTimingEqual(a: string, b: string): boolean {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length === 0 || b.length === 0) {
+    return a === b;
+  }
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
 export function issueSessionToken(subject: string, role: AuthRole): { token: string; expiresAt: number } {
   const secret = getSessionSecret();
   if (!secret) {
@@ -73,7 +83,7 @@ export function verifySessionToken(token: string): SessionPayload | null {
   if (!payloadPart || !sigPart) return null;
 
   const expectedSig = signPayload(payloadPart, secret);
-  if (expectedSig !== sigPart) return null;
+  if (!safeTimingEqual(expectedSig, sigPart)) return null;
 
   const payloadRaw = Buffer.from(payloadPart, 'base64url').toString('utf-8');
   const payload = parseJson<SessionPayload>(payloadRaw);
